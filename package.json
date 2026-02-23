@@ -1,0 +1,22 @@
+{
+  "scripts": {
+    "dev": "cd Dating-App && npm run dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "react-router-dom": "^7.13.0",
+    "tailwindcss": "^4.1.18"
+  },
+  "scriptsx": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+  },
+  "name": "dating-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
