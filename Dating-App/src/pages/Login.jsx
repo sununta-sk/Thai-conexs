@@ -78,6 +78,16 @@ export default function Login() {
   );
 }
 
-const inputStyle = { padding: '15px', borderRadius: '12px', border: '1px solid #ddd', fontSize: '16px', background: '#fdfdfd', outline: 'none' };
+// แก้ไขแค่สีตัวอักษรตรงนี้ครับพี่
+const inputStyle = { 
+  padding: '15px', 
+  borderRadius: '12px', 
+  border: '1px solid #ddd', 
+  fontSize: '16px', 
+  background: '#fdfdfd', 
+  color: '#333333', // เพิ่มตรงนี้เพื่อให้เห็นตัวอักษรเทาเข้มชัดเจน
+  outline: 'none' 
+};
+
 const btnStyle = { padding: '16px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer' };
 const googleBtnStyle = { padding: '15px', borderRadius: '30px', border: '1px solid #ddd', background: '#fff', color: '#444', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };

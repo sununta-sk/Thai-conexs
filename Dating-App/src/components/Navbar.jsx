@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import NotificationBell from "../components/NotificationBell";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export default function Navbar() {
         <span style={{ display: 'block', fontSize: '24px' }}>👤</span>
         <span style={{ fontSize: '10px' }}>Profile</span>
       </button>
+      <NotificationBell />
     </div>
   );
 }

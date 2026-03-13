@@ -1,108 +1,260 @@
+// src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import AdminLayout from '../components/AdminLayout';
+import { useAdminAuth } from '../hooks/useAdminAuth';
 
 export default function AdminDashboard() {
-  const [profiles, setProfiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [revenueStats, setRevenueStats] = useState({ totalRevenue: 0, commissionPending: 0, conversionRate: 0 });
+  const navigate = useNavigate();
+  const { can } = useAdminAuth();
+  const [loading, setLoading]   = useState(true);
+  const [stats, setStats]       = useState({ grossRevenue: 0, activeSubscriptions: 0, totalUsers: 0, openTickets: 0 });
+  const [recentTickets, setRecentTickets]   = useState([]);
+  const [recentAffiliates, setRecentAffiliates] = useState([]);
+  const [planBreakdown, setPlanBreakdown]   = useState([]);
 
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  async function fetchAdminData() {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from('profiles').select('*');
-      if (error) throw error;
-      if (data) {
-        setProfiles(data);
-        
-        // --- ส่วนคำนวณ Phase 3 ---
-        const totalRev = data.reduce((sum, u) => sum + (Number(u.total_spent) || 0), 0);
-        const totalComm = data.reduce((sum, u) => sum + (Number(u.commission_balance) || 0), 0);
-        const premiumCount = data.filter(u => u.subscription_plan !== 'free').length;
-        
-        setRevenueStats({
-          totalRevenue: totalRev,
-          commissionPending: totalComm,
-          conversionRate: data.length > 0 ? ((premiumCount / data.length) * 100).toFixed(1) : 0
-        });
-      }
-    } catch (err) {
-      console.error("Error:", err.message);
-    } finally {
-      setLoading(false);
-    }
+  async function fetchAll() {
+    setLoading(true);
+    await Promise.all([fetchStats(), fetchTickets(), fetchAffiliates(), fetchPlans()]);
+    setLoading(false);
   }
 
+  async function fetchStats() {
+    try {
+      // Total users จาก profiles
+      const { count: userCount } = await supabase
+        .from('profiles').select('*', { count: 'exact', head: true });
+
+      // Active subscriptions
+      const { count: subCount } = await supabase
+        .from('user_subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      // Gross revenue
+      const { data: revData } = await supabase
+        .from('user_subscriptions')
+        .select('amount_paid')
+        .eq('status', 'active');
+      const gross = revData?.reduce((s, r) => s + (Number(r.amount_paid) || 0), 0) || 0;
+
+      // Open tickets
+      const { count: ticketCount } = await supabase
+        .from('moderation_tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'open');
+
+      setStats({
+        grossRevenue:        gross,
+        activeSubscriptions: subCount || 0,
+        totalUsers:          userCount || 0,
+        openTickets:         ticketCount || 0,
+      });
+    } catch (e) { console.error('stats error', e.message); }
+  }
+
+  async function fetchTickets() {
+    try {
+      const { data } = await supabase
+        .from('moderation_tickets')
+        .select('id, ticket_number, title, status, priority, created_at')
+        .order('created_at', { ascending: false })
+        .limit(8);
+      setRecentTickets(data || []);
+    } catch (e) { console.error('tickets error', e.message); }
+  }
+
+  async function fetchAffiliates() {
+    try {
+      const { data } = await supabase
+        .from('affiliates')
+        .select('id, contact_name, referral_code, commission_rate, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(8);
+      setRecentAffiliates(data || []);
+    } catch (e) { console.error('affiliates error', e.message); }
+  }
+
+  async function fetchPlans() {
+    try {
+      const { data: plans } = await supabase
+        .from('subscription_plans').select('id, name, display_name');
+      if (!plans) return;
+      const breakdown = await Promise.all(plans.map(async (p) => {
+        const { count } = await supabase
+          .from('user_subscriptions')
+          .select('*', { count: 'exact', head: true })
+          .eq('plan_id', p.id).eq('status', 'active');
+        return { ...p, count: count || 0 };
+      }));
+      setPlanBreakdown(breakdown);
+    } catch (e) { console.error('plans error', e.message); }
+  }
+
+  const priorityColor = { low: '#10b981', medium: '#f59e0b', high: '#f97316', critical: '#ef4444' };
+  const statusColor   = { open: '#3b82f6', in_progress: '#8b5cf6', resolved: '#10b981', closed: '#475569' };
+
   return (
-    <div style={{ padding: '20px', background: '#f0f2f5', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ color: '#1a1a1a', margin: 0 }}>💰 Revenue & Subscription Management</h1>
-          <p style={{ color: '#666' }}>ติดตามรายได้และการเติบโตของธุรกิจ (Phase 3)</p>
+    <AdminLayout>
+      <div style={S.page}>
+        {/* Header */}
+        <div style={S.pageHeader}>
+          <div>
+            <h2 style={S.pageTitle}>📊 Dashboard</h2>
+            <p style={S.pageSubtitle}>ภาพรวมธุรกิจ Thai Conexns</p>
+          </div>
+          <button onClick={fetchAll} style={S.refreshBtn} disabled={loading}>
+            {loading ? '⏳' : '🔄'} Refresh
+          </button>
         </div>
-        <button onClick={fetchAdminData} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#fff', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>🔄 Refresh Data</button>
-      </div>
 
-      {/* --- การ์ดสถิติการเงิน Phase 3 --- */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '30px' }}>
-        <RevenueCard title="Total Gross Revenue" value={`฿${revenueStats.totalRevenue.toLocaleString()}`} sub="รายได้รวมทั้งหมด" color="#2c3e50" />
-        <RevenueCard title="Commission Owed" value={`฿${revenueStats.commissionPending.toLocaleString()}`} sub="ยอดรอจ่ายเอเจนซี่" color="#e67e22" />
-        <RevenueCard title="Conversion Rate" value={`${revenueStats.conversionRate}%`} sub="สัดส่วนผู้ใช้จ่ายเงิน" color="#9b59b6" />
-      </div>
+        {loading ? (
+          <div style={S.loadingBox}>กำลังโหลดข้อมูล...</div>
+        ) : (
+          <>
+            {/* KPI Cards */}
+            <div style={S.kpiGrid}>
+              <KpiCard icon="💰" label="Gross Revenue"        value={`$${stats.grossRevenue.toLocaleString()}`} accent="#f97316" />
+              <KpiCard icon="👥" label="Total Users"          value={stats.totalUsers}                          accent="#3b82f6" />
+              <KpiCard icon="⭐" label="Active Subscriptions" value={stats.activeSubscriptions}                 accent="#8b5cf6" />
+              <KpiCard icon="🎫" label="Open Tickets"         value={stats.openTickets}                         accent="#ef4444"
+                onClick={() => navigate('/admin/moderation/tickets')} clickable />
+            </div>
 
-      <div style={{ background: '#fff', borderRadius: '15px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid #eee', background: '#fafafa' }}>
-          <h3 style={{ margin: 0 }}>Detailed Member Billing</h3>
-        </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: '#fff', textAlign: 'left', borderBottom: '2px solid #eee' }}>
-              <th style={{ padding: '20px' }}>User / Username</th>
-              <th>Current Plan</th>
-              <th>Total Spent</th>
-              <th>Subscription Expiry</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profiles.map(user => (
-              <tr key={user.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                <td style={{ padding: '15px 20px' }}>
-                  <div style={{ fontWeight: 'bold' }}>{user.username || 'Anonymous'}</div>
-                  <div style={{ fontSize: '11px', color: '#888' }}>Joined: {new Date(user.updated_at).toLocaleDateString()}</div>
-                </td>
-                <td>
-                  <span style={{ 
-                    padding: '5px 12px', borderRadius: '15px', fontSize: '12px', fontWeight: 'bold',
-                    background: user.subscription_plan === 'free' ? '#eee' : '#fff3cd',
-                    color: user.subscription_plan === 'free' ? '#666' : '#856404'
-                  }}>
-                    {user.subscription_plan?.toUpperCase() || 'FREE'}
-                  </span>
-                </td>
-                <td style={{ fontWeight: 'bold' }}>฿{(user.total_spent || 0).toLocaleString()}</td>
-                <td style={{ color: '#666', fontSize: '14px' }}>
-                  {user.subscription_expiry ? new Date(user.subscription_expiry).toLocaleDateString() : 'N/A'}
-                </td>
-                <td>
-                  <button style={{ background: 'none', border: '1px solid #ddd', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '12px' }}>Edit Plan</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            {/* Plan Breakdown */}
+            {planBreakdown.length > 0 && (
+              <div style={S.sectionRow}>
+                {planBreakdown.map(p => {
+                  const colors = { free: '#475569', premium: '#f59e0b', gold: '#eab308' };
+                  return (
+                    <div key={p.id} style={{ ...S.planCard, borderTop: `3px solid ${colors[p.name] || '#475569'}` }}>
+                      <div style={{ color: colors[p.name] || '#fff', fontSize: 22, fontWeight: 800 }}>{p.count}</div>
+                      <div style={{ color: '#94a3b8', fontSize: 12, fontWeight: 600, marginTop: 4 }}>{p.display_name} users</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div style={S.twoCol}>
+              {/* Recent Tickets */}
+              {can('content', 'read') && (
+                <div style={S.tableCard}>
+                  <div style={S.tableHeader}>
+                    <h3 style={S.tableTitle}>🎫 Recent Tickets</h3>
+                    <button onClick={() => navigate('/admin/moderation/tickets')} style={S.viewAllBtn}>View All</button>
+                  </div>
+                  {recentTickets.length === 0 ? (
+                    <div style={S.empty}>ไม่มี ticket</div>
+                  ) : (
+                    <table style={S.table}>
+                      <thead>
+                        <tr>
+                          {['#', 'Title', 'Priority', 'Status'].map(h => <th key={h} style={S.th}>{h}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentTickets.map(t => (
+                          <tr key={t.id} style={S.tr}>
+                            <td style={{ ...S.td, color: '#475569' }}>TKT-{String(t.ticket_number).padStart(4,'0')}</td>
+                            <td style={{ ...S.td, color: '#f1f5f9', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</td>
+                            <td style={S.td}>
+                              <span style={{ ...S.badge, background: `${priorityColor[t.priority]}22`, color: priorityColor[t.priority] }}>{t.priority}</span>
+                            </td>
+                            <td style={S.td}>
+                              <span style={{ ...S.badge, background: `${statusColor[t.status]}22`, color: statusColor[t.status] }}>{t.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
+              {/* Recent Affiliates */}
+              {can('affiliates', 'read') && (
+                <div style={S.tableCard}>
+                  <div style={S.tableHeader}>
+                    <h3 style={S.tableTitle}>🤝 Recent Affiliates</h3>
+                    <button onClick={() => navigate('/admin/affiliates')} style={S.viewAllBtn}>View All</button>
+                  </div>
+                  {recentAffiliates.length === 0 ? (
+                    <div style={S.empty}>ยังไม่มี affiliate</div>
+                  ) : (
+                    <table style={S.table}>
+                      <thead>
+                        <tr>
+                          {['Name', 'Code', 'Commission', 'Status'].map(h => <th key={h} style={S.th}>{h}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentAffiliates.map(a => (
+                          <tr key={a.id} style={S.tr}>
+                            <td style={{ ...S.td, color: '#f1f5f9', fontWeight: 700 }}>{a.contact_name}</td>
+                            <td style={{ ...S.td, fontFamily: 'monospace', color: '#e91e63', fontWeight: 700 }}>{a.referral_code}</td>
+                            <td style={{ ...S.td, color: '#10b981' }}>{(a.commission_rate * 100).toFixed(0)}%</td>
+                            <td style={S.td}>
+                              <span style={{ ...S.badge,
+                                background: a.status === 'active' ? '#10b98122' : '#47556922',
+                                color:      a.status === 'active' ? '#10b981'   : '#475569'
+                              }}>{a.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}
+
+function KpiCard({ icon, label, value, accent, onClick, clickable }) {
+  return (
+    <div
+      onClick={onClick}
+      style={{ ...S.kpiCard, borderTop: `3px solid ${accent}`, cursor: clickable ? 'pointer' : 'default' }}
+    >
+      <div style={{ fontSize: 28 }}>{icon}</div>
+      <div>
+        <div style={S.kpiValue}>{value}</div>
+        <div style={S.kpiLabel}>{label}</div>
       </div>
     </div>
   );
 }
 
-const RevenueCard = ({ title, value, sub, color }) => (
-  <div style={{ background: '#fff', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.04)', borderTop: `5px solid ${color}` }}>
-    <div style={{ fontSize: '14px', color: '#888', marginBottom: '5px' }}>{title}</div>
-    <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1a1a1a', marginBottom: '5px' }}>{value}</div>
-    <div style={{ fontSize: '12px', color: color }}>{sub}</div>
-  </div>
-);
+const S = {
+  page:       { padding: 24, minHeight: '100%' },
+  pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+  pageTitle:  { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageSubtitle: { color: '#64748b', fontSize: 13, margin: 0 },
+  refreshBtn: { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '8px 16px', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  loadingBox: { padding: 60, textAlign: 'center', color: '#475569' },
+  kpiGrid:    { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: 16, marginBottom: 20 },
+  kpiCard:    { background: '#1e293b', borderRadius: 16, padding: 20, border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: 14 },
+  kpiValue:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800 },
+  kpiLabel:   { color: '#64748b', fontSize: 12, fontWeight: 600, marginTop: 2 },
+  sectionRow: { display: 'flex', gap: 12, marginBottom: 20 },
+  planCard:   { flex: 1, background: '#1e293b', borderRadius: 12, padding: '14px 18px', border: '1px solid #334155' },
+  twoCol:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
+  tableCard:  { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
+  tableHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid #334155' },
+  tableTitle: { color: '#f1f5f9', fontWeight: 800, fontSize: 14, margin: 0 },
+  viewAllBtn: { background: 'none', border: '1px solid #334155', borderRadius: 6, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontWeight: 600 },
+  table:      { width: '100%', borderCollapse: 'collapse' },
+  th:         { padding: '10px 16px', textAlign: 'left', color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },
+  tr:         { borderBottom: '1px solid #0f172a' },
+  td:         { padding: '10px 16px', color: '#94a3b8', fontSize: 13 },
+  badge:      { padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 },
+  empty:      { padding: 30, textAlign: 'center', color: '#475569', fontSize: 13 },
+};

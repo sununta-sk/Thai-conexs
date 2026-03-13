@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function PhotoManager() {
+export default function ProfileManager() {
   const [photos, setPhotos] = useState([]);
   const [mainPhoto, setMainPhoto] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -12,98 +12,83 @@ export default function PhotoManager() {
 
   async function fetchProfilePhotos() {
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
     const { data } = await supabase.from('profiles').select('photos, avatar_url').eq('id', user.id).single();
     if (data) {
-      setPhotos(data.photos || []);
+      // ดึง URL จริงจาก Storage ด้วยกุญแจใหม่
+      const formattedPhotos = (data.photos || []).map(path => {
+        if (path.startsWith('http')) return path;
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+        return publicUrl;
+      });
+      setPhotos(formattedPhotos);
       setMainPhoto(data.avatar_url || '');
     }
   }
 
-  // ฟังก์ชันอัปโหลดรูปไปที่ Storage
   async function uploadPhoto(event) {
     try {
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      // 1. อัปโหลดไป Storage
-      let { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      
+      let { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file);
       if (uploadError) throw uploadError;
 
-      // 2. ดึง Public URL
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-
-      // 3. อัปเดต Array ในฐานข้อมูล
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
       const newPhotos = [...photos, publicUrl];
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ 
-            photos: newPhotos,
-            avatar_url: mainPhoto || publicUrl // ถ้ายังไม่มีรูปหลัก ให้รูปแรกเป็นรูปหลักทันที
-        })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
+      
+      await supabase.from('profiles').update({ 
+        photos: newPhotos, 
+        avatar_url: mainPhoto || publicUrl 
+      }).eq('id', user.id);
       
       setPhotos(newPhotos);
       if (!mainPhoto) setMainPhoto(publicUrl);
-
     } catch (error) {
-      alert(error.message);
+      alert("Error: " + error.message);
     } finally {
       setUploading(false);
     }
   }
 
-  // ฟังก์ชันเลือกรูปให้เป็นรูปหลัก (Main Photo)
   async function setAsMain(url) {
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase
-      .from('profiles')
-      .update({ avatar_url: url })
-      .eq('id', user.id);
-
-    if (!error) setMainPhoto(url);
+    await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id);
+    setMainPhoto(url);
   }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h3>จัดการรูปภาพของคุณ</h3>
-      
-      {/* Grid แสดงรูปภาพเหมือนในรูปที่ส่งมา */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-        {photos.map((url, index) => (
-          <div key={index} style={{ position: 'relative', height: '150px', border: url === mainPhoto ? '3px solid #007bff' : '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-            <img src={url} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            
-            {/* ปุ่มเลือกเป็นรูปหลัก */}
-            <button 
-              onClick={() => setAsMain(url)}
-              style={{ position: 'absolute', bottom: '5px', width: '90%', left: '5%', fontSize: '10px', background: url === mainPhoto ? '#007bff' : 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '4px' }}
-            >
-              {url === mainPhoto ? '⭐ รูปหลัก' : 'ตั้งเป็นรูปหลัก'}
-            </button>
-          </div>
-        ))}
-
-        {/* ช่องกดเพิ่มรูป (ปุ่ม +) */}
-        {photos.length < 6 && (
-          <label style={{ height: '150px', border: '2px dashed #ccc', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <input type="file" accept="image/*" onChange={uploadPhoto} disabled={uploading} hidden />
-            {uploading ? '...' : '+'}
-          </label>
-        )}
+    <div style={{ padding: '20px', background: '#fff', borderRadius: '15px' }}>
+      <h3 style={{ marginBottom: '15px', color: '#333' }}>Profile Photos</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+        {[0, 1, 2, 3, 4, 5].map((idx) => {
+          const url = photos[idx];
+          if (url) {
+            return (
+              <div key={idx} style={{ position: 'relative', height: '140px', border: url === mainPhoto ? '3px solid #e91e63' : '1px solid #ddd', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button onClick={() => setAsMain(url)} style={{ position: 'absolute', bottom: '5px', width: '90%', left: '5%', fontSize: '10px', background: url === mainPhoto ? '#e91e63' : 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', padding: '4px' }}>
+                  {url === mainPhoto ? 'Main' : 'Set Main'}
+                </button>
+              </div>
+            );
+          } else if (idx === photos.length) {
+            return (
+              <label key={idx} style={{ height: '140px', border: '2px dashed #ccc', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#fafafa' }}>
+                <input type="file" accept="image/*" onChange={uploadPhoto} disabled={uploading} hidden />
+                <span style={{ fontSize: '30px', color: '#ccc' }}>+</span>
+              </label>
+            );
+          } else {
+            return (
+              <div key={idx} style={{ height: '140px', border: '1px solid #eee', background: '#fdfdfd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#eee', fontSize: '24px' }}>+</div>
+            );
+          }
+        })}
       </div>
-      
-      <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-        * อัปโหลดได้สูงสุด 6 รูป รูปที่มีขอบสีน้ำเงินคือรูปหลักที่จะโชว์ในหน้าค้นหา
-      </p>
     </div>
   );
 }

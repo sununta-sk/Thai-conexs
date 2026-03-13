@@ -1,150 +1,107 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Messages() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('Inbox');
-  const [chatList, setChatList] = useState([]);
+  const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("Inbox");
+  const [myId, setMyId] = useState(null);
+  const navigate = useNavigate();
 
-  // ส่วนของ Tabs ด้านบนตามรูปที่พี่ส่งมา
-  const tabs = ['Fast', 'Unread', 'Inbox', 'Outbox'];
+  const fetchChats = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const uid = session.user.id;
+    setMyId(uid);
+
+    const { data: msgs, error } = await supabase
+      .from('messages')
+      .select('*')
+      .or(`room_id.ilike.%${uid}%,chat_id.ilike.%${uid}%`)
+      .order('created_at', { ascending: false });
+
+    if (error) return console.error(error);
+
+    const latestMap = {};
+    msgs.forEach(m => {
+      const rid = m.room_id || m.chat_id;
+      if (!latestMap[rid]) latestMap[rid] = m;
+    });
+
+    const formatted = await Promise.all(Object.values(latestMap).map(async (m) => {
+      const rid = m.room_id || m.chat_id;
+      const otherId = rid.split('_').find(id => id !== uid);
+      const { data: prof } = await supabase.from('profiles').select('username, avatar_url').eq('id', otherId).maybeSingle();
+      return { roomId: rid, content: m.content, time: m.created_at, user: prof, senderId: m.sender_id };
+    }));
+
+    setChats(formatted);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    async function fetchChats() {
-      setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // ดึงรายชื่อคนที่เราเคยคุยด้วย (สมมติจากตาราง profiles ก่อนเพื่อให้เห็นภาพ)
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('id', user.id)
-        .limit(10);
-
-      if (!error && data) {
-        setChatList(data);
-      }
-      setLoading(false);
-    }
     fetchChats();
+    const channel = supabase.channel('list-update')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, fetchChats)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
   }, []);
 
+  // Inbox = คนอื่นส่งมาหาเรา, Outbox = เราส่งออกไป
+  const filtered = chats.filter(c =>
+    activeTab === 'Inbox' ? c.senderId !== myId : c.senderId === myId
+  );
+
   return (
-    <div style={{ background: '#f0f2f5', minHeight: '100vh', paddingBottom: '100px' }}>
-      
-      {/* --- ส่วน Header Tabs แบบ ThaiFriendly --- */}
-      <div style={{ 
-        display: 'flex', 
-        background: '#e4e6eb', 
-        padding: '4px', 
-        position: 'sticky', 
-        top: 0, 
-        zIndex: 10 
-      }}>
-        {tabs.map(tab => (
-          <button 
-            key={tab}
-            onClick={() => setActiveTab(tab)}
+    <div style={{ background: '#f0f2f5', minHeight: '100vh' }}>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', background: '#fff', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
+        {['Inbox', 'Outbox'].map(t => (
+          <div
+            key={t}
+            onClick={() => setActiveTab(t)}
             style={{
-              flex: 1,
-              padding: '10px 0',
-              border: 'none',
-              borderRadius: activeTab === tab ? '5px' : '0',
-              background: activeTab === tab ? '#ffffff' : 'transparent',
-              fontWeight: activeTab === tab ? 'bold' : 'normal',
-              fontSize: '14px',
-              cursor: 'pointer',
-              boxShadow: activeTab === tab ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: '0.2s'
+              flex: 1, padding: '15px', cursor: 'pointer',
+              fontWeight: activeTab === t ? 'bold' : 'normal',
+              color: activeTab === t ? '#e91e63' : '#666',
+              borderBottom: activeTab === t ? '2px solid #e91e63' : '2px solid transparent',
+              transition: 'all 0.2s',
             }}
           >
-            {tab}
-          </button>
+            {t}
+          </div>
         ))}
       </div>
 
-      {/* --- ส่วนรายการข้อความ --- */}
-      <div style={{ marginTop: '2px' }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>กำลังโหลดข้อความ...</div>
-        ) : (
-          chatList.map((chat) => (
-            <div 
-              key={chat.id} 
-              onClick={() => navigate(`/room-demo/${chat.id}`)}
-              style={{ 
-                display: 'flex', 
-                padding: '12px 15px', 
-                background: '#fff', 
-                borderBottom: '1px solid #f0f0f0', 
-                alignItems: 'center', 
-                gap: '12px',
-                cursor: 'pointer'
-              }}
-            >
-              {/* รูปโปรไฟล์พร้อมขีดเขียวออนไลน์ */}
-              <div style={{ position: 'relative', width: '70px', height: '70px' }}>
-                <img 
-                  src={chat.avatar_url || 'https://via.placeholder.com/70'} 
-                  style={{ width: '100%', height: '100%', borderRadius: '4px', objectFit: 'cover' }} 
-                />
-                <div style={{ 
-                  position: 'absolute', 
-                  bottom: 0, 
-                  left: 0, 
-                  width: '100%', 
-                  height: '4px', 
-                  background: '#4cd137' 
-                }}></div>
-              </div>
-
-              {/* ข้อมูลแชท */}
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontWeight: 'bold', fontSize: '16px', color: '#333' }}>
-                    {chat.username || 'User'}
-                  </span>
-                </div>
-                <div style={{ fontSize: '13px', color: '#888', marginTop: '2px' }}>
-                  {chat.details?.age || '25'}, {chat.details?.location || 'Bangkok'}
-                </div>
-                <div style={{ 
-                  fontSize: '14px', 
-                  color: '#555', 
-                  marginTop: '4px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '200px'
-                }}>
-                  Hi, what you looking for?
-                </div>
-              </div>
-
-              {/* เวลาและตัวเลขแจ้งเตือน */}
-              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                <div style={{ 
-                  background: '#3498db', 
-                  color: '#fff', 
-                  borderRadius: '50%', 
-                  width: '20px', 
-                  height: '20px', 
-                  fontSize: '11px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center' 
-                }}>
-                  1
-                </div>
-                <div style={{ fontSize: '11px', color: '#aaa' }}>9 hours ago</div>
-              </div>
+      {/* Chat List */}
+      {loading ? (
+        <p style={{ padding: '20px' }}>Loading...</p>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#aaa' }}>
+          <div style={{ fontSize: 40, marginBottom: 10 }}>💬</div>
+          <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? 'ยังไม่มีข้อความเข้า' : 'ยังไม่มีข้อความออก'}</p>
+        </div>
+      ) : (
+        filtered.map((c, i) => (
+          <div
+            key={i}
+            onClick={() => navigate(`/room-chat/${c.roomId}`)}
+            style={{ display: 'flex', padding: '15px', background: '#fff', borderBottom: '1px solid #eee', alignItems: 'center', cursor: 'pointer' }}
+          >
+            <img
+              src={c.user?.avatar_url || 'https://via.placeholder.com/60'}
+              style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover' }}
+            />
+            <div style={{ marginLeft: '15px', flex: 1 }}>
+              <div style={{ fontWeight: 'bold' }}>{c.user?.username}</div>
+              <div style={{ color: '#666', fontSize: '14px' }}>{c.content}</div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }

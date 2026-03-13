@@ -1,0 +1,79 @@
+// src/pages/admin/AuditLogPage.jsx
+import { useState, useEffect } from 'react'
+import AdminLayout from '../../components/AdminLayout'
+import { supabase } from '../../lib/supabaseClient'
+
+export default function AuditLogPage() {
+  const [logs, setLogs]     = useState([])
+  const [loading, setLoad]  = useState(true)
+  const [filter, setFilter] = useState('')
+  const [page, setPage]     = useState(0)
+  const PAGE_SIZE = 50
+
+  useEffect(() => { fetchLogs() }, [page])
+
+  async function fetchLogs() {
+    setLoad(true)
+    try {
+      const { data } = await supabase.from('admin_audit_log').select('*, admin_users(display_name)')
+        .order('created_at',{ascending:false}).range(page*PAGE_SIZE,(page+1)*PAGE_SIZE-1)
+      setLogs(data||[])
+    } catch(e) { console.error(e) }
+    setLoad(false)
+  }
+
+  const actionColor = { create:'#10b981', update:'#3b82f6', delete:'#ef4444', login:'#8b5cf6', suspend:'#f59e0b', approve:'#10b981' }
+  const filtered = filter ? logs.filter(l=>l.action?.includes(filter)||l.table_name?.includes(filter)||l.admin_users?.display_name?.toLowerCase().includes(filter.toLowerCase())) : logs
+
+  return (
+    <AdminLayout>
+      <div style={S.page}>
+        <div style={S.hdr}>
+          <div><h2 style={S.title}>📜 Audit Log</h2><p style={S.sub}>ประวัติการกระทำของ Admin ทั้งหมด</p></div>
+          <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="🔍 Filter..." style={S.search}/>
+        </div>
+        <div style={S.card}>
+          {loading?<div style={S.empty}>กำลังโหลด...</div>
+          :filtered.length===0?<div style={S.empty}>ไม่มีข้อมูล audit log</div>
+          :(
+            <>
+              <table style={S.table}>
+                <thead><tr>{['Time','Admin','Action','Table','Record'].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {filtered.map((l,i)=>{ const c=actionColor[l.action]||'#64748b'; return (
+                    <tr key={l.id??i} style={S.tr}>
+                      <td style={{...S.td,fontSize:11,whiteSpace:'nowrap'}}>{l.created_at?new Date(l.created_at).toLocaleString('th-TH'):'—'}</td>
+                      <td style={S.td}><div style={{color:'#f1f5f9',fontWeight:600}}>{l.admin_users?.display_name??'System'}</div></td>
+                      <td style={S.td}><span style={{...S.badge,background:`${c}22`,color:c}}>{l.action??'—'}</span></td>
+                      <td style={{...S.td,fontFamily:'monospace'}}>{l.table_name??'—'}</td>
+                      <td style={{...S.td,fontFamily:'monospace',fontSize:11,color:'#475569'}}>{l.record_id?String(l.record_id).slice(0,8)+'...':'—'}</td>
+                    </tr>
+                  )})}
+                </tbody>
+              </table>
+              <div style={S.pager}>
+                <button onClick={()=>setPage(p=>Math.max(0,p-1))} disabled={page===0} style={S.pageBtn}>← Prev</button>
+                <span style={{color:'#64748b',fontSize:13}}>Page {page+1}</span>
+                <button onClick={()=>setPage(p=>p+1)} disabled={logs.length<PAGE_SIZE} style={S.pageBtn}>Next →</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </AdminLayout>
+  )
+}
+
+const S = {
+  page:{padding:24}, hdr:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24,gap:16},
+  title:{color:'#f1f5f9',fontSize:22,fontWeight:800,margin:'0 0 4px'}, sub:{color:'#64748b',fontSize:13,margin:0},
+  search:{background:'#1e293b',border:'1px solid #334155',borderRadius:10,padding:'10px 16px',color:'#f1f5f9',fontSize:13,width:280},
+  card:{background:'#1e293b',borderRadius:16,border:'1px solid #334155',overflow:'hidden'},
+  table:{width:'100%',borderCollapse:'collapse'},
+  th:{padding:'12px 16px',textAlign:'left',color:'#475569',fontSize:10,fontWeight:700,textTransform:'uppercase',borderBottom:'1px solid #334155',whiteSpace:'nowrap'},
+  tr:{borderBottom:'1px solid #0f172a'}, td:{padding:'10px 16px',color:'#94a3b8',fontSize:13},
+  badge:{padding:'3px 8px',borderRadius:20,fontSize:10,fontWeight:700,textTransform:'uppercase'},
+  pager:{display:'flex',alignItems:'center',justifyContent:'center',gap:16,padding:16},
+  pageBtn:{background:'#0f172a',border:'1px solid #334155',borderRadius:8,padding:'6px 14px',color:'#94a3b8',cursor:'pointer',fontSize:13},
+  empty:{padding:40,textAlign:'center',color:'#475569'},
+}

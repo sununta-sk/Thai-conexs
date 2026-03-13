@@ -1,0 +1,8 @@
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const token = 'eyJhbGciOiJFUzI1NiIsImtpZCI6ImYyMjFmYzYwLTdhNDEtNDEzNC1iZmU1LTNjYzkyYTI5YjNhMyIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL2VidWF0bXJjZnp4b25obHN4bWpwLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI1MmU3YWUyZC0zOWNlLTQ1NGEtYTg3NS1mMjUwMWQzZjVmYmIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzczMTY2MTY5LCJpYXQiOjE3NzMxNjI1NjksImVtYWlsIjoiaXZ5c29ubHlidXNpbmVzc0BnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsX3ZlcmlmaWVkIjp0cnVlfSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc3MzE2MjU2OX1dLCJzZXNzaW9uX2lkIjoiNzQ5MWMxMDItNTJlNS00YTIwLWJmYjUtMzcxNTNlMmM3MDNiIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.U2U1TJxKqpdmT0_zsy32jjlbPrn6P-1TaNOIEp1Z3pW639NPKSq8TxzBPNcuy8d8q-WT1dRxTllXlXB4SyIu5g';
+supabase.auth.getUser(token).then(({data, error}) => {
+  console.log('user:', data?.user?.email);
+  console.log('error:', error?.message);
+});
