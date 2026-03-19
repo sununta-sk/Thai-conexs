@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import AdminLayout from '../components/AdminLayout'
-import { supabase } from '../lib/supabaseClient'
+import AdminLayout from '../../components/AdminLayout'
+import { supabase } from '../../lib/supabaseClient'
 
 const TIER_DEFAULTS = [
   { tier: 'standard', label: 'Standard', description: 'Default for all new affiliates', color: '#64748b' },

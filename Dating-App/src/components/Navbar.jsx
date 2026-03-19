@@ -1,5 +1,4 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import NotificationBell from "../components/NotificationBell";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ export default function Navbar() {
       zIndex: 1000,
       boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
     }}>
-      {/* 1. ปุ่ม Discover */}
       <button 
         onClick={() => navigate('/discover')} 
         style={navBtnStyle(isActive('/discover'))}
@@ -29,7 +27,6 @@ export default function Navbar() {
         <span style={{ fontSize: '10px' }}>Discover</span>
       </button>
 
-      {/* 2. ปุ่ม Messages (Inbox) */}
       <button 
         onClick={() => navigate('/messages')} 
         style={navBtnStyle(isActive('/messages'))}
@@ -38,11 +35,8 @@ export default function Navbar() {
         <span style={{ fontSize: '10px' }}>Messages</span>
       </button>
 
-      {/* --- 3. ปุ่มพิเศษสำหรับพี่ (วาร์ปไปหน้า Admin) --- */}
       <button 
         onClick={() => {
-          // ถ้าอยู่หน้า Admin ให้วาร์ปกลับไป Discover
-          // ถ้าอยู่หน้าอื่น ให้วาร์ปไป Admin
           if (location.pathname === '/admin-secret-portal') {
             navigate('/discover');
           } else {
@@ -51,14 +45,13 @@ export default function Navbar() {
         }} 
         style={{
           ...navBtnStyle(isActive('/admin-secret-portal')),
-          color: isActive('/admin-secret-portal') ? '#2ecc71' : '#f39c12' // สีส้ม/เขียวให้เด่น
+          color: isActive('/admin-secret-portal') ? '#2ecc71' : '#f39c12'
         }}
       >
         <span style={{ display: 'block', fontSize: '24px' }}>⚡</span>
         <span style={{ fontSize: '10px' }}>Admin</span>
       </button>
       
-      {/* 4. ปุ่ม Profile */}
       <button 
         onClick={() => navigate('/profile-setup')} 
         style={navBtnStyle(isActive('/profile-setup'))}
@@ -66,7 +59,6 @@ export default function Navbar() {
         <span style={{ display: 'block', fontSize: '24px' }}>👤</span>
         <span style={{ fontSize: '10px' }}>Profile</span>
       </button>
-      <NotificationBell />
     </div>
   );
 }

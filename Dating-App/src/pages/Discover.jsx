@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import NotificationBell from '../components/NotificationBell';
 
-// ฟังก์ชันสำหรับสร้าง Chat ID ที่เรียงลำดับ ID เพื่อให้ทั้งสองฝั่งเข้าห้องเดียวกัน
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -14,42 +14,27 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ── 1. ดึงข้อมูล User และ Profiles (ซ่อมให้ซ่อนตัวเองชัวร์ๆ) ────────────────
   useEffect(() => {
     async function fetchProfiles() {
-      // ใช้ getSession แทน getUser เพื่อความนิ่งของข้อมูล Auth
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user;
-
-      if (!user) { 
-        navigate('/login'); 
-        return; 
-      }
-      
+      if (!user) { navigate('/login'); return; }
       setCurrentUserId(user.id);
-
-      // ดึงทุกคนในฐานข้อมูล ยกเว้นตัวเราเอง (.neq)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .neq('id', user.id);
-
-      if (!error && data) {
-        setProfiles(data);
-      }
+      if (!error && data) setProfiles(data);
       setLoading(false);
     }
     fetchProfiles();
   }, [navigate]);
 
-  // ── 2. ระบบ Presence เช็คคนออนไลน์ ───────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
-
     const channel = supabase.channel('discover-presence', {
       config: { presence: { key: currentUserId } },
     });
-
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
@@ -60,13 +45,11 @@ export default function Discover() {
           await channel.track({ online_at: new Date().toISOString() });
         }
       });
-
-    return () => { supabase.removeChannel(channel); }; 
+    return () => { supabase.removeChannel(channel); };
   }, [currentUserId]);
 
   const handleStartChat = (targetUserId) => {
     const chatId = getChatId(currentUserId, targetUserId);
-    // เปลี่ยนไปหน้าห้องแชท (ใช้ Path ตามที่พี่ตั้งไว้)
     navigate(`/room-demo/${chatId}`);
   };
 
@@ -79,12 +62,14 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      {/* Header จิ๋วแบบ ThaiFriendly */}
       <div style={S.header}>
         <span style={S.headerTitle}>Online Users</span>
-        <div style={S.onlinePill}>
-          <div style={S.onlineDot} />
-          <span style={S.onlineCount}>{onlineUsers.size}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={S.onlinePill}>
+            <div style={S.onlineDot} />
+            <span style={S.onlineCount}>{onlineUsers.size}</span>
+          </div>
+          <NotificationBell />
         </div>
       </div>
 
@@ -99,7 +84,6 @@ export default function Discover() {
             const isOnline = onlineUsers.has(profile.id);
             const age = profile.details?.age ?? '';
             const city = profile.details?.city ?? '';
-
             return (
               <div key={profile.id} onClick={() => handleStartChat(profile.id)} style={S.card}>
                 <div style={S.photoWrap}>
@@ -108,7 +92,6 @@ export default function Discover() {
                     alt={profile.username}
                     style={{ ...S.photo, objectPosition: `${cropX}% ${cropY}%` }}
                   />
-                  {/* จุดเขียวออนไลน์มุมรูป */}
                   {isOnline && (
                     <div style={S.onlineBadge}><div style={S.onlineBadgeDot} /></div>
                   )}
@@ -126,7 +109,6 @@ export default function Discover() {
   );
 }
 
-// ─── Styles ขนาด "จิ๋วพิเศษ" เลียนแบบ ThaiFriendly ──────────────────────────
 const S = {
   page: { background: '#f0f2f5', minHeight: '100vh', paddingBottom: 80 },
   header: {
@@ -144,21 +126,17 @@ const S = {
   onlinePill: { display: 'flex', alignItems: 'center', gap: 4, background: '#e8f5e9', borderRadius: 12, padding: '4px 10px' },
   onlineDot: { width: 7, height: 7, borderRadius: '50%', background: '#4caf50' },
   onlineCount: { fontSize: 12, fontWeight: 700, color: '#4caf50' },
-  
-  // Grid จิ๋ว 4-5 รูปต่อแถว
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))', 
+    gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))',
     gap: '2px',
     padding: '2px',
   },
   card: { background: '#fff', cursor: 'pointer', position: 'relative', border: '0.5px solid #eee' },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#eee', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover' },
-  
   onlineBadge: { position: 'absolute', top: 3, left: 3, background: '#fff', borderRadius: '50%', width: 12, height: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' },
   onlineBadgeDot: { width: 8, height: 8, borderRadius: '50%', background: '#4cd964' },
-  
   info: { padding: '4px 2px', textAlign: 'center' },
   name: { fontWeight: 700, fontSize: '11px', color: '#007bff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   meta: { fontSize: '10px', color: '#777' },

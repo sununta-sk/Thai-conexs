@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import AdminLayout from '../components/AdminLayout'
-import { supabase } from '../lib/supabaseClient'
+import AdminLayout from '../../components/AdminLayout'
+import { supabase } from '../../lib/supabaseClient'
 
 const PAYMENT_METHODS = [
   { value: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },

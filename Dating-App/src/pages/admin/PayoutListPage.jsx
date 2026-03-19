@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import AdminLayout from '../components/AdminLayout'
-import { supabase } from '../lib/supabaseClient'
+import AdminLayout from '../../components/AdminLayout'
+import { supabase } from '../../lib/supabaseClient'
 
 const STATUS_TABS = ['all', 'pending', 'approved', 'paid', 'rejected']
 

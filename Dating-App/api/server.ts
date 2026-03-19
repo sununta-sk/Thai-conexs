@@ -1,6 +1,7 @@
-require('dotenv').config();
+import 'dotenv/config';
 import express from "express";
 import cors from "cors";
+import notificationRoutes from "./routes/notifications"; // ✅ ย้ายมาบนสุด
 
 const app = express();
 app.use(cors());
@@ -126,10 +127,10 @@ Respond with exactly:
   }
 });
 
+// ── Notification Routes ───────────────────────────────────────────────────
+app.use("/api/notifications", notificationRoutes); // ✅ ก่อน listen
+
 // ── Start ─────────────────────────────────────────────────────────────────
 app.listen(4000, () => {
   console.log("API running on http://localhost:4000");
 });
-
-const notificationRoutes = require("./routes/notifications");
-app.use("/api/notifications", notificationRoutes);
