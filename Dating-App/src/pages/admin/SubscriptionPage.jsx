@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSubscription } from "../../hooks/UseSubscription";
+import { useSubscription } from "../../hooks/useSubscription";
 
 const PLANS = [
   {
