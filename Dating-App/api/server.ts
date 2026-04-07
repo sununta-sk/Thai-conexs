@@ -35,12 +35,12 @@ async function callClaude(model: string, body: object) {
   return res.json();
 }
 
-// ── GET /api/health ───────────────────────────────────────────────────────
+// ── GET /api/health ───────────────
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, project: "DowndaRoad Media", time: new Date().toISOString() });
 });
 
-// ── POST /api/auth/login ──────────────────────────────────────────────────
+// ── POST /api/auth/login ──────────
 app.post("/api/auth/login", (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
@@ -49,7 +49,7 @@ app.post("/api/auth/login", (req, res) => {
   return res.json({ ok: true, token: "demo-token-123", user: { email } });
 });
 
-// ── POST /api/translate ───────────────────────────────────────────────────
+// ── POST /api/translate ───────────
 app.post("/api/translate", async (req, res) => {
   const { text, targetLang } = req.body || {};
 
@@ -75,7 +75,7 @@ app.post("/api/translate", async (req, res) => {
   }
 });
 
-// ── POST /api/face-verify ─────────────────────────────────────────────────
+// ── POST /api/face-verify ─────────
 app.post("/api/face-verify", async (req, res) => {
   const { imageBase64, mimeType } = req.body || {};
 
@@ -127,10 +127,15 @@ Respond with exactly:
   }
 });
 
-// ── Notification Routes ───────────────────────────────────────────────────
+// ── Notification Routes ───────────
+// ── Subscription Routes ───────────
+const subscriptionRoutes = require('./routes/subscription');
+app.use('/api/subscription', subscriptionRoutes);;
 app.use("/api/notifications", notificationRoutes); // ✅ ก่อน listen
 
-// ── Start ─────────────────────────────────────────────────────────────────
+// ── Start ─────────────────────────
 app.listen(4000, () => {
   console.log("API running on http://localhost:4000");
 });
+
+
