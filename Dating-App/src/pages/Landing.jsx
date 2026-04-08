@@ -13,7 +13,7 @@ export default function Landing() {
     setApiError("");
 
     try {
-      const res = await fetch("http://localhost:4000/api/health");
+      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/health`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
