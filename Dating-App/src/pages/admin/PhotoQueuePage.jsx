@@ -19,7 +19,7 @@ export default function PhotoQueuePage() {
     setLoading(true);
     setSelected(new Set());
     const { data } = await supabase
-      .from('user_photos')
+      .from('photo_moderation_queue')
       .select(`
         id, url, status, created_at, is_primary,
         user:users(id, display_name, email, avatar_url)
@@ -35,7 +35,7 @@ export default function PhotoQueuePage() {
   const fetchStats = async () => {
     const [p, a, r] = await Promise.all(
       STATUS_TABS.map(s =>
-        supabase.from('user_photos').select('id', { count: 'exact', head: true }).eq('status', s)
+        supabase.from('photo_moderation_queue').select('id', { count: 'exact', head: true }).eq('status', s)
       )
     );
     setStats({ pending: p.count || 0, approved: a.count || 0, rejected: r.count || 0 });
@@ -48,7 +48,7 @@ export default function PhotoQueuePage() {
     setActionLoading(true);
     const statusMap = { approve: 'approved', reject: 'rejected' };
     await supabase
-      .from('user_photos')
+      .from('photo_moderation_queue')
       .update({ status: statusMap[action], moderated_at: new Date().toISOString() })
       .in('id', ids);
     setPreview(null);
