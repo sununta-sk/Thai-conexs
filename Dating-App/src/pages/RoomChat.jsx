@@ -49,12 +49,13 @@ export default function RoomChat() {
   // ── 1. Session ──────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        navigate("/login");
-      } else {
-        setSession(data.session);
-      }
+      if (data.session) setSession(data.session);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') navigate("/login");
+      else if (s) setSession(s);
+    });
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   // ── 2. Derive the other user's ID from chatId ───────────────────────────────
