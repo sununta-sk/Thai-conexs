@@ -4,7 +4,7 @@ import cors from "cors";
 import notificationRoutes from "./routes/notifications"; // ✅ ย้ายมาบนสุด
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "20mb" }));
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
