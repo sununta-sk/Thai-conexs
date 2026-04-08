@@ -1,16 +1,5 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; connect-src 'self' https://thai-conexs-production.up.railway.app wss://thai-conexs-production.up.railway.app https://*.supabase.co wss://*.supabase.co https://ebuatmrcfzxonhlsxmjp.supabase.co wss://ebuatmrcfzxonhlsxmjp.supabase.co https://api.anthropic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https:; font-src 'self' data: https://fonts.gstatic.com; media-src 'self' blob: https://*.supabase.co; worker-src 'self' blob:; frame-src 'self'; object-src 'none';"
-        }
-      ]
-    }
   ]
 }
