@@ -52,8 +52,8 @@ const AdminFallback = () => (
 
 // ── ProtectedRoute (user) ────────────────────────────────────────────────────
 const ProtectedRoute = ({ children, session }) => {
-  const [timedOut, setTimedOut] = React.useState(false);
-  React.useEffect(() => {
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
     const t = setTimeout(() => setTimedOut(true), 3000);
     return () => clearTimeout(t);
   }, []);
