@@ -6,6 +6,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "types": ["node"]
-  }
+    "types": ["node"],
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "include": ["server.ts", "routes/**/*", "middleware/**/*"]
 }
