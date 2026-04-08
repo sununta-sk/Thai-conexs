@@ -115,7 +115,7 @@ function AppContent() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => { if (event === 'SIGNED_OUT') setSession(null); else if (s) setSession(s); });
     return () => subscription.unsubscribe();
   }, []);
 
