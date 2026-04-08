@@ -52,7 +52,13 @@ const AdminFallback = () => (
 
 // ── ProtectedRoute (user) ────────────────────────────────────────────────────
 const ProtectedRoute = ({ children, session }) => {
-  if (session === undefined) return <div style={{ background: '#0f172a', height: '100vh' }} />;
+  const [timedOut, setTimedOut] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
+  if (session === undefined || (session === null && !timedOut))
+    return <div style={{ background: '#0f172a', height: '100vh' }} />;
   if (!session) return <Navigate to="/login" replace />;
   return children;
 };
