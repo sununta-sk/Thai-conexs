@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only server.ts",
-    "build": "tsc && cp routes/*.js dist/routes/",
+    "build": "tsc && mkdir -p dist/routes && cp routes/*.js dist/routes/",
     "start": "npm run build && node dist/server.js"
   },
   "keywords": [],
