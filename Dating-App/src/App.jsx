@@ -54,7 +54,7 @@ const AdminFallback = () => (
 const ProtectedRoute = ({ children, session }) => {
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 3000);
+    const t = setTimeout(() => setTimedOut(true), 8000);
     return () => clearTimeout(t);
   }, []);
   if (session === undefined || (session === null && !timedOut))
@@ -120,9 +120,20 @@ function AppContent() {
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => { if (event === 'SIGNED_OUT') setSession(null); else if (s) setSession(s); });
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSession(session);
+      else {
+        // fallback: รอ onAuthStateChange
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session: s2 } }) => setSession(s2 ?? null));
+        }, 1000);
+      }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') setSession(null);
+      else if (s) setSession(s);
+    });
+    return () => substion.unsubscribe();
   }, []);
 
   const hideNavbar =
