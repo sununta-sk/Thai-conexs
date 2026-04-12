@@ -148,8 +148,20 @@ export default function RoomChat() {
       )
       .subscribe();
 
+    // Polling fallback — fetch every 3s if realtime fails
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true })
+        .range(0, 99);
+      if (data) setMessages(data);
+    }, 3000);
+
     return () => {
-      supabase.removeChannel(channel); // CRITICAL: always cleanup
+      supabase.removeChannel(channel);
+      clearInterval(poll);
     };
   }, [session, chatId]);
 
