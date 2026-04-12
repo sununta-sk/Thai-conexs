@@ -160,7 +160,7 @@ function AppContent() {
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/profile-setup"     element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
-            <Route path="/room-chat/:chatId" element={<ProtectedRoute><RoomChat /></ProtectedRoute>} />
+            <Route path="/room-chat/:chatId" element={<RoomChat />} />
             <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
