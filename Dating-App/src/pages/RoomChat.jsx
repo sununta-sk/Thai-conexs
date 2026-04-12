@@ -51,8 +51,8 @@ export default function RoomChat() {
     if (!reportReason || !session) return;
     await supabase.from('content_reports').insert({
       reporter_id: session.user.id,
-      reported_id: otherUserId,
-      category: reportReason,
+      reported_user_id: otherUserId,
+      report_type: reportReason,
       status: 'open',
     });
     setShowReport(false);
