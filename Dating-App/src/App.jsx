@@ -69,23 +69,29 @@ const ProtectedRoute = ({ children }) => {
 };
 
 // ── AdminRoute — Phase 8: ตรวจ admin_users จริง ไม่ใช่แค่ session ───────────
-function AdminRoute({ children, session }) {
-  const [adminOk,  setAdminOk]  = useState(undefined); // undefined = loading
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+function AdminRoute({ children, session: sessionProp }) {
+  const [session, setSession] = useState(sessionProp);
+  const [adminOk, setAdminOk] = useState(undefined);
 
   useEffect(() => {
-    if (!session) { setAdminOk(false); return; }
+    if (sessionProp) { setSession(sessionProp); return; }
+    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') setSession(null);
+      else if (s) setSession(s);
+    });
+    return () => subscription.unsubscribe();
+  }, [sessionProp]);
 
+  useEffect(() => {
+    if (!session) { setAdminOk(session === null ? false : undefined); return; }
     supabase
       .from('admin_users')
       .select('id, is_active, admin_roles(name)')
       .eq('auth_user_id', session.user.id)
       .eq('is_active', true)
       .maybeSingle()
-      .then(({ data }) => {
-        setAdminOk(!!data);
-        setIsSuperAdmin(data?.admin_roles?.name === 'super_admin');
-      });
+      .then(({ data }) => setAdminOk(!!data));
   }, [session]);
 
   if (session === undefined || adminOk === undefined)
