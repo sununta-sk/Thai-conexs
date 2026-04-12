@@ -42,8 +42,7 @@ export default function TicketsPage() {
     let query = supabase
       .from('support_tickets')
       .select(`
-        id, subject, status, priority, created_at, updated_at,
-        user:users(id, display_name, email, avatar_url)
+        id, subject, message, status, priority, created_at, updated_at, user_id
       `)
       .eq('status', activeTab)
       .order('updated_at', { ascending: false })
@@ -75,7 +74,7 @@ export default function TicketsPage() {
     setMsgLoading(true);
     const { data } = await supabase
       .from('ticket_messages')
-      .select('id, content, is_admin, created_at, sender:users(display_name, avatar_url)')
+      .select('id, content, is_admin, created_at, sender_id')
       .eq('ticket_id', ticket.id)
       .order('created_at', { ascending: true });
     setMessages(data || []);
@@ -99,7 +98,7 @@ export default function TicketsPage() {
 
     const { data } = await supabase
       .from('ticket_messages')
-      .select('id, content, is_admin, created_at, sender:users(display_name, avatar_url)')
+      .select('id, content, is_admin, created_at, sender_id')
       .eq('ticket_id', detail.id)
       .order('created_at', { ascending: true });
     setMessages(data || []);
