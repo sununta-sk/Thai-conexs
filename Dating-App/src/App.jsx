@@ -52,18 +52,7 @@ const AdminFallback = () => (
 
 // ── ProtectedRoute (user) ────────────────────────────────────────────────────
 const ProtectedRoute = ({ children }) => {
-  const [session, setSession] = useState(() => {
-    // อ่านจาก localStorage โดยตรงเพื่อไม่ให้ flash redirect
-    try {
-      const raw = localSen');
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (parsed?.expires_at && parsed.expires_at > Math.floor(Date.now()/1000)) {
-        return parsed; // token ยังดีอยู่
-      }
-    } catch(e) {}
-    return undefined;
-  });
+  const [session, setSession] = useState(undefined);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session ?? null);
