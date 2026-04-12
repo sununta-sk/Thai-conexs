@@ -41,6 +41,37 @@ export default function RoomChat() {
   const [otherProfile, setOtherProfile] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [showTicket, setShowTicket] = useState(false);
+  const [ticketMsg, setTicketMsg] = useState('');
+
+  const submitReport = async () => {
+    if (!reportReason || !session) return;
+    await supabase.from('content_reports').insert({
+      reporter_id: session.user.id,
+      reported_id: otherUserId,
+      category: reportReason,
+      status: 'open',
+    });
+    setShowReport(false);
+    setReportReason('');
+    alert('ส่ง Report เรียบร้อยแล้ว');
+  };
+
+  const submitTicket = async () => {
+    if (!ticketMsg || !session) return;
+    await supabase.from('suser_id: session.user.id,
+      subject: 'Chat issue',
+      description: ticketMsg,
+      status: 'open',
+      priority: 'medium',
+    });
+    setShowTicket(false);
+    setTicketMsg('');
+    alert('ส่ง Ticket เรียบร้อยแล้ว');
+  };
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -293,9 +324,42 @@ export default function RoomChat() {
         </div>
 
         {/* More options */}
-        <button style={S.moreBtn}>
-          <span style={S.moreDots}>···</span>
-        </button>
+        <div style={{position:'relative'}}>
+          <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}>
+            <span style={S.moreDots}>···</span>
+          </button>
+          {showMenu && (
+            <div style={{position:'absolute',right:0,top:'110%',background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:160,overflow:'hidden'}}>
+              <button onClick={() => { setShowReport(tisplay:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
+              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#334155'}}>🎫 Support Ticket</button>
+            </div>
+          )}
+        </div>
+        {/* Report Modal */}
+        {showReport && (
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
+            <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700,marginBottom:12}}>Report User</div>
+              {['harassment','fake_profile','inappropriate_photo','spam','scam','underage','other'].map> (
+                <label key={r} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,cursor:'pointer'}}>
+                  <input type="radio" name="reason" value={r} onChange={() => setReportReason(r)} />
+                  <span style={{fontSize:14,textTransform:'capitalize'}}>{r.replace('_',' ')}</span>
+                </label>
+              ))}
+              <button onClick={submitReport} style={{marginTop:12,width:'100%',padding:'10px',background:'#e91e63',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Send Report</button>
+            </div>
+          </div>
+        )}
+        {/* Ticket Modal */}
+        {showTicket && (
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
+            <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700,marginBottom:12}}>Support Ticket</div>
+              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder="อธิบายปัญหา..." style={{width:'100%',height:100,borderRadius:8,border:'1px solid #e2e8f0',padding:8,fontSize:14,resize:'none'}} />
+              <button onClick={submitTicket} style={{marginTop:12,width:'100%',padding:'10px',background:'#e91e63',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Send Ticket</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── MESSAGES ── */}
