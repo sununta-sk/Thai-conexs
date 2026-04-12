@@ -41,9 +41,7 @@ export default function ReportsPage() {
     let query = supabase
       .from('content_reports')
       .select(`
-        id, report_type, status, created_at,
-        reporter:profiles!content_reports_reporter_id_fkey(id, username, avatar_url),
-        reported:profiles!content_reports_reported_user_id_fkey(id, username, avatar_url)
+        id, report_type, status, created_at, reporter_id, reported_user_id
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: false })
