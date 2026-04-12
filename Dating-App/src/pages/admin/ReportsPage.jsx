@@ -49,7 +49,20 @@ export default function ReportsPage() {
 
     if (category !== 'all') query = query.eq('report_type', category);
     const { data } = await query;
-    setReports(data || []);
+    if (data && data.length > 0) {
+      const ids = [...new Set([...data.map(r => r.reporter_id), ...data.map(r => r.reported_user_id)].filter(Boolean))];
+      const { data: profiles } = await supabase.from('profiles').select('id, username, avatar_url').in('id', ids);
+      const profileMap = {};
+      (profiles || []).forEach(p => { profileMap[p.id] = p; });
+      const enriched = data.map(r => ({
+        ...r,
+        reporter: profileMap[r.reporter_id] || null,
+        reported: profileMap[r.reported_user_id] || null,
+      }));
+      setReports(enriched);
+    } else {
+      setReports([]);
+    }
     setLoading(false);
   }, [activeTab, category]);
 
