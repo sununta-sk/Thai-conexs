@@ -22,7 +22,7 @@ export default function PhotoQueuePage() {
       .from('photo_moderation_queue')
       .select(`
         id, url, status, created_at, is_primary,
-        user:users(id, display_name, email, avatar_url)
+        user:profiles(id, username, email, avatar_url)
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: true })
