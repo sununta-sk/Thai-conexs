@@ -157,7 +157,7 @@ export default function RoomChat() {
         .order("created_at", { ascending: true })
         .range(0, 99);
       if (data) setMessages(data);
-    }, 3000);
+    }, 1000);
 
     return () => {
       supabase.removeChannel(channel);
@@ -175,6 +175,8 @@ export default function RoomChat() {
     const content = newMessage.trim();
     if (!content || !session || sending) return;
     setSending(true);
+    const tempMsg = {id:"temp-"+Date.now(),chat_id:chatId,room_id:chatId,sender_id:session.user.id,content,created_at:new Date().toISOString()};
+    setMessages(prev => [...prev, tempMsg]);
     setNewMessage("");
     const { error } = await supabase.from("messages").insert({
       chat_id: chatId,
