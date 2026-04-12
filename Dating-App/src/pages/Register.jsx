@@ -41,10 +41,14 @@ export default function Register() {
 
   return (
     <div style={S.page}>
-        <img src={logoImg} alt="logo" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px', boxShadow: '0 4px 16px rgba(233,30,99,0.2)' }} />
+
       {/* ── LEFT: Register Form ── */}
       <div style={S.formWrap}>
         <div style={S.formInner}>
+
+          {/* Logo */}
+          <img src={logoImg} alt="logo" style={S.logo} />
+
           <h1 style={S.heading}>Create account</h1>
           <p style={S.subheading}>Join Thai Conexns today ✨</p>
 
@@ -106,6 +110,7 @@ const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
   formInner: { width: '100%', maxWidth: '340px' },
+  logo: { width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px', boxShadow: '0 4px 16px rgba(233,30,99,0.2)', display: 'block' },
   heading: { margin: '0 0 4px', fontSize: '28px', fontWeight: 800, color: '#1a1a2e' },
   subheading: { margin: '0 0 32px', color: '#999', fontSize: '14px' },
   form: { display: 'flex', flexDirection: 'column', gap: '12px' },
