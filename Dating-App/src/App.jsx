@@ -55,11 +55,10 @@ const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setSession(data.session);
+      setSession(data.session ?? null);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === 'SIGNED_OUT') setSession(null);
-      else if (event === 'INITIAL_SESSION') setSession(s ?? null);
       else if (s) setSession(s);
     });
     return () => subscription.unsubscribe();
