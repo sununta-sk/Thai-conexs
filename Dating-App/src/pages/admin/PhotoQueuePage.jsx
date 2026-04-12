@@ -21,8 +21,7 @@ export default function PhotoQueuePage() {
     const { data } = await supabase
       .from('photo_moderation_queue')
       .select(`
-        id, url, status, created_at, is_primary,
-        user:profiles(id, username, email, avatar_url)
+        id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: true })
