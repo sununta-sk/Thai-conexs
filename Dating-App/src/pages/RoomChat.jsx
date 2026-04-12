@@ -166,6 +166,7 @@ export default function RoomChat() {
     setNewMessage("");
     const { error } = await supabase.from("messages").insert({
       chat_id: chatId,
+      room_id: chatId,
       sender_id: session.user.id,
       content,
     });
