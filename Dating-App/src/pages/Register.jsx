@@ -45,13 +45,9 @@ export default function Register() {
       {/* ── LEFT: Register Form ── */}
       <div style={S.formWrap}>
         <div style={S.formInner}>
-
-          {/* Logo */}
           <img src={logoImg} alt="logo" style={S.logo} />
-
           <h1 style={S.heading}>Create account</h1>
           <p style={S.subheading}>Join Thai Conexns today ✨</p>
-
           <form onSubmit={handleRegister} style={S.form}>
             <input type="email" placeholder="Email" value={email}
               onChange={e => setEmail(e.target.value)} style={S.input} required />
@@ -63,7 +59,6 @@ export default function Register() {
               {loading ? 'Creating account…' : 'Sign Up'}
             </button>
           </form>
-
           <p style={S.loginText}>
             Already have an account? <Link to="/login" style={S.loginLink}>Log In</Link>
           </p>
@@ -74,16 +69,8 @@ export default function Register() {
       <div style={S.cardsWrap}>
         {photos.length > 0 ? (
           <div style={S.cardStack}>
-            {getPhoto(2) && (
-              <div style={{ ...S.card, ...S.card3 }}>
-                <img src={getPhoto(2)} alt="" style={S.cardImg} />
-              </div>
-            )}
-            {getPhoto(1) && (
-              <div style={{ ...S.card, ...S.card2 }}>
-                <img src={getPhoto(1)} alt="" style={S.cardImg} />
-              </div>
-            )}
+            {getPhoto(2) && <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>}
+            {getPhoto(1) && <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>}
             <div style={{ ...S.card, ...S.card1 }}>
               <img src={getPhoto(0)} alt="" style={S.cardImg} />
               <div style={S.cardGradient} />
@@ -95,7 +82,7 @@ export default function Register() {
             </div>
           </div>
         ) : (
-          <div style={S.fallback}>
+          <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>💕</div>
             <div style={{ color: '#e91e63', fontWeight: 700, fontSize: '16px' }}>Find your match</div>
           </div>
@@ -109,11 +96,11 @@ export default function Register() {
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
-  formInner: { width: '100%', maxWidth: '340px' },
-  logo: { width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px', boxShadow: '0 4px 16px rgba(233,30,99,0.2)', display: 'block' },
-  heading: { margin: '0 0 4px', fontSize: '28px', fontWeight: 800, color: '#1a1a2e' },
-  subheading: { margin: '0 0 32px', color: '#999', fontSize: '14px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '12px' },
+  formInner: { width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  logo: { width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.25)', marginBottom: '20px' },
+  heading: { margin: '0 0 4px', fontSize: '28px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center' },
+  subheading: { margin: '0 0 32px', color: '#999', fontSize: '14px', textAlign: 'center' },
+  form: { display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' },
   input: { padding: '13px 16px', borderRadius: '12px', border: '1px solid #e8e8e8', fontSize: '15px', background: '#fafafa', color: '#333', outline: 'none' },
   btnPink: { padding: '14px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', marginTop: '4px' },
   loginText: { marginTop: '24px', textAlign: 'center', color: '#aaa', fontSize: '13px' },
@@ -129,5 +116,4 @@ const S = {
   dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1 },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
-  fallback: { textAlign: 'center' },
 };
