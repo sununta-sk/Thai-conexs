@@ -154,15 +154,7 @@ const S = {
   },
 
   // ── Slideshow ──────────────────────────────────────────────────────────────
-  slideWrap: {
-    flex: 1,
-    position: 'relative',
-    overflow: 'hidden',
-    background: '#1a1a2e',
-    // ซ่อนบน mobile
-    display: 'flex',
-    minWidth: 0,
-  },
+  sslideWrap: { width: '55%', position: 'relative', overflow: 'hidden', background: '#111', display: 'flex', minWidth: 0, margin: '16px', borderRadius: '20px' },
   slideImg: {
     position: 'absolute',
     inset: 0,
