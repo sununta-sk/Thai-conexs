@@ -282,6 +282,19 @@ export default function ReportsPage() {
                 </div>
               )}
 
+              {/* Ban buttons */}
+              <div style={{marginBottom:12,marginTop:12}}>
+                <div style={{color:"#94a3b8",fontSize:11,marginBottom:6,fontWeight:600}}>BAN USER</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                  {[{l:"1hr",h:1},{l:"24hr",h:24},{l:"7d",h:168},{l:"30d",h:720},{l:"60d",h:1440},{l:"1yr",h:8760},{l:"permanent",h:999999}].map(({l,h}) => (
+                    <button key={h} onClick={async () => {
+                      const until = h===999999 ? "2099-01-01T00:00:00Z" : new Date(Date.now()+h*3600000).toISOString();
+                      await supabase.from("profiles").update({banned_until:until,ban_reason:detail.report_type||"violation"}).eq("id",detail.reported_user_id);
+                      alert("Banned: "+l);
+                    }} style={{padding:"4px 10px",background:"#ef4444",color:"#fff",border:"none",borderRadius:6,cursor:"pointer",fontSize:12}}>{l}</button>
+                  ))}
+                </div>
+              </div>
               {/* Go to user */}
               <button
                 style={{ ...S.actBtn, background: '#3b82f622', color: '#3b82f6', border: '1px solid #3b82f644', marginTop: 12 }}
