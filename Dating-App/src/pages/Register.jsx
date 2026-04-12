@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import logoImg from '../lib/LotusConnexs.jpeg';
 
 export default function Register() {
   const [email, setEmail]       = useState('');
@@ -40,7 +41,7 @@ export default function Register() {
 
   return (
     <div style={S.page}>
-
+        <img src={logoImg} alt="logo" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', marginBottom: '16px', boxShadow: '0 4px 16px rgba(233,30,99,0.2)' }} />
       {/* ── LEFT: Register Form ── */}
       <div style={S.formWrap}>
         <div style={S.formInner}>
