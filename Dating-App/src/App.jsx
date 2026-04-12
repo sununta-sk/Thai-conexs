@@ -149,7 +149,7 @@ function AppContent() {
       if (event === 'SIGNED_OUT') setSession(null);
       else if (s) setSession(s);
     });
-    return () => substion.unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
   const hideNavbar =
