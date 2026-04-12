@@ -62,7 +62,8 @@ export default function RoomChat() {
 
   const submitTicket = async () => {
     if (!ticketMsg || !session) return;
-    await supabase.from('suser_id: session.user.id,
+    await supabase.from('support_tickets').insert({
+      user_id: session.user.id,
       subject: 'Chat issue',
       description: ticketMsg,
       status: 'open',
@@ -330,7 +331,7 @@ export default function RoomChat() {
           </button>
           {showMenu && (
             <div style={{position:'absolute',right:0,top:'110%',background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:160,overflow:'hidden'}}>
-              <button onClick={() => { setShowReport(tisplay:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
+              <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
               <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#334155'}}>🎫 Support Ticket</button>
             </div>
           )}
@@ -340,7 +341,7 @@ export default function RoomChat() {
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
             <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
               <div style={{fontWeight:700,marginBottom:12}}>Report User</div>
-              {['harassment','fake_profile','inappropriate_photo','spam','scam','underage','other'].map> (
+              {['harassment','fake_profile','inappropriate_photo','spam','scam','underage','other'].map(r => (
                 <label key={r} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,cursor:'pointer'}}>
                   <input type="radio" name="reason" value={r} onChange={() => setReportReason(r)} />
                   <span style={{fontSize:14,textTransform:'capitalize'}}>{r.replace('_',' ')}</span>
