@@ -74,14 +74,15 @@ function AdminRoute({ children, session: sessionProp }) {
   const [adminOk, setAdminOk] = useState(undefined);
 
   useEffect(() => {
-    if (sessionProp) { setSession(sessionProp); return; }
-    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setSession(data.session);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === 'SIGNED_OUT') setSession(null);
       else if (s) setSession(s);
     });
     return () => subscription.unsubscribe();
-  }, [sessionProp]);
+  }, []);
 
   useEffect(() => {
     if (!session) { setAdminOk(session === null ? false : undefined); return; }
