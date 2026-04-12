@@ -41,15 +41,15 @@ export default function ReportsPage() {
     let query = supabase
       .from('content_reports')
       .select(`
-        id, category, description, status, created_at, admin_note,
-        reporter:users!reports_reporter_id_fkey(id, display_name, email, avatar_url),
-        reported:users!reports_reported_id_fkey(id, display_name, email, avatar_url)
+        id, report_type, status, created_at,
+        reporter:profiles!content_reports_reporter_id_fkey(id, username, avatar_url),
+        reported:profiles!content_reports_reported_user_id_fkey(id, username, avatar_url)
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: false })
       .limit(50);
 
-    if (category !== 'all') query = query.eq('category', category);
+    if (category !== 'all') query = query.eq('report_type', category);
     const { data } = await query;
     setReports(data || []);
     setLoading(false);
@@ -173,7 +173,7 @@ export default function ReportsPage() {
                       </td>
                       {/* Category */}
                       <td style={S.td}>
-                        <span style={S.catChip}>{CATEGORY_LABEL[r.category] || r.category}</span>
+                        <span style={S.catChip}>{CATEGORY_LABEL[r.report_type] || r.report_type}</span>
                       </td>
                       {/* Date */}
                       <td style={{ ...S.td, color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>
@@ -220,7 +220,7 @@ export default function ReportsPage() {
               {/* Category + Description */}
               <div style={S.panelSection}>
                 <div style={S.panelLabel}>ประเภท</div>
-                <span style={S.catChip}>{CATEGORY_LABEL[detail.category] || detail.category}</span>
+                <span style={S.catChip}>{CATEGORY_LABEL[detail.report_type] || detail.report_type}</span>
               </div>
               {detail.description && (
                 <div style={S.panelSection}>
@@ -291,12 +291,12 @@ function UserCell({ user }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <img
-        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.display_name}&background=1e293b&color=f1f5f9&size=32`}
+        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.username}&background=1e293b&color=f1f5f9&size=32`}
         alt=""
         style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', background: '#334155' }}
       />
       <div>
-        <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13 }}>{user?.display_name || 'Unknown'}</div>
+        <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13 }}>{user?.username || 'Unknown'}</div>
         <div style={{ color: '#475569', fontSize: 11 }}>{user?.email}</div>
       </div>
     </div>
@@ -310,12 +310,12 @@ function UserRow({ user, navigate }) {
       onClick={() => navigate(`/admin/users/${user?.id}`)}
     >
       <img
-        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.display_name}&background=1e293b&color=f1f5f9&size=40`}
+        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.username}&background=1e293b&color=f1f5f9&size=40`}
         alt=""
         style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', background: '#334155' }}
       />
       <div style={{ flex: 1 }}>
-        <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{user?.display_name}</div>
+        <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{user?.username}</div>
         <div style={{ color: '#64748b', fontSize: 11 }}>{user?.email}</div>
       </div>
       <span style={{ color: '#334155', fontSize: 18 }}>›</span>
