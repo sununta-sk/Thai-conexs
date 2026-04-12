@@ -2,30 +2,27 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import slide1 from '../lib/1.jpeg';
+import slide2 from '../lib/2.jpeg';
+import slide3 from '../lib/3.jpeg';
+import slide4 from '../lib/4.jpeg';
+import slide5 from '../lib/5.jpeg';
+import slide6 from '../lib/6.jpeg';
+
+const SLIDES = [slide1, slide2, slide3, slide4, slide5, slide6];
 
 export default function Register() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm]   = useState('');
   const [loading, setLoading]   = useState(false);
-  const [photos, setPhotos]     = useState([]);
   const [current, setCurrent]   = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.from('profiles').select('avatar_url')
-      .not('avatar_url', 'is', null).neq('avatar_url', '').limit(20)
-      .then(({ data }) => {
-        if (data && data.length > 0)
-          setPhotos([...data].sort(() => Math.random() - 0.5).map(p => p.avatar_url));
-      });
-  }, []);
-
-  useEffect(() => {
-    if (photos.length === 0) return;
-    const timer = setInterval(() => setCurrent(prev => (prev + 1) % photos.length), 3000);
+    const timer = setInterval(() => setCurrent(prev => (prev + 1) % SLIDES.length), 3000);
     return () => clearInterval(timer);
-  }, [photos]);
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -37,7 +34,7 @@ export default function Register() {
     else { alert('Registration successful! Please check your email.'); navigate('/login'); }
   };
 
-  const getPhoto = (offset) => photos.length > 0 ? photos[(current + offset) % photos.length] : null;
+  const getPhoto = (offset) => SLIDES[(current + offset) % SLIDES.length];
 
   return (
     <div style={S.page}>
@@ -67,26 +64,20 @@ export default function Register() {
 
       {/* ── RIGHT: Stacked Cards ── */}
       <div style={S.cardsWrap}>
-        {photos.length > 0 ? (
-          <div style={S.cardStack}>
-            {getPhoto(2) && <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>}
-            {getPhoto(1) && <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>}
-            <div style={{ ...S.card, ...S.card1 }}>
-              <img src={getPhoto(0)} alt="" style={S.cardImg} />
-              <div style={S.cardGradient} />
-              <div style={S.dots}>
-                {photos.slice(0, Math.min(photos.length, 5)).map((_, i) => (
-                  <div key={i} style={{ ...S.dot, ...(i === current % Math.min(photos.length, 5) ? S.dotActive : {}) }} />
-                ))}
-              </div>
+        <div style={S.cardStack}>
+          <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>
+          <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>
+          <div style={{ ...S.card, ...S.card1 }}>
+            <img src={getPhoto(0)} alt="" style={S.cardImg} />
+            <div style={S.cardGradient} />
+            <div style={S.dots}>
+              {SLIDES.map((_, i) => (
+                <div key={i} onClick={() => setCurrent(i)}
+                  style={{ ...S.dot, ...(i === current ? S.dotActive : {}) }} />
+              ))}
             </div>
           </div>
-        ) : (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>💕</div>
-            <div style={{ color: '#e91e63', fontWeight: 700, fontSize: '16px' }}>Find your match</div>
-          </div>
-        )}
+        </div>
       </div>
 
     </div>
@@ -113,7 +104,7 @@ const S = {
   card3: { top: '-18px', left: '32px', zIndex: 1, opacity: 0.45, transform: 'rotate(10deg)' },
   cardImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   cardGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' },
-  dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1 },
+  dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
 };
