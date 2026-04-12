@@ -51,14 +51,17 @@ const AdminFallback = () => (
 );
 
 // ── ProtectedRoute (user) ────────────────────────────────────────────────────
-const ProtectedRoute = ({ children, session }) => {
-  const [timedOut, setTimedOut] = useState(false);
+const ProtectedRoute = ({ children }) => {
+  const [session, setSession] = useState(undefined);
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 8000);
-    return () => clearTimeout(t);
+    supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_OUT') setSession(null);
+      else if (s) setSession(s);
+    });
+    return () => subscription.unsubscribe();
   }, []);
-  if (session === undefined || (session === null && !timedOut))
-    return <div style={{ background: '#0f172a', height: '100vh' }} />;
+  if (session === undefined) return <div style={{ background: '#0f172a', height: '100vh' }} />;
   if (!session) return <Navigate to="/login" replace />;
   return children;
 };
@@ -152,14 +155,14 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
 
             {/* ── User App ── */}
-            <Route path="/discover"          element={<ProtectedRoute session={session}><Discover /></ProtectedRoute>} />
-            <Route path="/messages"          element={<ProtectedRoute session={session}><Messages /></ProtectedRoute>} />
-            <Route path="/profile-setup"     element={<ProtectedRoute session={session}><ProfileSetup /></ProtectedRoute>} />
-            <Route path="/room-chat/:chatId" element={<ProtectedRoute session={session}><RoomChat /></ProtectedRoute>} />
-            <Route path="/profile"           element={<ProtectedRoute session={session}><ProfilePage /></ProtectedRoute>} />
-            <Route path="/subscription"      element={<ProtectedRoute session={session}><SubscriptionPage /></ProtectedRoute>} />
-            <Route path="/payment"           element={<ProtectedRoute session={session}><PaymentPage /></ProtectedRoute>} />
-            <Route path="/notifications"     element={<ProtectedRoute session={session}><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
+            <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/profile-setup"     element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+            <Route path="/room-chat/:chatId" element={<ProtectedRoute><RoomChat /></ProtectedRoute>} />
+            <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+            <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+            <Route path="/notifications"     element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
             {/* ── Admin — Core ── */}
             <Route path="/admin-secret-portal" element={<AdminRoute session={session}><AdminDashboard /></AdminRoute>} />
