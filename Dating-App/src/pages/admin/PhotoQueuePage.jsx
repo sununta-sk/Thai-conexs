@@ -150,8 +150,8 @@ export default function PhotoQueuePage() {
               >
                 {/* Image */}
                 <div style={S.imgWrap} onClick={() => setPreview(photo)}>
-                  <img src={photo.url} alt="" style={S.img} />
-                  {photo.is_primary && <span style={S.primaryBadge}>Primary</span>}
+                  <img src={photo.photo_url} alt="" style={S.img} />
+                  {photo.is_profile_photo && <span style={S.primaryBadge}>Primary</span>}
                   <div style={S.imgOverlay}>
                     <span style={{ fontSize: 20 }}>🔍</span>
                   </div>
@@ -205,7 +205,7 @@ export default function PhotoQueuePage() {
           <div style={S.overlay} onClick={() => setPreview(null)}>
             <div style={S.modal} onClick={e => e.stopPropagation()}>
               <button style={S.closeBtn} onClick={() => setPreview(null)}>✕</button>
-              <img src={preview.url} alt="" style={{ width: '100%', maxHeight: 400, objectFit: 'contain', background: '#0a0f1e', borderRadius: '12px 12px 0 0' }} />
+              <img src={preview.photo_url} alt="" style={{ width: '100%', maxHeight: 400, objectFit: 'contain', background: '#0a0f1e', borderRadius: '12px 12px 0 0' }} />
               <div style={{ padding: 20 }}>
                 {/* User row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -218,7 +218,7 @@ export default function PhotoQueuePage() {
                     <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14 }}>{preview.user?.display_name}</div>
                     <div style={{ color: '#64748b', fontSize: 12 }}>{preview.user?.email}</div>
                   </div>
-                  {preview.is_primary && <span style={{ marginLeft: 'auto', ...S.primaryBadge, position: 'static' }}>Primary</span>}
+                  {preview.is_profile_photo && <span style={{ marginLeft: 'auto', ...S.primaryBadge, position: 'static' }}>Primary</span>}
                 </div>
                 <div style={{ color: '#475569', fontSize: 12, marginBottom: 16 }}>
                   อัปโหลด: {new Date(preview.created_at).toLocaleString('th-TH')}
