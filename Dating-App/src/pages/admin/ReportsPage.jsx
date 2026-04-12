@@ -39,7 +39,7 @@ export default function ReportsPage() {
   const fetchReports = useCallback(async () => {
     setLoading(true);
     let query = supabase
-      .from('reports')
+      .from('content_reports')
       .select(`
         id, category, description, status, created_at, admin_note,
         reporter:users!reports_reporter_id_fkey(id, display_name, email, avatar_url),
@@ -58,7 +58,7 @@ export default function ReportsPage() {
   const fetchStats = async () => {
     const results = await Promise.all(
       STATUS_TABS.map(s =>
-        supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', s)
+        supabase.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', s)
       )
     );
     const s = {};
@@ -71,7 +71,7 @@ export default function ReportsPage() {
   /* ── Action ── */
   const updateStatus = async (reportId, newStatus) => {
     setActionLoading(true);
-    await supabase.from('reports').update({
+    await supabase.from('content_reports').update({
       status:      newStatus,
       admin_note:  adminNote || null,
       resolved_at: ['resolved', 'dismissed'].includes(newStatus) ? new Date().toISOString() : null,
