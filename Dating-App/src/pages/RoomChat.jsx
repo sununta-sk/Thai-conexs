@@ -65,7 +65,7 @@ export default function RoomChat() {
     await supabase.from('support_tickets').insert({
       user_id: session.user.id,
       subject: 'Chat issue',
-      description: ticketMsg,
+      message: ticketMsg,
       status: 'open',
       priority: 'medium',
     });
