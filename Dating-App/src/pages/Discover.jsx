@@ -50,7 +50,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => {
     const chatId = getChatId(currentUserId, targetUserId);
-    navigate(`/room-demo/${chatId}`);
+    navigate(`/room-chat/${chatId}`);
   };
 
   const getMainPhoto = (profile) => {
