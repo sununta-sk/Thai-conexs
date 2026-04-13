@@ -147,7 +147,7 @@ function AppContent() {
     location.pathname === '/register';
 
   return (
-    <div style={{ width: '100vw', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f5f5f5' }}>
+    <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f5f5f5', overflowX: 'hidden' }}>
       <div style={{ flex: 1 }}>
         <Suspense fallback={<AdminFallback />}>
           <Routes>
