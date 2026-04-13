@@ -22,7 +22,7 @@ export default function PayoutListPage() {
     setLoading(true)
     let q = supabase
       .from('affiliate_payouts')
-      .select('*, affiliate:affiliates(id, referral_code, tier, users(name, email, avatar_url))')
+      .select('*, affiliate:affiliates(id, referral_code, contact_name, contact_email)')
       .order('created_at', { ascending: false })
     if (statusFilter !== 'all') q = q.eq('status', statusFilter)
     const { data } = await q
