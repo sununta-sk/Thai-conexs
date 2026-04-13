@@ -92,7 +92,6 @@ export default function PayoutListPage() {
             <p style={S.subtitle}>Review and process affiliate withdrawal requests</p>
           </div>
           <button onClick={() => navigate('/payouts/new')} style={S.btnPink}>
-            + New Payout Request
           </button>
         </div>
 
