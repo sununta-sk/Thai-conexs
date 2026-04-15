@@ -40,7 +40,7 @@ export default function Navbar() {
       </button>
       {isAdmin && (
         <button onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin/dashboard')}
-          style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : 9c12' }}>
+          style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : '#f39c12' }}>
           <span style={{ display: 'block', fontSize: '24px' }}>⚡</span>
           <span style={{ fontSize: '10px' }}>Admin</span>
         </button>
