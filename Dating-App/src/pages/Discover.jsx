@@ -116,7 +116,6 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      {/* Header */}
       <div style={S.header}>
         <span style={S.headerTitle}>Thai Conexns</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -144,20 +143,25 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
 
             return (
-              <div key={profile.id} style={S.card} onClick={() => handleStartChat(profile.id)}>
-                {/* Photo */}
-                <div style={S.photoWrap}>
+              <div key={profile.id} style={S.card}>
+                {/* Photo — คลิกเพื่อดูโปรไฟล์ */}
+                <div style={S.photoWrap} onClick={() => handleStartChat(profile.id)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} />
-                  {/* verified */}
                   {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
-                  {/* online dot */}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#bbb' }} />
                 </div>
-                {/* Info below photo */}
+
+                {/* Info */}
                 <div style={S.info}>
                   <div style={S.name}>{profile.username || '—'}</div>
                   {metaParts.length > 0 && <div style={S.meta}>{metaParts.join(', ')}</div>}
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#999' }}>{lastSeen}</div>
+                </div>
+
+                {/* Action buttons */}
+                <div style={S.actions}>
+                  <button style={S.btnX} onClick={e => e.stopPropagation()}>✕</button>
+                  <button style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
                 </div>
               </div>
             );
@@ -197,7 +201,6 @@ const S = {
     overflow: 'hidden',
     cursor: 'pointer',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-    transition: 'transform 0.15s, box-shadow 0.15s',
   },
   photoWrap: {
     position: 'relative',
@@ -208,47 +211,44 @@ const S = {
   },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: {
-    position: 'absolute',
-    top: 4, left: 4,
-    width: 16, height: 16,
-    borderRadius: '50%',
-    background: '#3b82f6',
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 800,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'absolute', top: 4, left: 4,
+    width: 16, height: 16, borderRadius: '50%',
+    background: '#3b82f6', color: '#fff',
+    fontSize: 9, fontWeight: 800,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   onlineBadge: {
-    position: 'absolute',
-    top: 4, right: 4,
-    width: 9, height: 9,
-    borderRadius: '50%',
+    position: 'absolute', top: 4, right: 4,
+    width: 9, height: 9, borderRadius: '50%',
     border: '2px solid #fff',
   },
-  info: {
-    padding: '6px 6px 8px',
-  },
+  info: { padding: '6px 6px 4px' },
   name: {
-    fontSize: '12px',
-    fontWeight: 700,
-    color: '#333',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    fontSize: '12px', fontWeight: 700, color: '#333',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   meta: {
-    fontSize: '10px',
-    color: '#777',
-    marginTop: '1px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    fontSize: '10px', color: '#777', marginTop: '1px',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
-  lastSeen: {
-    fontSize: '9px',
-    marginTop: '1px',
+  lastSeen: { fontSize: '9px', marginTop: '1px' },
+  actions: {
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: '4px',
+    borderTop: '1px solid #f0f0f0',
+  },
+  btnX: {
+    background: 'none', border: 'none',
+    color: '#ccc', fontSize: '13px',
+    cursor: 'pointer', padding: '3px 10px',
+  },
+  btnChat: {
+    background: '#fce4ec', border: 'none',
+    borderRadius: '12px', color: '#e91e63',
+    fontSize: '13px', cursor: 'pointer',
+    padding: '3px 10px',
   },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#999', fontSize: 14 },
 };
