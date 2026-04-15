@@ -11,10 +11,34 @@ import slide6 from '../lib/6.jpeg';
 
 const SLIDES = [slide1, slide2, slide3, slide4, slide5, slide6];
 
+const CONTENT = {
+  en: {
+    title: 'Thai Dating',
+    paragraphs: [
+      'Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there\'s always someone new to discover in a community inspired by Thailand\'s warm and welcoming spirit.',
+      'Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.',
+      'We don\'t operate like a traditional agency, and we don\'t handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.',
+      'The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.',
+      'Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.',
+    ],
+  },
+  th: {
+    title: 'หาคู่คนไทย',
+    paragraphs: [
+      'Lotus ConeXs คือแพลตฟอร์มหาคู่สมัยใหม่ที่เชื่อมต่อผู้คนจากทั่วโลกกับคนไทยที่สนใจมิตรภาพ ความรัก และความสัมพันธ์ที่แท้จริง มีสมาชิกใหม่เข้าร่วมทุกสัปดาห์ เปิดโอกาสให้คุณค้นพบคนใหม่ในชุมชนที่เต็มไปด้วยความอบอุ่นแบบไทย',
+      'ต่างจากแอปหาคู่ทั่วไป Lotus ConeXs ให้คุณเริ่มบทสนทนาได้ทันที ไม่ต้องรอการจับคู่ ใช้งานได้ฟรี หรืออัปเกรดเพื่อปลดล็อกฟีเจอร์เพิ่มเติมที่ช่วยเพิ่มการมองเห็นโปรไฟล์ของคุณ',
+      'เราไม่ได้ดำเนินการแบบเอเจนซี่แบบดั้งเดิม แต่มุ่งเน้นให้คุณเข้าถึงเครือข่ายที่กว้างและมีความหลากหลายมากกว่าบริการแนะนำรูปแบบจำกัด',
+      'แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ',
+      'Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน',
+    ],
+  },
+};
+
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [current, setCurrent]   = useState(0);
+  const [lang, setLang]         = useState('en');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,14 +62,19 @@ export default function Login() {
   };
 
   const getPhoto = (offset) => SLIDES[(current + offset) % SLIDES.length];
+  const c = CONTENT[lang];
 
   return (
-    <div style={{ background: '#fff' }}>
+    <div style={{ background: '#fff', position: 'relative' }}>
+
+      {/* ── Language Toggle — มุมขวาบน ── */}
+      <div style={S.langToggle}>
+        <button onClick={() => setLang('en')} style={{ ...S.flagBtn, opacity: lang === 'en' ? 1 : 0.4 }}>🇬🇧</button>
+        <button onClick={() => setLang('th')} style={{ ...S.flagBtn, opacity: lang === 'th' ? 1 : 0.4 }}>🇹🇭</button>
+      </div>
 
       {/* ── Hero Section ── */}
       <div style={S.page}>
-
-        {/* LEFT: Login Form */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
             <img src={logoImg} alt="logo" style={S.logo} />
@@ -69,7 +98,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* RIGHT: Stacked Cards */}
         <div style={S.cardsWrap}>
           <div style={S.cardStack}>
             <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>
@@ -91,66 +119,10 @@ export default function Login() {
       {/* ── About Section ── */}
       <div style={S.about}>
         <div style={S.aboutInner}>
-          <h2 style={S.aboutTitle}>Thai Dating</h2>
-
-          <p style={S.aboutText}>
-            Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles
-            who are genuinely interested in friendship, romance, and real connections. With new members joining
-            every week, there's always someone new to discover in a community inspired by Thailand's warm and
-            welcoming spirit.
-          </p>
-
-          <p style={S.aboutText}>
-            Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required.
-            You can use the platform for free, or upgrade to unlock added features that boost your visibility
-            and improve your chances of getting noticed.
-          </p>
-
-          <p style={S.aboutText}>
-            We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead,
-            we focus on giving you access to a wide and active network, offering far more variety than smaller,
-            limited-introduction services.
-          </p>
-
-          <p style={S.aboutText}>
-            The platform also supports Thai language, making it easy for local members — even those with limited
-            English — to take part and connect comfortably.
-          </p>
-
-          <p style={S.aboutText}>
-            Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.
-          </p>
-
-          {/* Thai version */}
-          <div style={S.dividerSection} />
-
-          <p style={S.aboutText}>
-            Lotus ConeXs คือแพลตฟอร์มหาคู่สมัยใหม่ที่เชื่อมต่อผู้คนจากทั่วโลกกับคนไทยที่สนใจมิตรภาพ
-            ความรัก และความสัมพันธ์ที่แท้จริง มีสมาชิกใหม่เข้าร่วมทุกสัปดาห์ เปิดโอกาสให้คุณค้นพบคนใหม่
-            ในชุมชนที่เต็มไปด้วยความอบอุ่นแบบไทย
-          </p>
-
-          <p style={S.aboutText}>
-            ต่างจากแอปหาคู่ทั่วไป Lotus ConeXs ให้คุณเริ่มบทสนทนาได้ทันที ไม่ต้องรอการจับคู่
-            ใช้งานได้ฟรี หรืออัปเกรดเพื่อปลดล็อกฟีเจอร์เพิ่มเติมที่ช่วยเพิ่มการมองเห็นโปรไฟล์ของคุณ
-          </p>
-
-          <p style={S.aboutText}>
-            เราไม่ได้ดำเนินการแบบเอเจนซี่แบบดั้งเดิม แต่มุ่งเน้นให้คุณเข้าถึงเครือข่ายที่กว้างและมีความหลากหลาย
-            มากกว่าบริการแนะนำรูปแบบจำกัด
-          </p>
-
-          <p style={S.aboutText}>
-            แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย
-            สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ
-          </p>
-
-          <p style={S.aboutText}>
-            Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ
-            เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน
-          </p>
-
-          {/* Footer links */}
+          <h2 style={S.aboutTitle}>{c.title}</h2>
+          {c.paragraphs.map((p, i) => (
+            <p key={i} style={S.aboutText}>{p}</p>
+          ))}
           <div style={S.footerLinks}>
             <a href="#" style={S.footerLink}>Privacy Policy</a>
             <a href="#" style={S.footerLink}>Terms of Service</a>
@@ -166,6 +138,23 @@ export default function Login() {
 }
 
 const S = {
+  langToggle: {
+    position: 'fixed',
+    top: '16px',
+    right: '16px',
+    display: 'flex',
+    gap: '6px',
+    zIndex: 100,
+  },
+  flagBtn: {
+    background: 'none',
+    border: 'none',
+    fontSize: '24px',
+    cursor: 'pointer',
+    padding: '4px',
+    borderRadius: '6px',
+    transition: 'opacity 0.2s',
+  },
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
   formInner: { width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
@@ -192,13 +181,10 @@ const S = {
   dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
-
-  // About section
   about: { background: '#fff', borderTop: '1px solid #f0f0f0', padding: '60px 20px 40px' },
   aboutInner: { maxWidth: '760px', margin: '0 auto' },
   aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '28px' },
   aboutText: { fontSize: '15px', lineHeight: '1.8', color: '#555', marginBottom: '18px' },
-  dividerSection: { borderTop: '1px solid #f0f0f0', margin: '32px 0' },
   footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '40px', marginBottom: '16px' },
   footerLink: { color: '#e91e63', fontSize: '13px', textDecoration: 'none' },
   copyright: { textAlign: 'center', color: '#bbb', fontSize: '12px', marginTop: '8px' },
