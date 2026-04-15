@@ -28,6 +28,25 @@ function formatDateSeparator(iso) {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+// ── แกะ URL จาก photos array (รองรับทั้ง string URL และ {url:...} object) ──
+function extractPhotoUrl(p) {
+  if (!p) return null;
+  if (typeof p === "string") {
+    try { return JSON.parse(p)?.url || p; } catch { return p; }
+  }
+  return p?.url || null;
+}
+
+// ── แสดงเวลา last seen ──
+function timeAgo(dateStr) {
+  if (!dateStr) return "Offline";
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (diff < 60)    return "Just now";
+  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function RoomChat() {
@@ -95,12 +114,12 @@ export default function RoomChat() {
     ? chatId.split("_").find((id) => id !== session.user.id)
     : null;
 
-  // ── 3. Fetch other user's profile ──────────────────────────────────────────
+  // ── 3. Fetch other user's profile (เพิ่ม last_seen_at, city) ──────────────
   useEffect(() => {
     if (!otherUserId) return;
     supabase
       .from("profiles")
-      .select("id, username, avatar_url, photos, details")
+      .select("id, username, avatar_url, photos, details, city, last_seen_at")
       .eq("id", otherUserId)
       .single()
       .then(({ data }) => {
@@ -149,14 +168,12 @@ export default function RoomChat() {
 
     fetchMessages();
 
-    // Mark as read
     supabase
       .from("messages")
       .update({ is_read: true })
       .eq("chat_id", chatId)
       .neq("sender_id", session.user.id);
 
-    // Realtime subscription — MUST cleanup on unmount
     const channel = supabase
       .channel(`room:${chatId}`)
       .on(
@@ -169,7 +186,6 @@ export default function RoomChat() {
         },
         (payload) => {
           setMessages((prev) => [...prev, payload.new]);
-          // Mark incoming as read immediately
           if (payload.new.sender_id !== session.user.id) {
             supabase
               .from("messages")
@@ -180,7 +196,6 @@ export default function RoomChat() {
       )
       .subscribe();
 
-    // Polling fallback — fetch every 3s if realtime fails
     const poll = setInterval(async () => {
       const { data } = await supabase
         .from("messages")
@@ -218,7 +233,7 @@ export default function RoomChat() {
     });
     if (error) {
       console.error("Send error:", error);
-      setNewMessage(content); // restore on failure
+      setNewMessage(content);
     }
     setSending(false);
     inputRef.current?.focus();
@@ -232,13 +247,21 @@ export default function RoomChat() {
   };
 
   // ── Derived profile info ───────────────────────────────────────────────────
-  const profileAge = otherProfile?.details?.age ?? "";
+  const profileAge    = otherProfile?.details?.age    ?? "";
   const profileGender = otherProfile?.details?.gender ?? "";
-  const profileCity = otherProfile?.details?.city ?? "";
+  // city: เอาจาก top-level column ก่อน ถ้าไม่มีค่อย fallback details
+  const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
+
+  // ── FIX: แกะ URL จาก photos array ──
+  const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
+  const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const allPhotos = [
     ...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []),
-    ...(otherProfile?.photos ?? []),
+    ...photoUrls.filter(u => u !== otherProfile?.avatar_url),
   ];
+
+  // ── Online status text ──
+  const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   if (loading) {
@@ -287,23 +310,27 @@ export default function RoomChat() {
           </svg>
         </button>
 
-        {/* Profile info */}
-        <div style={S.headerInfo}>
-          <div style={S.headerName}>
-            {otherProfile?.username ?? "User"}
+        {/* Profile info — กดแล้วไปหน้า profile */}
+        <div
+          style={{ ...S.headerInfo, cursor: 'pointer' }}
+          onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
+        >
+          <div style={S.nameGenderRow}>
+            <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
+            {profileGender && <span style={S.genderBadge}>{profileGender}</span>}
           </div>
           <div style={S.headerMeta}>
-            {[profileAge, profileGender, profileCity].filter(Boolean).join(" / ")}
+            {[profileAge, profileCity].filter(Boolean).join(" · ")}
           </div>
           <div style={S.onlineRow}>
-            <div style={{ ...S.onlineDot, background: isOnline ? "#ff9500" : "#ccc" }} />
-            <span style={{ ...S.onlineText, color: isOnline ? "#ff9500" : "#aaa" }}>
-              {isOnline ? "Online" : "Offline"}
+            <div style={{ ...S.onlineDot, background: isOnline ? "#4caf50" : "#ccc" }} />
+            <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#aaa" }}>
+              {onlineStatusText}
             </span>
           </div>
         </div>
 
-        {/* Photos strip */}
+        {/* Photos strip — กดรูปแรกไปหน้า profile */}
         <div style={S.photoStrip} ref={photoScrollRef}>
           {allPhotos.length > 0 ? (
             allPhotos.map((url, i) => (
@@ -313,10 +340,14 @@ export default function RoomChat() {
                 alt=""
                 className="photo-thumb"
                 style={S.photoThumb}
+                onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
               />
             ))
           ) : (
-            <div style={S.photoPlaceholder}>
+            <div
+              style={{ ...S.photoPlaceholder, cursor: 'pointer' }}
+              onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}
+            >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc">
                 <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
               </svg>
@@ -336,6 +367,7 @@ export default function RoomChat() {
             </div>
           )}
         </div>
+
         {/* Report Modal */}
         {showReport && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
@@ -351,6 +383,7 @@ export default function RoomChat() {
             </div>
           </div>
         )}
+
         {/* Ticket Modal */}
         {showTicket && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
@@ -384,7 +417,6 @@ export default function RoomChat() {
                 <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>
               )}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
-                {/* Avatar for received messages */}
                 {!isMine && (
                   <img
                     src={otherProfile?.avatar_url ?? ""}
@@ -481,7 +513,6 @@ const S = {
     overflow: "hidden",
   },
 
-  // Loading
   loadingScreen: {
     display: "flex",
     justifyContent: "center",
@@ -498,7 +529,6 @@ const S = {
     animation: "bounce 1.2s ease-in-out infinite",
   },
 
-  // Header
   header: {
     display: "flex",
     alignItems: "center",
@@ -528,10 +558,25 @@ const S = {
     minWidth: 0,
     flexShrink: 0,
   },
+  // ── NEW: ชื่อ + gender badge ข้างๆ กัน ──
+  nameGenderRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
   headerName: {
     fontSize: 16,
     fontWeight: 800,
     color: "#1a1a2e",
+    whiteSpace: "nowrap",
+  },
+  genderBadge: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#e91e63",
+    background: "#fce4ec",
+    borderRadius: 99,
+    padding: "1px 8px",
     whiteSpace: "nowrap",
   },
   headerMeta: {
@@ -555,7 +600,6 @@ const S = {
     fontWeight: 700,
   },
 
-  // Photo strip
   photoStrip: {
     display: "flex",
     gap: 6,
@@ -598,7 +642,6 @@ const S = {
     fontWeight: 900,
   },
 
-  // Messages
   messageArea: {
     flex: 1,
     overflowY: "auto",
@@ -670,7 +713,6 @@ const S = {
     fontWeight: 700,
   },
 
-  // Input bar
   inputBar: {
     display: "flex",
     alignItems: "center",
