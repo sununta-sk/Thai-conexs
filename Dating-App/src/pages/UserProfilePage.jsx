@@ -68,13 +68,15 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
         {isLocked && (
           <div style={C.lockOverlay}>
-            <div style={C.lockBox}>
-              <div style={C.lockIcon}>🔒</div>
-              <div style={C.lockTitle}>Priority Members Only</div>
-              <div style={C.lockSub}>This content is only available to Priority Members</div>
-              <button style={C.lockBtn} onClick={onUpgrade}>
-                🚀 Get your boarding pass to full access
-              </button>
+            <div style={C.lockBoxWrap}>
+              <div style={C.lockBox}>
+                <div style={C.lockIcon}>🔒</div>
+                <div style={C.lockTitle}>Priority Members Only</div>
+                <div style={C.lockSub}>This content is only available to Priority Members</div>
+                <button style={C.lockBtn} onClick={onUpgrade}>
+                  🚀 Get your boarding pass to full access
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -123,13 +125,14 @@ const C = {
   slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#fce4ec', touchAction: 'pan-y' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none', WebkitUserDrag: 'none', transition: 'filter 0.3s, transform 0.3s' },
   gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 100%)', pointerEvents: 'none' },
-  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
-  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
+  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
+  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
   dots: { position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, zIndex: 3 },
   dot: { height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s ease' },
   counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3 },
   freeBadge: { position: 'absolute', top: 12, left: 12, background: 'rgba(233,30,99,0.85)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
-  lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20 },
+  lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20, pointerEvents: 'none' },
+  lockBoxWrap: { pointerEvents: 'auto' },
   lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.2)', maxWidth: 280 },
   lockIcon: { fontSize: 36, marginBottom: 8 },
   lockTitle: { fontSize: 16, fontWeight: 800, color: '#1a1a2e', marginBottom: 8 },
