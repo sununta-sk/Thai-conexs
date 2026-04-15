@@ -24,7 +24,7 @@ const CONTENT = {
       "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
       "Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
-    cta: 'Join Lotus ConeXs — It\'s Free',
+    cta: "Join Lotus ConeXs — It's Free",
   },
   th: {
     title: 'หาคู่คนไทย',
@@ -93,7 +93,7 @@ export default function Login() {
               <button type="submit" style={S.btnPink}>Log In</button>
               <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
               <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
-                <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
+                <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
                 Continue with Google
               </button>
             </form>
@@ -126,24 +126,16 @@ export default function Login() {
         <div style={S.aboutInner}>
           <h2 style={S.aboutTitle}>{c.title}</h2>
 
-          {/* 3 photos grid */}
           <div style={S.photoGrid}>
-            <div style={S.photoCard}>
-              <img src={imgConversation} alt="conversation" style={S.photoImg} />
-            </div>
-            <div style={S.photoCard}>
-              <img src={imgSongkran} alt="songkran" style={S.photoImg} />
-            </div>
-            <div style={S.photoCard}>
-              <img src={imgThaifood} alt="thai food" style={S.photoImg} />
-            </div>
+            <div style={S.photoCard}><img src={imgConversation} alt="conversation" style={S.photoImg} /></div>
+            <div style={S.photoCard}><img src={imgSongkran} alt="songkran" style={S.photoImg} /></div>
+            <div style={S.photoCard}><img src={imgThaifood} alt="thai food" style={S.photoImg} /></div>
           </div>
 
           {c.paragraphs.map((p, i) => (
             <p key={i} style={S.aboutText}>{p}</p>
           ))}
 
-          {/* CTA Button */}
           <div style={{ textAlign: 'center', margin: '40px 0 32px' }}>
             <Link to="/register" style={S.ctaBtn}>{c.cta}</Link>
           </div>
@@ -164,53 +156,58 @@ export default function Login() {
 
 const S = {
   langToggle: { position: 'fixed', top: '16px', right: '16px', display: 'flex', gap: '6px', zIndex: 100 },
-  flagBtn: { background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
+  flagBtn: { background: 'none', border: 'none', fontSize: '26px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
+
+  // ── Form ขยายใหญ่ขึ้น ──
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
-  formInner: { width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  logo: { width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.25)', marginBottom: '20px' },
-  heading: { margin: '0 0 4px', fontSize: '28px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center' },
-  subheading: { margin: '0 0 32px', color: '#999', fontSize: '14px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' },
-  input: { padding: '13px 16px', borderRadius: '12px', border: '1px solid #e8e8e8', fontSize: '15px', background: '#fafafa', color: '#333', outline: 'none' },
-  btnPink: { padding: '14px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', marginTop: '4px' },
-  divider: { display: 'flex', alignItems: 'center', margin: '4px 0' },
+  formInner: { width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  logo: { width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.25)', marginBottom: '20px' },
+  heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center' },
+  subheading: { margin: '0 0 32px', color: '#999', fontSize: '16px', textAlign: 'center' },
+  form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
+  input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #e8e8e8', fontSize: '17px', background: '#fafafa', color: '#333', outline: 'none' },
+  btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
+  divider: { display: 'flex', alignItems: 'center', margin: '6px 0' },
   hr: { flex: 1, border: 'none', borderTop: '1px solid #eee' },
-  orText: { padding: '0 12px', color: '#ccc', fontSize: '12px' },
-  btnGoogle: { padding: '13px', borderRadius: '30px', border: '1px solid #e8e8e8', background: '#fff', color: '#555', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-  signupText: { marginTop: '24px', textAlign: 'center', color: '#aaa', fontSize: '13px' },
+  orText: { padding: '0 14px', color: '#ccc', fontSize: '14px' },
+  btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #e8e8e8', background: '#fff', color: '#555', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
+  signupText: { marginTop: '24px', textAlign: 'center', color: '#aaa', fontSize: '15px' },
   signupLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
-  cardsWrap: { width: '400px', flexShrink: 0, background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardStack: { position: 'relative', width: '220px', height: '300px' },
-  card: { position: 'absolute', width: '220px', height: '300px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
+
+  cardsWrap: { width: '420px', flexShrink: 0, background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  cardStack: { position: 'relative', width: '240px', height: '320px' },
+  card: { position: 'absolute', width: '240px', height: '320px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
   card1: { top: 0, left: 0, zIndex: 3, boxShadow: '0 16px 48px rgba(233,30,99,0.2)' },
   card2: { top: '-10px', left: '18px', zIndex: 2, opacity: 0.7, transform: 'rotate(5deg)' },
   card3: { top: '-18px', left: '32px', zIndex: 1, opacity: 0.45, transform: 'rotate(10deg)' },
   cardImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   cardGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' },
-  dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
-  dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
+  dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px', zIndex: 1, cursor: 'pointer' },
+  dot: { width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
+
+  // ── About ──
   about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f8bbd0', padding: '60px 20px 40px' },
-  aboutInner: { maxWidth: '760px', margin: '0 auto' },
-  aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '32px' },
+  aboutInner: { maxWidth: '800px', margin: '0 auto' },
+  aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '32px' },
   photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' },
   photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(233,30,99,0.12)', aspectRatio: '4/3' },
   photoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  aboutText: { fontSize: '15px', lineHeight: '1.8', color: '#555', marginBottom: '18px' },
+  aboutText: { fontSize: '17px', lineHeight: '1.9', color: '#555', marginBottom: '20px' },
   ctaBtn: {
     display: 'inline-block',
-    padding: '18px 52px',
+    padding: '20px 56px',
     background: 'linear-gradient(135deg, #e91e63, #c2185b)',
     color: '#fff',
     fontWeight: 800,
-    fontSize: '16px',
+    fontSize: '18px',
     borderRadius: '50px',
     textDecoration: 'none',
     boxShadow: '0 8px 28px rgba(233,30,99,0.35)',
     letterSpacing: '0.5px',
   },
   footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' },
-  footerLink: { color: '#e91e63', fontSize: '13px', textDecoration: 'none' },
-  copyright: { textAlign: 'center', color: '#999', fontSize: '12px', marginTop: '8px' },
+  footerLink: { color: '#e91e63', fontSize: '14px', textDecoration: 'none' },
+  copyright: { textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '8px' },
 };
