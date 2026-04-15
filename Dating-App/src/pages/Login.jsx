@@ -12,9 +12,9 @@ import slide6 from '../lib/6.jpeg';
 const SLIDES = [slide1, slide2, slide3, slide4, slide5, slide6];
 
 export default function Login() {
-  const [email, setEmail]     = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent]   = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,47 +40,124 @@ export default function Login() {
   const getPhoto = (offset) => SLIDES[(current + offset) % SLIDES.length];
 
   return (
-    <div style={S.page}>
+    <div style={{ background: '#fff' }}>
 
-      {/* ── LEFT: Login Form ── */}
-      <div style={S.formWrap}>
-        <div style={S.formInner}>
-          <img src={logoImg} alt="logo" style={S.logo} />
-          <h1 style={S.heading}>Thai Conexns</h1>
-          <p style={S.subheading}>Find your perfect match ✨</p>
-          <form onSubmit={handleLogin} style={S.form}>
-            <input type="email" placeholder="Email" value={email}
-              onChange={e => setEmail(e.target.value)} style={S.input} required />
-            <input type="password" placeholder="Password" value={password}
-              onChange={e => setPassword(e.target.value)} style={S.input} required />
-            <button type="submit" style={S.btnPink}>Log In</button>
-            <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
-            <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
-              <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
-              Continue with Google
-            </button>
-          </form>
-          <p style={S.signupText}>
-            Don't have an account? <Link to="/register" style={S.signupLink}>Sign Up</Link>
-          </p>
+      {/* ── Hero Section ── */}
+      <div style={S.page}>
+
+        {/* LEFT: Login Form */}
+        <div style={S.formWrap}>
+          <div style={S.formInner}>
+            <img src={logoImg} alt="logo" style={S.logo} />
+            <h1 style={S.heading}>Thai Conexns</h1>
+            <p style={S.subheading}>Find your perfect match ✨</p>
+            <form onSubmit={handleLogin} style={S.form}>
+              <input type="email" placeholder="Email" value={email}
+                onChange={e => setEmail(e.target.value)} style={S.input} required />
+              <input type="password" placeholder="Password" value={password}
+                onChange={e => setPassword(e.target.value)} style={S.input} required />
+              <button type="submit" style={S.btnPink}>Log In</button>
+              <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
+              <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
+                <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
+                Continue with Google
+              </button>
+            </form>
+            <p style={S.signupText}>
+              Don't have an account? <Link to="/register" style={S.signupLink}>Sign Up</Link>
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT: Stacked Cards */}
+        <div style={S.cardsWrap}>
+          <div style={S.cardStack}>
+            <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>
+            <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>
+            <div style={{ ...S.card, ...S.card1 }}>
+              <img src={getPhoto(0)} alt="" style={S.cardImg} />
+              <div style={S.cardGradient} />
+              <div style={S.dots}>
+                {SLIDES.map((_, i) => (
+                  <div key={i} onClick={() => setCurrent(i)}
+                    style={{ ...S.dot, ...(i === current ? S.dotActive : {}) }} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── RIGHT: Stacked Cards ── */}
-      <div style={S.cardsWrap}>
-        <div style={S.cardStack}>
-          <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>
-          <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>
-          <div style={{ ...S.card, ...S.card1 }}>
-            <img src={getPhoto(0)} alt="" style={S.cardImg} />
-            <div style={S.cardGradient} />
-            <div style={S.dots}>
-              {SLIDES.map((_, i) => (
-                <div key={i} onClick={() => setCurrent(i)}
-                  style={{ ...S.dot, ...(i === current ? S.dotActive : {}) }} />
-              ))}
-            </div>
+      {/* ── About Section ── */}
+      <div style={S.about}>
+        <div style={S.aboutInner}>
+          <h2 style={S.aboutTitle}>Thai Dating</h2>
+
+          <p style={S.aboutText}>
+            Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles
+            who are genuinely interested in friendship, romance, and real connections. With new members joining
+            every week, there's always someone new to discover in a community inspired by Thailand's warm and
+            welcoming spirit.
+          </p>
+
+          <p style={S.aboutText}>
+            Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required.
+            You can use the platform for free, or upgrade to unlock added features that boost your visibility
+            and improve your chances of getting noticed.
+          </p>
+
+          <p style={S.aboutText}>
+            We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead,
+            we focus on giving you access to a wide and active network, offering far more variety than smaller,
+            limited-introduction services.
+          </p>
+
+          <p style={S.aboutText}>
+            The platform also supports Thai language, making it easy for local members — even those with limited
+            English — to take part and connect comfortably.
+          </p>
+
+          <p style={S.aboutText}>
+            Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.
+          </p>
+
+          {/* Thai version */}
+          <div style={S.dividerSection} />
+
+          <p style={S.aboutText}>
+            Lotus ConeXs คือแพลตฟอร์มหาคู่สมัยใหม่ที่เชื่อมต่อผู้คนจากทั่วโลกกับคนไทยที่สนใจมิตรภาพ
+            ความรัก และความสัมพันธ์ที่แท้จริง มีสมาชิกใหม่เข้าร่วมทุกสัปดาห์ เปิดโอกาสให้คุณค้นพบคนใหม่
+            ในชุมชนที่เต็มไปด้วยความอบอุ่นแบบไทย
+          </p>
+
+          <p style={S.aboutText}>
+            ต่างจากแอปหาคู่ทั่วไป Lotus ConeXs ให้คุณเริ่มบทสนทนาได้ทันที ไม่ต้องรอการจับคู่
+            ใช้งานได้ฟรี หรืออัปเกรดเพื่อปลดล็อกฟีเจอร์เพิ่มเติมที่ช่วยเพิ่มการมองเห็นโปรไฟล์ของคุณ
+          </p>
+
+          <p style={S.aboutText}>
+            เราไม่ได้ดำเนินการแบบเอเจนซี่แบบดั้งเดิม แต่มุ่งเน้นให้คุณเข้าถึงเครือข่ายที่กว้างและมีความหลากหลาย
+            มากกว่าบริการแนะนำรูปแบบจำกัด
+          </p>
+
+          <p style={S.aboutText}>
+            แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย
+            สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ
+          </p>
+
+          <p style={S.aboutText}>
+            Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ
+            เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน
+          </p>
+
+          {/* Footer links */}
+          <div style={S.footerLinks}>
+            <a href="#" style={S.footerLink}>Privacy Policy</a>
+            <a href="#" style={S.footerLink}>Terms of Service</a>
+            <a href="#" style={S.footerLink}>Community Guidelines</a>
+            <a href="#" style={S.footerLink}>Contact Us</a>
           </div>
+          <p style={S.copyright}>© 2025 Lotus ConeXs. All rights reserved.</p>
         </div>
       </div>
 
@@ -115,4 +192,14 @@ const S = {
   dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
+
+  // About section
+  about: { background: '#fff', borderTop: '1px solid #f0f0f0', padding: '60px 20px 40px' },
+  aboutInner: { maxWidth: '760px', margin: '0 auto' },
+  aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '28px' },
+  aboutText: { fontSize: '15px', lineHeight: '1.8', color: '#555', marginBottom: '18px' },
+  dividerSection: { borderTop: '1px solid #f0f0f0', margin: '32px 0' },
+  footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '40px', marginBottom: '16px' },
+  footerLink: { color: '#e91e63', fontSize: '13px', textDecoration: 'none' },
+  copyright: { textAlign: 'center', color: '#bbb', fontSize: '12px', marginTop: '8px' },
 };
