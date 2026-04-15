@@ -181,7 +181,7 @@ const S = {
   dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
-  about: { background: '#fff', borderTop: '1px solid #f0f0f0', padding: '60px 20px 40px' },
+  about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f0f0f0', padding: '60px 20px 40px' },
   aboutInner: { maxWidth: '760px', margin: '0 auto' },
   aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '28px' },
   aboutText: { fontSize: '15px', lineHeight: '1.8', color: '#555', marginBottom: '18px' },
