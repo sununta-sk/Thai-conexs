@@ -58,7 +58,6 @@ export default function Discover() {
   const [banInfo, setBanInfo]             = useState(null);
   const navigate = useNavigate();
 
-  // ── GPS → city → save ────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
     if (!navigator.geolocation) return;
@@ -103,7 +102,6 @@ export default function Discover() {
     fetchProfiles();
   }, [navigate]);
 
-  // ── Presence ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
     const channel = supabase.channel('discover-presence', {
@@ -152,62 +150,44 @@ export default function Discover() {
       ) : profiles.length === 0 ? (
         <div style={S.emptyState}>ไม่พบผู้ใช้คนอื่นในระบบ</div>
       ) : (
-        <div style={S.grid}>
-          {profiles.map((profile) => {
-            const { url, cropX, cropY } = getMainPhoto(profile);
-            const isOnline  = onlineUsers.has(profile.id);
-            const age       = profile.details?.age    ?? '';
-            const gender    = profile.details?.gender ?? '';
-            const city      = profile.city || profile.details?.city || '';
-            const lastSeen  = isOnline ? 'Right Now' : timeAgo(profile.last_seen_at);
-            const metaParts = [age, gender ? gender[0] : '', city].filter(Boolean);
-            const metaLine  = metaParts.join(' · ');
+        // wrapper บังคับ 3 columns เสมอไม่ว่า user จะมีกี่คน
+        <div style={S.gridWrapper}>
+          <div style={S.grid}>
+            {profiles.map((profile) => {
+              const { url, cropX, cropY } = getMainPhoto(profile);
+              const isOnline  = onlineUsers.has(profile.id);
+              const age       = profile.details?.age    ?? '';
+              const gender    = profile.details?.gender ?? '';
+              const city      = profile.city || profile.details?.city || '';
+              const lastSeen  = isOnline ? 'Right Now' : timeAgo(profile.last_seen_at);
+              const metaParts = [age, gender ? gender[0] : '', city].filter(Boolean);
+              const metaLine  = metaParts.join(' · ');
 
-            return (
-              <div key={profile.id} style={S.card}>
-                {/* รูป + overlay info */}
-                <div style={S.photoWrap} onClick={() => handleStartChat(profile.id)}>
-                  <img
-                    src={url}
-                    alt={profile.username}
-                    style={{ ...S.photo, objectPosition: `${cropX}% ${cropY}%` }}
-                  />
-                  <div style={S.overlay} />
-
-                  {/* verified badge */}
-                  {profile.is_verified && (
-                    <div style={S.verifiedBadge}>✓</div>
-                  )}
-
-                  {/* online dot */}
-                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#555' }} />
-
-                  {/* info overlay */}
-                  <div style={S.infoOverlay}>
-                    <div style={S.nameText}>{profile.username}</div>
-                    {metaLine ? <div style={S.metaText}>{metaLine}</div> : null}
-                    {lastSeen ? <div style={S.lastSeenText}>{lastSeen}</div> : null}
+              return (
+                <div key={profile.id} style={S.card}>
+                  <div style={S.photoWrap} onClick={() => handleStartChat(profile.id)}>
+                    <img
+                      src={url}
+                      alt={profile.username}
+                      style={{ ...S.photo, objectPosition: `${cropX}% ${cropY}%` }}
+                    />
+                    <div style={S.overlay} />
+                    {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
+                    <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#ccc' }} />
+                    <div style={S.infoOverlay}>
+                      <div style={S.nameText}>{profile.username}</div>
+                      {metaLine ? <div style={S.metaText}>{metaLine}</div> : null}
+                      {lastSeen ? <div style={{ ...S.lastSeenText, color: isOnline ? '#4cd964' : '#aaa' }}>{lastSeen}</div> : null}
+                    </div>
+                  </div>
+                  <div style={S.actions}>
+                    <button style={S.btnX} onClick={e => e.stopPropagation()}>✕</button>
+                    <button style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
                   </div>
                 </div>
-
-                {/* Action buttons */}
-                <div style={S.actions}>
-                  <button
-                    style={S.btnX}
-                    onClick={e => { e.stopPropagation(); }}
-                  >
-                    ✕
-                  </button>
-                  <button
-                    style={S.btnChat}
-                    onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}
-                  >
-                    💬
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -215,58 +195,65 @@ export default function Discover() {
 }
 
 const S = {
-  page: { background: '#111', minHeight: '100vh', paddingBottom: 80 },
+  // ── Light mode default ────────────────────────────────────────────────────
+  page: { background: '#f0f2f5', minHeight: '100vh', paddingBottom: 80 },
   header: {
-    padding: '12px 16px',
+    padding: '10px 15px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    background: '#1a1a1a',
-    borderBottom: '1px solid #333',
+    background: '#fff',
+    borderBottom: '1px solid #eee',
     position: 'sticky',
     top: 0,
     zIndex: 10,
   },
-  headerTitle: { fontSize: 16, fontWeight: 800, color: '#fff' },
-  onlinePill: { display: 'flex', alignItems: 'center', gap: 5, background: '#1e3a1e', borderRadius: 12, padding: '4px 10px' },
-  onlineDot: { width: 7, height: 7, borderRadius: '50%', background: '#4cd964' },
-  onlineCount: { fontSize: 12, fontWeight: 700, color: '#4cd964' },
+  headerTitle: { fontSize: 15, fontWeight: 800, color: '#e91e63' },
+  onlinePill: { display: 'flex', alignItems: 'center', gap: 5, background: '#e8f5e9', borderRadius: 12, padding: '4px 10px' },
+  onlineDot: { width: 7, height: 7, borderRadius: '50%', background: '#4caf50' },
+  onlineCount: { fontSize: 12, fontWeight: 700, color: '#4caf50' },
+
+  // ── Grid: บังคับ 3 columns เสมอ ───────────────────────────────────────────
+  gridWrapper: { width: '100%' },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '2px',
     padding: '2px',
+    width: '100%',
+    boxSizing: 'border-box',
   },
+
   card: {
-    background: '#222',
+    background: '#fff',
     cursor: 'pointer',
     position: 'relative',
-    borderRadius: '4px',
     overflow: 'hidden',
+    borderRadius: '2px',
   },
   photoWrap: {
     position: 'relative',
     width: '100%',
     aspectRatio: '3/4',
-    background: '#333',
+    background: '#eee',
     overflow: 'hidden',
   },
   photo: { width: '100%', height: '100%', objectFit: 'cover' },
   overlay: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    height: '65%',
-    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
+    height: '60%',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
     pointerEvents: 'none',
   },
   verifiedBadge: {
     position: 'absolute',
     top: 5, left: 5,
-    width: 18, height: 18,
+    width: 16, height: 16,
     borderRadius: '50%',
     background: '#3b82f6',
     color: '#fff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 800,
     display: 'flex',
     alignItems: 'center',
@@ -275,31 +262,30 @@ const S = {
   onlineBadge: {
     position: 'absolute',
     top: 5, right: 5,
-    width: 10, height: 10,
+    width: 9, height: 9,
     borderRadius: '50%',
-    border: '2px solid #111',
+    border: '2px solid #fff',
   },
   infoOverlay: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    padding: '8px 6px 6px',
+    padding: '6px 5px 4px',
     zIndex: 1,
   },
   nameText: {
     color: '#fff',
     fontWeight: 700,
-    fontSize: '12px',
+    fontSize: '11px',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
   metaText: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: '10px',
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: '9px',
     marginTop: '1px',
   },
   lastSeenText: {
-    color: '#4cd964',
     fontSize: '9px',
     marginTop: '1px',
   },
@@ -307,25 +293,26 @@ const S = {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: '6px 4px',
-    background: '#1a1a1a',
+    padding: '5px 4px',
+    background: '#fff',
+    borderTop: '1px solid #f0f0f0',
   },
   btnX: {
     background: 'none',
     border: 'none',
-    color: '#666',
-    fontSize: '16px',
-    cursor: 'pointer',
-    padding: '4px 14px',
-  },
-  btnChat: {
-    background: '#e91e6322',
-    border: '1px solid #e91e6344',
-    borderRadius: '20px',
-    color: '#e91e63',
+    color: '#bbb',
     fontSize: '14px',
     cursor: 'pointer',
-    padding: '4px 14px',
+    padding: '3px 12px',
   },
-  emptyState: { textAlign: 'center', padding: '60px 20px', color: '#666', fontSize: 14 },
+  btnChat: {
+    background: '#fce4ec',
+    border: '1px solid #f8bbd0',
+    borderRadius: '20px',
+    color: '#e91e63',
+    fontSize: '13px',
+    cursor: 'pointer',
+    padding: '3px 12px',
+  },
+  emptyState: { textAlign: 'center', padding: '60px 20px', color: '#999', fontSize: 14 },
 };
