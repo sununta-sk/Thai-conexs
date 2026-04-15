@@ -268,8 +268,7 @@ export default function ProfileSetup() {
   const [photos, setPhotos]       = useState([]);
   const [mainPhoto, setMainPhoto] = useState('');
   const [uploading, setUploading] = useState(false);
-  // ── เพิ่ม age ──────────────────────────────────────────────────────────────
-  const [details, setDetails] = useState({ age:'', height:'', weight:'', education:'', gender:'', lookingFor:'' });
+  const [details, setDetails]     = useState({ age:'', height:'', weight:'', education:'', gender:'', lookingFor:'' });
   const [myReferralCode, setMyReferralCode] = useState('');
   const [friendCode, setFriendCode]         = useState('');
   const [balance, setBalance]               = useState(0);
@@ -440,6 +439,7 @@ export default function ProfileSetup() {
     } finally { setVerifying(false); }
   };
 
+  // ── handleSave fixed ──────────────────────────────────────────────────────
   const handleSave = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('profiles').upsert({
@@ -447,10 +447,12 @@ export default function ProfileSetup() {
       photos, details, referral_code: myReferralCode,
       preferred_lang: preferredLang, updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
-    });
+    }, { onConflict: 'id' });
     if (!error) {
       alert('✅ ' + tx.saveBtn);
       navigate('/discover');
+    } else {
+      alert('Error: ' + error.message);
     }
   };
 
@@ -553,19 +555,17 @@ export default function ProfileSetup() {
           <Field label={tx.bio}><textarea value={bio} onChange={e => setBio(e.target.value)} style={{ ...S.input, height: '80px', resize: 'none' }} /></Field>
 
           <SectionTitle>{tx.bodyEdu}</SectionTitle>
-          {/* ── age + height + weight ── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
             <Field label={tx.age}>
-              <input
-                type="number" min="18" max="99"
-                placeholder="25"
-                value={details.age}
-                onChange={e => setDetails({...details, age: e.target.value})}
-                style={S.input}
-              />
+              <input type="number" min="18" max="99" placeholder="25"
+                value={details.age} onChange={e => setDetails({...details, age: e.target.value})} style={S.input} />
             </Field>
-            <Field label={tx.height}><input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} /></Field>
-            <Field label={tx.weight}><input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} /></Field>
+            <Field label={tx.height}>
+              <input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} />
+            </Field>
+            <Field label={tx.weight}>
+              <input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} />
+            </Field>
           </div>
           <Field label={tx.education}>
             <select value={details.education} onChange={e => setDetails({...details, education: e.target.value})} style={S.input}>
@@ -590,13 +590,9 @@ export default function ProfileSetup() {
 
           <div style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
             <label style={S.label}>{tx.referralLabel}</label>
-            <input
-              placeholder="TCN-XXXX"
-              value={friendCode}
-              onChange={e => setFriendCode(e.target.value)}
-              disabled={referralDisabled}
-              style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }}
-            />
+            <input placeholder="TCN-XXXX" value={friendCode}
+              onChange={e => setFriendCode(e.target.value)} disabled={referralDisabled}
+              style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }} />
             {referralDisabled && <p style={{ fontSize: '11px', color: '#94a3b8', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
           </div>
 
