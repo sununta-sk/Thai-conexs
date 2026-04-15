@@ -1,54 +1,104 @@
 // src/pages/RoomChat.jsx
-// Full ThaiFriendly-style chat UI with:
-// - Header: name, age/gender/city, online status, scrollable photos, "..." menu
-// - Messages: pink/lavender bubbles, avatar on received, timestamps
-// - Input bar: emoji, GIF, camera, mic, send
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 
-function getChatId(uid1, uid2) {
-  return [uid1, uid2].sort().join("_");
-}
-
-function formatTime(iso) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
+function getChatId(uid1, uid2) { return [uid1, uid2].sort().join("_"); }
+function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
 function formatDateSeparator(iso) {
-  const d = new Date(iso);
-  const now = new Date();
+  const d = new Date(iso), now = new Date();
   const diff = Math.floor((now - d) / 1000 / 60 / 60);
   if (diff < 1) return "Just now";
   if (diff < 24) return `${diff} hour${diff > 1 ? "s" : ""} ago`;
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
-
 function extractPhotoUrl(p) {
   if (!p) return null;
-  if (typeof p === "string") {
-    try { return JSON.parse(p)?.url || p; } catch { return p; }
-  }
+  if (typeof p === "string") { try { return JSON.parse(p)?.url || p; } catch { return p; } }
   return p?.url || null;
 }
-
 function timeAgo(dateStr) {
   if (!dateStr) return "Offline";
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-  if (diff < 60)    return "Just now";
-  if (diff < 3600)  return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ── GIF Picker Component ────────────────────────────────────
+function GifPicker({ onSelect }) {
+  const [query, setQuery] = useState("");
+  const [gifs, setGifs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Load trending on mount
+  useEffect(() => {
+    fetchGifs("");
+  }, []);
+
+  const fetchGifs = async (q) => {
+    setLoading(true);
+    try {
+      const endpoint = q
+        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=20&rating=g`
+        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=20&rating=g`;
+      const res = await fetch(endpoint);
+      const json = await res.json();
+      setGifs(json.data || []);
+    } catch (e) {
+      console.error("Giphy error:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    const val = e.target.value;
+    setQuery(val);
+    if (val.length === 0 || val.length >= 2) fetchGifs(val);
+  };
+
+  return (
+    <div style={GP.wrap}>
+      <input
+        autoFocus
+        placeholder="Search GIFs..."
+        value={query}
+        onChange={handleSearch}
+        style={GP.input}
+      />
+      <div style={GP.grid}>
+        {loading && <div style={GP.loading}>Loading...</div>}
+        {!loading && gifs.map(gif => (
+          <img
+            key={gif.id}
+            src={gif.images.fixed_height_small.url}
+            alt={gif.title}
+            style={GP.gif}
+            onClick={() => onSelect(gif.images.original.url)}
+          />
+        ))}
+      </div>
+      <div style={GP.poweredBy}>Powered by GIPHY</div>
+    </div>
+  );
+}
+
+const GP = {
+  wrap: { width: 300, background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.15)", overflow: "hidden", display: "flex", flexDirection: "column" },
+  input: { margin: 10, padding: "8px 12px", borderRadius: 20, border: "1px solid #e2e8f0", fontSize: 14, outline: "none", background: "#f8fafc" },
+  grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, padding: "0 10px 8px", maxHeight: 260, overflowY: "auto" },
+  gif: { width: "100%", borderRadius: 8, cursor: "pointer", objectFit: "cover", aspectRatio: "1/1" },
+  loading: { gridColumn: "1/-1", textAlign: "center", color: "#aaa", fontSize: 13, padding: 20 },
+  poweredBy: { textAlign: "center", fontSize: 10, color: "#aaa", padding: "4px 0 8px", fontWeight: 700, letterSpacing: 0.5 },
+};
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function RoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
@@ -65,125 +115,80 @@ export default function RoomChat() {
   const [reportReason, setReportReason] = useState('');
   const [showTicket, setShowTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState('');
-  const [showEmoji, setShowEmoji] = useState(false); // ── NEW
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [showGif, setShowGif] = useState(false); // ── NEW
 
   const submitReport = async () => {
     if (!reportReason || !session) return;
-    await supabase.from('content_reports').insert({
-      reporter_id: session.user.id,
-      reported_user_id: otherUserId,
-      report_type: reportReason,
-      status: 'open',
-    });
-    setShowReport(false);
-    setReportReason('');
-    alert('ส่ง Report เรียบร้อยแล้ว');
+    await supabase.from('content_reports').insert({ reporter_id: session.user.id, reported_user_id: otherUserId, report_type: reportReason, status: 'open' });
+    setShowReport(false); setReportReason(''); alert('ส่ง Report เรียบร้อยแล้ว');
   };
-
   const submitTicket = async () => {
     if (!ticketMsg || !session) return;
-    await supabase.from('support_tickets').insert({
-      user_id: session.user.id,
-      subject: 'Chat issue',
-      message: ticketMsg,
-      status: 'open',
-      priority: 'medium',
-    });
-    setShowTicket(false);
-    setTicketMsg('');
-    alert('ส่ง Ticket เรียบร้อยแล้ว');
+    await supabase.from('support_tickets').insert({ user_id: session.user.id, subject: 'Chat issue', message: ticketMsg, status: 'open', priority: 'medium' });
+    setShowTicket(false); setTicketMsg(''); alert('ส่ง Ticket เรียบร้อยแล้ว');
   };
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const photoScrollRef = useRef(null);
-  const emojiPickerRef = useRef(null); // ── NEW
+  const emojiPickerRef = useRef(null);
+  const gifPickerRef = useRef(null); // ── NEW
 
-  // ── Close emoji picker on outside click ── NEW
   useEffect(() => {
     if (!showEmoji) return;
-    const handler = (e) => {
-      if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) {
-        setShowEmoji(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const h = (e) => { if (emojiPickerRef.current && !emojiPickerRef.current.contains(e.target)) setShowEmoji(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, [showEmoji]);
 
-  // ── 1. Session ──────────────────────────────────────────────────────────────
+  // ── Close GIF picker on outside click ── NEW
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setSession(data.session);
-    });
+    if (!showGif) return;
+    const h = (e) => { if (gifPickerRef.current && !gifPickerRef.current.contains(e.target)) setShowGif(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [showGif]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { if (data.session) setSession(data.session); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
-      if (event === 'SIGNED_OUT') navigate("/login");
-      else if (s) setSession(s);
+      if (event === 'SIGNED_OUT') navigate("/login"); else if (s) setSession(s);
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const otherUserId = session
-    ? chatId.split("_").find((id) => id !== session.user.id)
-    : null;
+  const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
 
-  // ── 3. Fetch other user's profile ──────────────────────────────────────────
   useEffect(() => {
     if (!otherUserId) return;
-    supabase
-      .from("profiles")
-      .select("id, username, avatar_url, photos, details, city, last_seen_at")
-      .eq("id", otherUserId)
-      .single()
-      .then(({ data }) => {
-        if (data) setOtherProfile(data);
-      });
+    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at").eq("id", otherUserId).single()
+      .then(({ data }) => { if (data) setOtherProfile(data); });
   }, [otherUserId]);
 
-  // ── 4. Presence / online status ────────────────────────────────────────────
   useEffect(() => {
     if (!session || !otherUserId) return;
-    const presenceChannel = supabase.channel(`presence:${chatId}`, {
-      config: { presence: { key: session.user.id } },
-    });
-    presenceChannel
-      .on("presence", { event: "sync" }, () => {
-        const state = presenceChannel.presenceState();
-        setIsOnline(!!state[otherUserId]);
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await presenceChannel.track({ online_at: new Date().toISOString() });
-        }
-      });
-    return () => { supabase.removeChannel(presenceChannel); };
+    const ch = supabase.channel(`presence:${chatId}`, { config: { presence: { key: session.user.id } } });
+    ch.on("presence", { event: "sync" }, () => { setIsOnline(!!ch.presenceState()[otherUserId]); })
+      .subscribe(async (s) => { if (s === "SUBSCRIBED") await ch.track({ online_at: new Date().toISOString() }); });
+    return () => { supabase.removeChannel(ch); };
   }, [session, otherUserId, chatId]);
 
-  // ── 5. Fetch messages + Realtime ───────────────────────────────────────────
   useEffect(() => {
     if (!session || !chatId) return;
-    const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("chat_id", chatId)
-        .order("created_at", { ascending: true })
-        .range(0, 99);
+    const fetch_ = async () => {
+      const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).range(0, 99);
       if (!error) setMessages(data || []);
       setLoading(false);
     };
-    fetchMessages();
+    fetch_();
     supabase.from("messages").update({ is_read: true }).eq("chat_id", chatId).neq("sender_id", session.user.id);
-    const channel = supabase
-      .channel(`room:${chatId}`)
+    const channel = supabase.channel(`room:${chatId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
         (payload) => {
           setMessages((prev) => [...prev, payload.new]);
-          if (payload.new.sender_id !== session.user.id) {
-            supabase.from("messages").update({ is_read: true }).eq("id", payload.new.id);
-          }
-        }
-      )
+          if (payload.new.sender_id !== session.user.id) supabase.from("messages").update({ is_read: true }).eq("id", payload.new.id);
+        })
       .subscribe();
     const poll = setInterval(async () => {
       const { data } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).range(0, 99);
@@ -192,55 +197,42 @@ export default function RoomChat() {
     return () => { supabase.removeChannel(channel); clearInterval(poll); };
   }, [session, chatId]);
 
-  // ── 6. Auto-scroll ─────────────────────────────────────────────────────────
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // ── 7. Send message ────────────────────────────────────────────────────────
-  const sendMessage = useCallback(async () => {
-    const content = newMessage.trim();
+  const sendMessage = useCallback(async (content_override) => {
+    const content = (content_override || newMessage).trim();
     if (!content || !session || sending) return;
     setSending(true);
-    const tempMsg = {id:"temp-"+Date.now(),chat_id:chatId,room_id:chatId,sender_id:session.user.id,content,created_at:new Date().toISOString()};
+    const tempMsg = { id: "temp-" + Date.now(), chat_id: chatId, room_id: chatId, sender_id: session.user.id, content, created_at: new Date().toISOString() };
     setMessages(prev => [...prev, tempMsg]);
-    setNewMessage("");
+    if (!content_override) setNewMessage("");
     const { error } = await supabase.from("messages").insert({ chat_id: chatId, room_id: chatId, sender_id: session.user.id, content });
-    if (error) { console.error("Send error:", error); setNewMessage(content); }
+    if (error) { console.error("Send error:", error); if (!content_override) setNewMessage(content); }
     setSending(false);
     inputRef.current?.focus();
   }, [newMessage, session, chatId, sending]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
+
+  // ── NEW: ส่ง GIF URL เป็น message ──
+  const handleGifSelect = (gifUrl) => {
+    setShowGif(false);
+    sendMessage(gifUrl);
   };
 
-  // ── NEW: เมื่อเลือก emoji ──
-  const handleEmojiSelect = (emoji) => {
-    setNewMessage(prev => prev + emoji.native);
-    setShowEmoji(false);
-    inputRef.current?.focus();
-  };
-
-  // ── Derived profile info ───────────────────────────────────────────────────
   const profileAge    = otherProfile?.details?.age    ?? "";
   const profileGender = otherProfile?.details?.gender ?? "";
   const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const allPhotos = [
-    ...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []),
-    ...photoUrls.filter(u => u !== otherProfile?.avatar_url),
-  ];
+  const allPhotos = [...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []), ...photoUrls.filter(u => u !== otherProfile?.avatar_url)];
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={S.loadingScreen}>
-        <div style={S.loadingDot} />
-        <div style={{ ...S.loadingDot, animationDelay: "0.15s" }} />
-        <div style={{ ...S.loadingDot, animationDelay: "0.3s" }} />
+        <div style={S.loadingDot} /><div style={{ ...S.loadingDot, animationDelay: "0.15s" }} /><div style={{ ...S.loadingDot, animationDelay: "0.3s" }} />
         <style>{`@keyframes bounce { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-8px); opacity: 1; } }`}</style>
       </div>
     );
@@ -261,14 +253,11 @@ export default function RoomChat() {
         .photo-thumb:hover { transform: scale(1.05); }
       `}</style>
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <div style={S.header}>
         <button style={S.backBtn} onClick={() => navigate(-1)}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
-
         <div style={{ ...S.headerInfo, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           <div style={S.nameGenderRow}>
             <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
@@ -280,26 +269,17 @@ export default function RoomChat() {
             <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#aaa" }}>{onlineStatusText}</span>
           </div>
         </div>
-
         <div style={S.photoStrip} ref={photoScrollRef}>
-          {allPhotos.length > 0 ? (
-            allPhotos.map((url, i) => (
-              <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb}
-                onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
-            ))
-          ) : (
+          {allPhotos.length > 0 ? allPhotos.map((url, i) => (
+            <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
+          )) : (
             <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc">
-                <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-              </svg>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
             </div>
           )}
         </div>
-
         <div style={{position:'relative'}}>
-          <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}>
-            <span style={S.moreDots}>···</span>
-          </button>
+          <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}><span style={S.moreDots}>···</span></button>
           {showMenu && (
             <div style={{position:'absolute',right:0,top:'110%',background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:160,overflow:'hidden'}}>
               <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
@@ -307,7 +287,6 @@ export default function RoomChat() {
             </div>
           )}
         </div>
-
         {showReport && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
             <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
@@ -322,7 +301,6 @@ export default function RoomChat() {
             </div>
           </div>
         )}
-
         {showTicket && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
             <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
@@ -334,26 +312,27 @@ export default function RoomChat() {
         )}
       </div>
 
-      {/* ── MESSAGES ── */}
+      {/* MESSAGES */}
       <div style={S.messageArea}>
-        {messages.length === 0 && (
-          <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>
-        )}
+        {messages.length === 0 && <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>}
         {messages.map((msg, i) => {
           const isMine = msg.sender_id === session?.user?.id;
           const prevMsg = messages[i - 1];
           const showSeparator = !prevMsg || new Date(msg.created_at) - new Date(prevMsg.created_at) > 1000 * 60 * 30;
+          // ตรวจว่าเป็น GIF URL ไหม
+          const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
-                {!isMine && (
-                  <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar}
-                    onError={(e) => { e.target.style.display = "none"; }} />
-                )}
-                <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs) }}>
-                  <p style={S.bubbleText}>{msg.content}</p>
-                  <span style={{ ...S.bubbleTime, color: isMine ? "rgba(255,255,255,0.65)" : "#aaa" }}>
+                {!isMine && <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = "none"; }} />}
+                <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs), ...(isGif ? { background: 'transparent', boxShadow: 'none', padding: 0 } : {}) }}>
+                  {isGif ? (
+                    <img src={msg.content} alt="gif" style={{ maxWidth: 200, borderRadius: 12, display: 'block' }} />
+                  ) : (
+                    <p style={S.bubbleText}>{msg.content}</p>
+                  )}
+                  <span style={{ ...S.bubbleTime, color: isMine ? "rgba(255,255,255,0.65)" : "#aaa", ...(isGif ? { paddingLeft: 4 } : {}) }}>
                     {formatTime(msg.created_at)}
                   </span>
                 </div>
@@ -364,75 +343,51 @@ export default function RoomChat() {
         <div ref={bottomRef} style={{ height: 4 }} />
       </div>
 
-      {/* ── EMOJI PICKER — NEW ── */}
+      {/* EMOJI PICKER */}
       {showEmoji && (
         <div ref={emojiPickerRef} style={S.emojiPickerWrap}>
-          <Picker
-            data={data}
-            onEmojiSelect={handleEmojiSelect}
-            theme="light"
-            previewPosition="none"
-            skinTonePosition="none"
-            maxFrequentRows={2}
-          />
+          <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="light" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
         </div>
       )}
 
-      {/* ── INPUT BAR ── */}
+      {/* GIF PICKER — NEW */}
+      {showGif && (
+        <div ref={gifPickerRef} style={S.gifPickerWrap}>
+          <GifPicker onSelect={handleGifSelect} />
+        </div>
+      )}
+
+      {/* INPUT BAR */}
       <div style={S.inputBar}>
-        {/* Emoji — NOW WORKS */}
-        <button
-          className="icon-btn"
-          style={{ ...S.iconBtn, background: showEmoji ? '#fce4ec' : 'none', borderRadius: 8 }}
-          onClick={() => setShowEmoji(v => !v)}
-          title="Emoji"
-        >
+        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? '#fce4ec' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-            <line x1="9" y1="9" x2="9.01" y2="9"/>
-            <line x1="15" y1="9" x2="15.01" y2="9"/>
+            <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
           </svg>
         </button>
 
-        {/* GIF */}
-        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn }} title="GIF">
+        {/* GIF — NOW WORKS */}
+        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#3a7bbf' : '#5b9bd5' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
           <span style={S.gifText}>GIF</span>
         </button>
 
-        {/* Camera */}
         <button className="icon-btn" style={S.iconBtn} title="Photo">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
           </svg>
         </button>
 
-        {/* Text input */}
         <div style={S.inputWrap}>
-          <textarea
-            ref={inputRef}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message"
-            rows={1}
-            style={S.textInput}
-          />
+          <textarea ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Message" rows={1} style={S.textInput} />
         </div>
 
-        {/* Mic or Send */}
         {newMessage.trim() ? (
-          <button className="send-btn" style={S.sendBtn} onClick={sendMessage} disabled={sending}>
+          <button className="send-btn" style={S.sendBtn} onClick={() => sendMessage()} disabled={sending}>
             <span style={S.sendText}>Send</span>
           </button>
         ) : (
           <button className="icon-btn" style={S.iconBtn} title="Voice">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
           </button>
         )}
@@ -441,10 +396,8 @@ export default function RoomChat() {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
-
 const S = {
-  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#eef2f7", fontFamily: "'Nunito', sans-serif", overflow: "hidden" },
+  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#eef2f7", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
   loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#eef2f7" },
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#c9a4d4", animation: "bounce 1.2s ease-in-out infinite" },
   header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#fff", borderBottom: "1px solid #e8ecf0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", minHeight: 72, position: "relative", zIndex: 10 },
@@ -472,11 +425,11 @@ const S = {
   bubbleTheirs: { background: "#fff", borderBottomLeftRadius: 5, alignSelf: "flex-start" },
   bubbleText: { margin: 0, fontSize: 15, lineHeight: 1.45, color: "#1a1a2e", fontWeight: 600, wordBreak: "break-word" },
   bubbleTime: { fontSize: 10, alignSelf: "flex-end", fontWeight: 700 },
-  // ── NEW: emoji picker position ──
   emojiPickerWrap: { position: "absolute", bottom: 80, left: 8, zIndex: 50 },
+  gifPickerWrap: { position: "absolute", bottom: 80, left: 44, zIndex: 50 }, // ── NEW
   inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px 14px", background: "#fff", borderTop: "1px solid #e8ecf0", boxShadow: "0 -2px 8px rgba(0,0,0,0.04)" },
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s" },
-  gifBtn: { background: "#5b9bd5", borderRadius: 6, padding: "3px 6px" },
+  gifBtn: { borderRadius: 6, padding: "3px 6px" },
   gifText: { color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 0.5 },
   inputWrap: { flex: 1, background: "#f2f4f7", borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
   textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#1a1a2e", lineHeight: 1.4, maxHeight: 80 },
