@@ -27,6 +27,8 @@ function extractPhotoUrl(p) {
   return p?.url || null;
 }
 
+const FREE_LIMIT = 3;
+
 // ── Photo Carousel ──────────────────────────────────────────
 function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
@@ -35,14 +37,9 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
   if (!photos || photos.length === 0) return null;
 
-  const FREE_LIMIT = 3;
-
+  // เลื่อนได้เสมอ ไม่ว่าจะ locked หรือไม่
   const prev = () => setCurrent(i => (i - 1 + photos.length) % photos.length);
-  const next = () => {
-    const nextIdx = (current + 1) % photos.length;
-    // ถ้าเป็น non-subscriber และจะเข้ารูปที่ 4+ ให้ข้ามไปดูได้ (เบลออยู่แล้ว)
-    setCurrent(nextIdx);
-  };
+  const next = () => setCurrent(i => (i + 1) % photos.length);
 
   const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const onTouchMove  = (e) => { touchEndX.current = e.touches[0].clientX; };
@@ -60,7 +57,6 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
     <div style={C.wrap}>
       <div style={C.slider} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
 
-        {/* รูปภาพ */}
         <img
           key={current}
           src={photos[current]}
@@ -68,10 +64,8 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
         />
 
-        {/* Gradient overlay */}
         {!isLocked && <div style={C.gradient} />}
 
-        {/* Lock overlay */}
         {isLocked && (
           <div style={C.lockOverlay}>
             <div style={C.lockBox}>
@@ -85,7 +79,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           </div>
         )}
 
-        {/* Arrows */}
+        {/* Arrows — แสดงเสมอ */}
         {photos.length > 1 && (
           <>
             <button style={C.arrowLeft}  onClick={prev}>‹</button>
@@ -93,33 +87,27 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           </>
         )}
 
-        {/* Dots */}
         {photos.length > 1 && (
           <div style={C.dots}>
-            {photos.map((_, i) => {
-              const dotLocked = !isSubscriber && i >= FREE_LIMIT;
-              return (
-                <div
-                  key={i}
-                  style={{
-                    ...C.dot,
-                    opacity: i === current ? 1 : 0.35,
-                    width: i === current ? 18 : 6,
-                    background: dotLocked ? '#e91e63' : '#fff',
-                  }}
-                  onClick={() => setCurrent(i)}
-                />
-              );
-            })}
+            {photos.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  ...C.dot,
+                  opacity: i === current ? 1 : 0.35,
+                  width: i === current ? 18 : 6,
+                  background: (!isSubscriber && i >= FREE_LIMIT) ? '#e91e63' : '#fff',
+                }}
+                onClick={() => setCurrent(i)}
+              />
+            ))}
           </div>
         )}
 
-        {/* Counter */}
         {photos.length > 1 && (
           <div style={C.counter}>{current + 1} / {photos.length}</div>
         )}
 
-        {/* Free limit badge */}
         {!isSubscriber && photos.length > FREE_LIMIT && (
           <div style={C.freeBadge}>
             🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free
@@ -154,10 +142,10 @@ export default function UserProfilePage() {
   const { userId } = useParams();
   const navigate   = useNavigate();
 
-  const [profile, setProfile]             = useState(null);
+  const [profile, setProfile]           = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [isSubscriber, setIsSubscriber]   = useState(false);
-  const [loading, setLoading]             = useState(true);
+  const [isSubscriber, setIsSubscriber] = useState(false);
+  const [loading, setLoading]           = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -165,7 +153,6 @@ export default function UserProfilePage() {
       if (!session) { navigate('/login'); return; }
       setCurrentUserId(session.user.id);
 
-      // ดึงโปรไฟล์เป้าหมาย
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, avatar_url, bio, photos, details, city, location, last_seen_at, is_verified')
@@ -175,7 +162,6 @@ export default function UserProfilePage() {
       if (error) console.error(error);
       setProfile(data ?? null);
 
-      // เช็ค subscription ของ current user
       const { data: me } = await supabase
         .from('profiles')
         .select('subscription_plan')
@@ -192,7 +178,6 @@ export default function UserProfilePage() {
   if (loading) return <div style={S.loadWrap}><div style={S.spinner} /></div>;
   if (!profile) return <div style={S.loadWrap}><p style={{ color: '#999' }}>Profile not found</p></div>;
 
-  // ── details จาก jsonb ──
   const d          = profile.details || {};
   const age        = d.age        || '';
   const gender     = d.gender     || '';
@@ -201,7 +186,6 @@ export default function UserProfilePage() {
   const education  = d.education  || '';
   const lookingFor = d.lookingFor || '';
 
-  // ── photos ──
   const rawPhotos = Array.isArray(profile.photos) ? profile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const avatar    = profile.avatar_url || null;
@@ -217,27 +201,21 @@ export default function UserProfilePage() {
   return (
     <div style={S.page}>
 
-      {/* Back button */}
       <button style={S.backBtn} onClick={() => navigate(-1)}>← Back</button>
 
-      {/* Carousel */}
       <PhotoCarousel
         photos={allPhotos}
         isSubscriber={isSubscriber}
         onUpgrade={handleUpgrade}
       />
 
-      {/* Info card */}
       <div style={S.card}>
-
-        {/* Name row */}
         <div style={S.nameRow}>
           <span style={S.name}>{profile.username || '—'}</span>
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
         </div>
 
-        {/* Online + location */}
         <div style={S.subRow}>
           <span style={isOnlineNow ? S.onlineDot : S.offlineDot} />
           <span style={{ color: isOnlineNow ? '#4caf50' : '#aaa', fontSize: 13 }}>{lastSeenText}</span>
@@ -249,12 +227,10 @@ export default function UserProfilePage() {
           )}
         </div>
 
-        {/* Send Message button */}
         <button style={S.msgBtn} onClick={handleSendMessage}>
           💬 Send Message
         </button>
 
-        {/* Bio */}
         {profile.bio && (
           <div style={S.section}>
             <div style={S.sectionLabel}>About Me</div>
@@ -262,7 +238,6 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {/* Details */}
         {(gender || height || weight || education || lookingFor) && (
           <div style={S.section}>
             <div style={S.sectionLabel}>General Info</div>
@@ -275,14 +250,6 @@ export default function UserProfilePage() {
             </div>
           </div>
         )}
-
-      </div>
-
-      {/* Fixed bottom CTA */}
-      <div style={S.bottomBar}>
-        <button style={S.msgBtnBottom} onClick={handleSendMessage}>
-          💬 Send Message
-        </button>
       </div>
 
     </div>
@@ -299,97 +266,22 @@ function Chip({ icon, label }) {
 }
 
 const S = {
-  page: {
-    minHeight: '100vh',
-    background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)',
-    fontFamily: "'Segoe UI', sans-serif",
-    paddingBottom: 90,
-  },
-  loadWrap: {
-    minHeight: '100vh',
-    background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  spinner: {
-    width: 32, height: 32,
-    border: '3px solid rgba(233,30,99,0.2)',
-    borderTopColor: '#e91e63',
-    borderRadius: '50%',
-    animation: 'spin 0.7s linear infinite',
-  },
-  backBtn: {
-    position: 'fixed', top: 14, left: 14, zIndex: 50,
-    background: 'rgba(255,255,255,0.85)',
-    backdropFilter: 'blur(8px)',
-    border: '1px solid rgba(233,30,99,0.2)',
-    color: '#e91e63',
-    borderRadius: 999, padding: '7px 16px',
-    cursor: 'pointer', fontSize: 13, fontWeight: 700,
-    boxShadow: '0 2px 8px rgba(233,30,99,0.1)',
-  },
-  card: {
-    maxWidth: 480,
-    margin: '0 auto',
-    background: '#fff',
-    borderRadius: '0 0 24px 24px',
-    padding: '20px 20px 24px',
-    boxShadow: '0 4px 20px rgba(233,30,99,0.08)',
-  },
+  page: { minHeight: '100vh', background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 40 },
+  loadWrap: { minHeight: '100vh', background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  spinner: { width: 32, height: 32, border: '3px solid rgba(233,30,99,0.2)', borderTopColor: '#e91e63', borderRadius: '50%', animation: 'spin 0.7s linear infinite' },
+  backBtn: { position: 'fixed', top: 14, left: 14, zIndex: 50, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.2)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(233,30,99,0.1)' },
+  card: { maxWidth: 480, margin: '0 auto', background: '#fff', borderRadius: '0 0 24px 24px', padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(233,30,99,0.08)' },
   nameRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   name: { fontSize: 24, fontWeight: 800, color: '#1a1a2e' },
-  ageBadge: {
-    background: '#fce4ec', borderRadius: 999,
-    padding: '2px 10px', fontSize: 14,
-    fontWeight: 600, color: '#e91e63',
-  },
-  verifiedBadge: {
-    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
-    borderRadius: 999, padding: '2px 10px',
-    fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3,
-  },
-  subRow: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    marginTop: 6, flexWrap: 'wrap',
-  },
+  ageBadge: { background: '#fce4ec', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#e91e63' },
+  verifiedBadge: { background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
+  subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4caf50', flexShrink: 0 },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#ccc', flexShrink: 0 },
-  msgBtn: {
-    display: 'block', width: '100%', marginTop: 16, padding: '14px 0',
-    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
-    border: 'none', borderRadius: 30,
-    color: '#fff', fontSize: 16, fontWeight: 700,
-    cursor: 'pointer', letterSpacing: 0.3,
-    boxShadow: '0 4px 12px rgba(233,30,99,0.3)',
-  },
-  section: {
-    marginTop: 20, paddingBottom: 16,
-    borderBottom: '1px solid #fce4ec',
-  },
-  sectionLabel: {
-    fontSize: 11, fontWeight: 800, color: '#e91e63',
-    textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10,
-  },
+  msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.3)' },
+  section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #fce4ec' },
+  sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
   bioText: { margin: 0, fontSize: 14, color: '#555', lineHeight: 1.8 },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    display: 'flex', alignItems: 'center', gap: 6,
-    background: '#fdf0f5', border: '1px solid #f8bbd0',
-    borderRadius: 999, padding: '6px 14px', fontSize: 13,
-  },
-  bottomBar: {
-    position: 'fixed', bottom: 0, left: 0, right: 0,
-    padding: '12px 16px',
-    background: 'rgba(255,255,255,0.92)',
-    backdropFilter: 'blur(12px)',
-    borderTop: '1px solid #fce4ec',
-  },
-  msgBtnBottom: {
-    display: 'block', width: '100%', maxWidth: 480, margin: '0 auto',
-    padding: '14px 0',
-    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
-    border: 'none', borderRadius: 30,
-    color: '#fff', fontSize: 16, fontWeight: 700,
-    cursor: 'pointer', letterSpacing: 0.3,
-    boxShadow: '0 4px 12px rgba(233,30,99,0.3)',
-  },
+  chip: { display: 'flex', alignItems: 'center', gap: 6, background: '#fdf0f5', border: '1px solid #f8bbd0', borderRadius: 999, padding: '6px 14px', fontSize: 13 },
 };
