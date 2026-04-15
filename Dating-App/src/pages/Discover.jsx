@@ -41,7 +41,6 @@ function BanScreen({ bannedUntil, banReason }) {
   );
 }
 
-// แปลงเวลา last_seen เป็น "Right Now", "2 min ago" ฯลฯ
 function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -52,14 +51,14 @@ function timeAgo(dateStr) {
 }
 
 export default function Discover() {
-  const [profiles, setProfiles]       = useState([]);
+  const [profiles, setProfiles]           = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState(new Set());
-  const [loading, setLoading]         = useState(true);
-  const [banInfo, setBanInfo]         = useState(null);
+  const [onlineUsers, setOnlineUsers]     = useState(new Set());
+  const [loading, setLoading]             = useState(true);
+  const [banInfo, setBanInfo]             = useState(null);
   const navigate = useNavigate();
 
-  // ── GPS: ดึง city แล้ว save ลง profiles ──────────────────────────────────
+  // ── GPS → city → save ────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
     if (!navigator.geolocation) return;
@@ -74,7 +73,6 @@ export default function Discover() {
         }
       } catch {}
     }, () => {
-      // permission denied — update last_seen only
       supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
     });
   }, [currentUserId]);
@@ -86,7 +84,6 @@ export default function Discover() {
       if (!user) { navigate('/login'); return; }
       setCurrentUserId(user.id);
 
-      // check ban
       const { data: profile } = await supabase
         .from('profiles').select('banned_until, ban_reason').eq('id', user.id).maybeSingle();
       if (profile) {
@@ -106,7 +103,7 @@ export default function Discover() {
     fetchProfiles();
   }, [navigate]);
 
-  // ── Presence ───────────────────────────────────────────────────────────────
+  // ── Presence ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUserId) return;
     const channel = supabase.channel('discover-presence', {
@@ -130,7 +127,7 @@ export default function Discover() {
 
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
-    if (!raw) return { url: 'https://placehold.co/300x300?text=No+Photo', cropX: 50, cropY: 50 };
+    if (!raw) return { url: 'https://placehold.co/300x400?text=No+Photo', cropX: 50, cropY: 50 };
     if (typeof raw === 'string') return { url: raw, cropX: 50, cropY: 50 };
     return { url: raw.url, cropX: raw.cropX ?? 50, cropY: raw.cropY ?? 50 };
   };
@@ -139,7 +136,6 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      {/* Header */}
       <div style={S.header}>
         <span style={S.headerTitle}>Thai Conexns</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -164,20 +160,18 @@ export default function Discover() {
             const gender    = profile.details?.gender ?? '';
             const city      = profile.city || profile.details?.city || '';
             const lastSeen  = isOnline ? 'Right Now' : timeAgo(profile.last_seen_at);
-
-            // สร้าง meta line: "28 · M · Bangkok"
             const metaParts = [age, gender ? gender[0] : '', city].filter(Boolean);
             const metaLine  = metaParts.join(' · ');
 
             return (
-              <div key={profile.id} onClick={() => handleStartChat(profile.id)} style={S.card}>
-                <div style={S.photoWrap}>
+              <div key={profile.id} style={S.card}>
+                {/* รูป + overlay info */}
+                <div style={S.photoWrap} onClick={() => handleStartChat(profile.id)}>
                   <img
                     src={url}
                     alt={profile.username}
                     style={{ ...S.photo, objectPosition: `${cropX}% ${cropY}%` }}
                   />
-                  {/* gradient overlay */}
                   <div style={S.overlay} />
 
                   {/* verified badge */}
@@ -186,22 +180,30 @@ export default function Discover() {
                   )}
 
                   {/* online dot */}
-                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#888' }} />
+                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#555' }} />
 
                   {/* info overlay */}
                   <div style={S.infoOverlay}>
-                    <div style={S.nameText}>
-                      {profile.username}
-                    </div>
+                    <div style={S.nameText}>{profile.username}</div>
                     {metaLine ? <div style={S.metaText}>{metaLine}</div> : null}
                     {lastSeen ? <div style={S.lastSeenText}>{lastSeen}</div> : null}
                   </div>
                 </div>
 
-                {/* Like / X buttons */}
+                {/* Action buttons */}
                 <div style={S.actions}>
-                  <button style={S.btnX} onClick={e => { e.stopPropagation(); }}>✕</button>
-                  <button style={S.btnHeart} onClick={e => { e.stopPropagation(); }}>♥</button>
+                  <button
+                    style={S.btnX}
+                    onClick={e => { e.stopPropagation(); }}
+                  >
+                    ✕
+                  </button>
+                  <button
+                    style={S.btnChat}
+                    onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}
+                  >
+                    💬
+                  </button>
                 </div>
               </div>
             );
@@ -253,8 +255,8 @@ const S = {
   overlay: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    height: '60%',
-    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)',
+    height: '65%',
+    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
     pointerEvents: 'none',
   },
   verifiedBadge: {
@@ -275,12 +277,12 @@ const S = {
     top: 5, right: 5,
     width: 10, height: 10,
     borderRadius: '50%',
-    border: '2px solid #000',
+    border: '2px solid #111',
   },
   infoOverlay: {
     position: 'absolute',
     bottom: 0, left: 0, right: 0,
-    padding: '8px 6px 4px',
+    padding: '8px 6px 6px',
     zIndex: 1,
   },
   nameText: {
@@ -292,7 +294,7 @@ const S = {
     textOverflow: 'ellipsis',
   },
   metaText: {
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.75)',
     fontSize: '10px',
     marginTop: '1px',
   },
@@ -314,15 +316,16 @@ const S = {
     color: '#666',
     fontSize: '16px',
     cursor: 'pointer',
-    padding: '4px 12px',
+    padding: '4px 14px',
   },
-  btnHeart: {
-    background: 'none',
-    border: 'none',
+  btnChat: {
+    background: '#e91e6322',
+    border: '1px solid #e91e6344',
+    borderRadius: '20px',
     color: '#e91e63',
-    fontSize: '18px',
+    fontSize: '14px',
     cursor: 'pointer',
-    padding: '4px 12px',
+    padding: '4px 14px',
   },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#666', fontSize: 14 },
 };
