@@ -14,7 +14,8 @@ import Navbar       from './components/Navbar';
 import AdminDashboard    from './pages/AdminDashboard';
 import NotificationsPage from './pages/NotificationsPage';
 
-const ProfilePage  = lazy(() => import('./pages/ProfilePage'));
+const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 
 const UserListPage      = lazy(() => import('./pages/admin/UserListPage'));
 const UserDetailPage    = lazy(() => import('./pages/admin/UserDetailPage'));
@@ -143,6 +144,7 @@ function AppContent() {
     !session ||
     location.pathname.startsWith('/admin') ||
     location.pathname.startsWith('/room-chat/') ||
+    location.pathname.startsWith('/profile/') ||
     location.pathname === '/login' ||
     location.pathname === '/register';
 
@@ -159,6 +161,7 @@ function AppContent() {
             <Route path="/profile-setup"     element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
             <Route path="/room-chat/:chatId" element={<RoomChat />} />
             <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/profile/:userId"   element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
             <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="/notifications"     element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />

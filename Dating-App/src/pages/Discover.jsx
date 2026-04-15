@@ -65,7 +65,7 @@ export default function Discover() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
         const data = await res.json();
-        const city = data.address?.state || data.address?.province || data.address?.city || data.address?.county || '';
+        const city = data.address?.city || data.address?.state_district || data.address?.state || '';
         if (city) await supabase.from('profiles').update({ city, last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
       } catch {}
     }, () => {
@@ -144,8 +144,8 @@ export default function Discover() {
 
             return (
               <div key={profile.id} style={S.card}>
-                {/* Photo — คลิกเพื่อดูโปรไฟล์ */}
-                <div style={S.photoWrap} onClick={() => handleStartChat(profile.id)}>
+                {/* Photo — คลิกเพื่อดูโปรไฟล์ (เปลี่ยนจาก handleStartChat → navigate profile) */}
+                <div style={S.photoWrap} onClick={() => navigate(`/profile/${profile.id}`)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} />
                   {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#bbb' }} />
@@ -158,7 +158,7 @@ export default function Discover() {
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#999' }}>{lastSeen}</div>
                 </div>
 
-                {/* Action buttons */}
+                {/* Action buttons — ✕ และ 💬 คงเดิม */}
                 <div style={S.actions}>
                   <button style={S.btnX} onClick={e => e.stopPropagation()}>✕</button>
                   <button style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
