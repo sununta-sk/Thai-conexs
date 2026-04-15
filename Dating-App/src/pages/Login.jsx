@@ -8,6 +8,9 @@ import slide3 from '../lib/3.jpeg';
 import slide4 from '../lib/4.jpeg';
 import slide5 from '../lib/5.jpeg';
 import slide6 from '../lib/6.jpeg';
+import imgConversation from '../lib/conversation.jpeg';
+import imgSongkran from '../lib/songkran.jpeg';
+import imgThaifood from '../lib/thaifood.jpeg';
 
 const SLIDES = [slide1, slide2, slide3, slide4, slide5, slide6];
 
@@ -15,12 +18,13 @@ const CONTENT = {
   en: {
     title: 'Thai Dating',
     paragraphs: [
-      'Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there\'s always someone new to discover in a community inspired by Thailand\'s warm and welcoming spirit.',
-      'Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.',
-      'We don\'t operate like a traditional agency, and we don\'t handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.',
-      'The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.',
-      'Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.',
+      "Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
+      "Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
+      "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.",
+      "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
+      "Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
+    cta: 'Join Lotus ConeXs — It\'s Free',
   },
   th: {
     title: 'หาคู่คนไทย',
@@ -31,6 +35,7 @@ const CONTENT = {
       'แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ',
       'Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน',
     ],
+    cta: 'เข้าร่วม Lotus ConeXs — ฟรี!',
   },
 };
 
@@ -67,13 +72,13 @@ export default function Login() {
   return (
     <div style={{ background: '#fff', position: 'relative' }}>
 
-      {/* ── Language Toggle — มุมขวาบน ── */}
+      {/* ── Language Toggle ── */}
       <div style={S.langToggle}>
-        <button onClick={() => setLang('en')} style={{ ...S.flagBtn, opacity: lang === 'en' ? 1 : 0.4 }}>🇬🇧</button>
-        <button onClick={() => setLang('th')} style={{ ...S.flagBtn, opacity: lang === 'th' ? 1 : 0.4 }}>🇹🇭</button>
+        <button onClick={() => setLang('en')} style={{ ...S.flagBtn, opacity: lang === 'en' ? 1 : 0.35 }}>🇬🇧</button>
+        <button onClick={() => setLang('th')} style={{ ...S.flagBtn, opacity: lang === 'th' ? 1 : 0.35 }}>🇹🇭</button>
       </div>
 
-      {/* ── Hero Section ── */}
+      {/* ── Hero ── */}
       <div style={S.page}>
         <div style={S.formWrap}>
           <div style={S.formInner}>
@@ -120,9 +125,29 @@ export default function Login() {
       <div style={S.about}>
         <div style={S.aboutInner}>
           <h2 style={S.aboutTitle}>{c.title}</h2>
+
+          {/* 3 photos grid */}
+          <div style={S.photoGrid}>
+            <div style={S.photoCard}>
+              <img src={imgConversation} alt="conversation" style={S.photoImg} />
+            </div>
+            <div style={S.photoCard}>
+              <img src={imgSongkran} alt="songkran" style={S.photoImg} />
+            </div>
+            <div style={S.photoCard}>
+              <img src={imgThaifood} alt="thai food" style={S.photoImg} />
+            </div>
+          </div>
+
           {c.paragraphs.map((p, i) => (
             <p key={i} style={S.aboutText}>{p}</p>
           ))}
+
+          {/* CTA Button */}
+          <div style={{ textAlign: 'center', margin: '40px 0 32px' }}>
+            <Link to="/register" style={S.ctaBtn}>{c.cta}</Link>
+          </div>
+
           <div style={S.footerLinks}>
             <a href="#" style={S.footerLink}>Privacy Policy</a>
             <a href="#" style={S.footerLink}>Terms of Service</a>
@@ -138,23 +163,8 @@ export default function Login() {
 }
 
 const S = {
-  langToggle: {
-    position: 'fixed',
-    top: '16px',
-    right: '16px',
-    display: 'flex',
-    gap: '6px',
-    zIndex: 100,
-  },
-  flagBtn: {
-    background: 'none',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    padding: '4px',
-    borderRadius: '6px',
-    transition: 'opacity 0.2s',
-  },
+  langToggle: { position: 'fixed', top: '16px', right: '16px', display: 'flex', gap: '6px', zIndex: 100 },
+  flagBtn: { background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
   formInner: { width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
@@ -181,11 +191,26 @@ const S = {
   dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px', zIndex: 1, cursor: 'pointer' },
   dot: { width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
   dotActive: { background: '#fff' },
-  about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f0f0f0', padding: '60px 20px 40px' },
+  about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f8bbd0', padding: '60px 20px 40px' },
   aboutInner: { maxWidth: '760px', margin: '0 auto' },
-  aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '28px' },
+  aboutTitle: { fontSize: '24px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '32px' },
+  photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' },
+  photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(233,30,99,0.12)', aspectRatio: '4/3' },
+  photoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   aboutText: { fontSize: '15px', lineHeight: '1.8', color: '#555', marginBottom: '18px' },
-  footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '40px', marginBottom: '16px' },
+  ctaBtn: {
+    display: 'inline-block',
+    padding: '18px 52px',
+    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: '16px',
+    borderRadius: '50px',
+    textDecoration: 'none',
+    boxShadow: '0 8px 28px rgba(233,30,99,0.35)',
+    letterSpacing: '0.5px',
+  },
+  footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' },
   footerLink: { color: '#e91e63', fontSize: '13px', textDecoration: 'none' },
-  copyright: { textAlign: 'center', color: '#bbb', fontSize: '12px', marginTop: '8px' },
+  copyright: { textAlign: 'center', color: '#999', fontSize: '12px', marginTop: '8px' },
 };
