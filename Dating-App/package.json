@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@supabase/supabase-js": "^2.48.0",
     "firebase": "^12.10.0",
     "react": "^19.2.0",
