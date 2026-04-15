@@ -4,8 +4,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useLang } from '../hooks/useLang';
-import { getTx } from '../lib/translations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -85,10 +84,9 @@ const C = {
 
 // ── Main Page ───────────────────────────────────────────────
 export default function UserProfilePage() {
-  const { userId }  = useParams();
-  const navigate    = useNavigate();
-  const lang        = useLang();
-  const tx          = getTx(lang);
+  const { userId } = useParams();
+  const navigate   = useNavigate();
+  const { tx }     = useTranslation(['userProfile']);
 
   const [profile, setProfile]             = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -116,7 +114,6 @@ export default function UserProfilePage() {
   if (loading) return <div style={S.loadWrap}><div style={S.spinner} /></div>;
   if (!profile) return <div style={S.loadWrap}><p style={{ color: '#64748b' }}>{tx.notFound}</p></div>;
 
-  // ── details จาก jsonb ──
   const d          = profile.details || {};
   const age        = d.age        || '';
   const gender     = d.gender     || '';
@@ -125,7 +122,6 @@ export default function UserProfilePage() {
   const education  = d.education  || '';
   const lookingFor = d.lookingFor || '';
 
-  // ── photos ──
   const rawPhotos = Array.isArray(profile.photos) ? profile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const avatar    = profile.avatar_url || null;
@@ -163,7 +159,6 @@ export default function UserProfilePage() {
       </div>
 
       <div style={S.body}>
-
         <button style={S.msgBtn} onClick={handleSendMessage}>{tx.sendMessage}</button>
 
         {profile.bio && (
@@ -185,7 +180,6 @@ export default function UserProfilePage() {
             </div>
           </div>
         )}
-
       </div>
 
       <div style={S.bottomBar}>
