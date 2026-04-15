@@ -2,7 +2,7 @@
 // หน้าดูโปรไฟล์คนอื่น — route /profile/:userId
 // Dark theme #0f172a / #1e293b | Accent #e91e63
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
@@ -19,21 +19,162 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)} วันที่แล้ว`;
 }
 
+// ── Photo Carousel ──────────────────────────────────────────
+function PhotoCarousel({ photos }) {
+  const [current, setCurrent] = useState(0);
+  const touchStartX = useRef(null);
+  const touchEndX   = useRef(null);
+
+  if (!photos || photos.length === 0) return null;
+
+  const prev = () => setCurrent(i => (i - 1 + photos.length) % photos.length);
+  const next = () => setCurrent(i => (i + 1) % photos.length);
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchMove  = (e) => { touchEndX.current = e.touches[0].clientX; };
+  const onTouchEnd   = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+    touchStartX.current = null;
+    touchEndX.current   = null;
+  };
+
+  return (
+    <div style={C.wrap}>
+      <div
+        style={C.slider}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <img
+          key={current}
+          src={photos[current]}
+          alt={`photo-${current}`}
+          style={C.img}
+        />
+
+        <div style={C.gradient} />
+
+        {photos.length > 1 && (
+          <>
+            <button style={C.arrowLeft}  onClick={prev}>‹</button>
+            <button style={C.arrowRight} onClick={next}>›</button>
+          </>
+        )}
+
+        {photos.length > 1 && (
+          <div style={C.dots}>
+            {photos.map((_, i) => (
+              <div
+                key={i}
+                style={{ ...C.dot, opacity: i === current ? 1 : 0.35, width: i === current ? 18 : 6 }}
+                onClick={() => setCurrent(i)}
+              />
+            ))}
+          </div>
+        )}
+
+        {photos.length > 1 && (
+          <div style={C.counter}>{current + 1} / {photos.length}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const C = {
+  wrap: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 600,
+    margin: '0 auto',
+  },
+  slider: {
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '1 / 1',
+    overflow: 'hidden',
+    background: '#1e293b',
+    touchAction: 'pan-y',
+  },
+  img: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+    userSelect: 'none',
+    WebkitUserDrag: 'none',
+  },
+  gradient: {
+    position: 'absolute',
+    bottom: 0, left: 0, right: 0,
+    height: '50%',
+    background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
+    pointerEvents: 'none',
+  },
+  arrowLeft: {
+    position: 'absolute', top: '50%', left: 10,
+    transform: 'translateY(-50%)',
+    background: 'rgba(0,0,0,0.4)',
+    border: 'none', borderRadius: '50%',
+    color: '#fff', fontSize: 22,
+    width: 36, height: 36,
+    cursor: 'pointer', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    zIndex: 2,
+  },
+  arrowRight: {
+    position: 'absolute', top: '50%', right: 10,
+    transform: 'translateY(-50%)',
+    background: 'rgba(0,0,0,0.4)',
+    border: 'none', borderRadius: '50%',
+    color: '#fff', fontSize: 22,
+    width: 36, height: 36,
+    cursor: 'pointer', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+    zIndex: 2,
+  },
+  dots: {
+    position: 'absolute', bottom: 60, left: 0, right: 0,
+    display: 'flex', justifyContent: 'center',
+    alignItems: 'center', gap: 5,
+    zIndex: 2,
+  },
+  dot: {
+    height: 6, borderRadius: 999,
+    background: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  counter: {
+    position: 'absolute', top: 12, right: 12,
+    background: 'rgba(0,0,0,0.45)',
+    backdropFilter: 'blur(6px)',
+    borderRadius: 999,
+    padding: '3px 10px',
+    fontSize: 12,
+    color: '#fff',
+    fontWeight: 600,
+    zIndex: 2,
+  },
+};
+
+// ── Main Page ───────────────────────────────────────────────
 export default function UserProfilePage() {
   const { userId }  = useParams();
   const navigate    = useNavigate();
-  const [profile, setProfile]         = useState(null);
+  const [profile, setProfile]             = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [loading, setLoading]         = useState(true);
+  const [loading, setLoading]             = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      // ดึง session ของผู้ใช้ปัจจุบัน
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/login'); return; }
       setCurrentUserId(session.user.id);
 
-      // ดึงโปรไฟล์เป้าหมาย
       const { data, error } = await supabase
         .from('profiles')
         .select('id, username, avatar_url, bio, photos, age, gender, height, education, occupation, relationship_goal, interests, city, location, last_seen_at, is_verified')
@@ -64,64 +205,54 @@ export default function UserProfilePage() {
   }
 
   const avatar = profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username || 'U')}&background=e91e63&color=fff&size=400`;
-  const isOnlineNow = profile.last_seen_at && (Date.now() - new Date(profile.last_seen_at)) < 5 * 60 * 1000;
+
+  // รวม avatar + photos เป็น array เดียวสำหรับ carousel
+  const rawPhotos = Array.isArray(profile.photos) ? profile.photos.filter(Boolean) : [];
+  const allPhotos = [avatar, ...rawPhotos];
+
+  const isOnlineNow  = profile.last_seen_at && (Date.now() - new Date(profile.last_seen_at)) < 5 * 60 * 1000;
   const lastSeenText = isOnlineNow ? 'ออนไลน์อยู่' : timeAgo(profile.last_seen_at);
-
-  // photos เป็น text[] — filter null/empty ออก
-  const photoList = Array.isArray(profile.photos) ? profile.photos.filter(Boolean) : [];
-
-  // interests เป็น jsonb — อาจเป็น array of strings
   const interestList = Array.isArray(profile.interests) ? profile.interests : [];
 
   const handleSendMessage = () => {
-    const chatId = getChatId(currentUserId, profile.id);
-    navigate(`/room-chat/${chatId}`);
+    navigate(`/room-chat/${getChatId(currentUserId, profile.id)}`);
   };
 
   return (
     <div style={S.page}>
 
-      {/* ── Back button ── */}
-      <button style={S.backBtn} onClick={() => navigate(-1)}>
-        ← กลับ
-      </button>
+      {/* Back button */}
+      <button style={S.backBtn} onClick={() => navigate(-1)}>← กลับ</button>
 
-      {/* ── Hero photo ── */}
-      <div style={S.heroWrap}>
-        <img src={avatar} alt={profile.username} style={S.heroImg} />
-        <div style={S.heroGradient} />
-        <div style={S.heroInfo}>
-          <div style={S.nameRow}>
-            <span style={S.name}>{profile.username || '—'}</span>
-            {profile.age  && <span style={S.ageBadge}>{profile.age}</span>}
-            {profile.is_verified && (
-              <span style={S.verifiedBadge}>✓ Verified</span>
-            )}
-          </div>
-          <div style={S.subRow}>
-            <span style={isOnlineNow ? S.onlineDot : S.offlineDot} />
-            <span style={{ color: isOnlineNow ? '#4ade80' : '#94a3b8' }}>
-              {lastSeenText}
-            </span>
-            {(profile.city || profile.location) && (
-              <>
-                <span style={{ color: '#475569' }}>·</span>
-                <span>📍 {profile.city || profile.location}</span>
-              </>
-            )}
-          </div>
+      {/* Carousel */}
+      <PhotoCarousel photos={allPhotos} />
+
+      {/* Info under carousel */}
+      <div style={S.heroInfo}>
+        <div style={S.nameRow}>
+          <span style={S.name}>{profile.username || '—'}</span>
+          {profile.age && <span style={S.ageBadge}>{profile.age}</span>}
+          {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
+        </div>
+        <div style={S.subRow}>
+          <span style={isOnlineNow ? S.onlineDot : S.offlineDot} />
+          <span style={{ color: isOnlineNow ? '#4ade80' : '#94a3b8' }}>{lastSeenText}</span>
+          {(profile.city || profile.location) && (
+            <>
+              <span style={{ color: '#475569' }}>·</span>
+              <span>📍 {profile.city || profile.location}</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* ── Body ── */}
+      {/* Body */}
       <div style={S.body}>
 
-        {/* Send Message button */}
         <button style={S.msgBtn} onClick={handleSendMessage}>
           💬 ส่งข้อความ
         </button>
 
-        {/* Bio */}
         {profile.bio && (
           <div style={S.section}>
             <div style={S.sectionLabel}>เกี่ยวกับฉัน</div>
@@ -129,21 +260,19 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {/* Details */}
         {(profile.gender || profile.height || profile.education || profile.occupation || profile.relationship_goal) && (
           <div style={S.section}>
             <div style={S.sectionLabel}>ข้อมูลทั่วไป</div>
             <div style={S.chipRow}>
-              {profile.gender           && <Chip icon="🧑"  label={profile.gender} />}
-              {profile.height           && <Chip icon="📏"  label={profile.height} />}
-              {profile.education        && <Chip icon="🎓"  label={profile.education} />}
-              {profile.occupation       && <Chip icon="💼"  label={profile.occupation} />}
-              {profile.relationship_goal && <Chip icon="💬" label={profile.relationship_goal} />}
+              {profile.gender            && <Chip icon="🧑"  label={profile.gender} />}
+              {profile.height            && <Chip icon="📏"  label={profile.height} />}
+              {profile.education         && <Chip icon="🎓"  label={profile.education} />}
+              {profile.occupation        && <Chip icon="💼"  label={profile.occupation} />}
+              {profile.relationship_goal && <Chip icon="💬"  label={profile.relationship_goal} />}
             </div>
           </div>
         )}
 
-        {/* Interests */}
         {interestList.length > 0 && (
           <div style={S.section}>
             <div style={S.sectionLabel}>ความสนใจ</div>
@@ -155,23 +284,9 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {/* Photos grid */}
-        <div style={S.section}>
-          <div style={S.sectionLabel}>รูปภาพทั้งหมด</div>
-          {photoList.length === 0 ? (
-            <p style={{ color: '#475569', fontSize: 13 }}>ยังไม่มีรูปภาพ</p>
-          ) : (
-            <div style={S.photoGrid}>
-              {photoList.map((url, i) => (
-                <img key={i} src={url} alt={`photo-${i}`} style={S.photo} />
-              ))}
-            </div>
-          )}
-        </div>
-
       </div>
 
-      {/* ── Fixed bottom CTA ── */}
+      {/* Fixed bottom CTA */}
       <div style={S.bottomBar}>
         <button style={S.msgBtnBottom} onClick={handleSendMessage}>
           💬 ส่งข้อความ
@@ -207,19 +322,15 @@ const S = {
     justifyContent: 'center',
   },
   spinner: {
-    width: 32,
-    height: 32,
+    width: 32, height: 32,
     border: '3px solid rgba(233,30,99,0.2)',
     borderTopColor: '#e91e63',
     borderRadius: '50%',
     animation: 'spin 0.7s linear infinite',
   },
-
-  // Back button
   backBtn: {
     position: 'fixed',
-    top: 14,
-    left: 14,
+    top: 14, left: 14,
     zIndex: 50,
     background: 'rgba(15,23,42,0.75)',
     backdropFilter: 'blur(8px)',
@@ -231,31 +342,10 @@ const S = {
     fontSize: 13,
     fontWeight: 600,
   },
-
-  // Hero
-  heroWrap: {
-    position: 'relative',
-    width: '100%',
+  heroInfo: {
     maxWidth: 600,
     margin: '0 auto',
-  },
-  heroImg: {
-    width: '100%',
-    aspectRatio: '3 / 4',
-    objectFit: 'cover',
-    display: 'block',
-    maxHeight: 520,
-  },
-  heroGradient: {
-    position: 'absolute',
-    bottom: 0, left: 0, right: 0,
-    height: '55%',
-    background: 'linear-gradient(to top, #0f172a 0%, transparent 100%)',
-    pointerEvents: 'none',
-  },
-  heroInfo: {
-    position: 'absolute',
-    bottom: 20, left: 20, right: 20,
+    padding: '14px 20px 4px',
   },
   nameRow: {
     display: 'flex',
@@ -264,15 +354,14 @@ const S = {
     flexWrap: 'wrap',
   },
   name: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 700,
-    lineHeight: 1.2,
   },
   ageBadge: {
     background: 'rgba(255,255,255,0.15)',
     borderRadius: 999,
     padding: '2px 10px',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 500,
   },
   verifiedBadge: {
@@ -306,8 +395,6 @@ const S = {
     background: '#475569',
     flexShrink: 0,
   },
-
-  // Body
   body: {
     maxWidth: 600,
     margin: '0 auto',
@@ -316,7 +403,7 @@ const S = {
   msgBtn: {
     display: 'block',
     width: '100%',
-    marginTop: 20,
+    marginTop: 16,
     padding: '14px 0',
     background: 'linear-gradient(135deg, #e91e63, #ff4081)',
     border: 'none',
@@ -327,8 +414,6 @@ const S = {
     cursor: 'pointer',
     letterSpacing: 0.3,
   },
-
-  // Sections
   section: {
     marginTop: 24,
     paddingBottom: 20,
@@ -348,8 +433,6 @@ const S = {
     color: '#cbd5e1',
     lineHeight: 1.8,
   },
-
-  // Chips
   chipRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -365,8 +448,6 @@ const S = {
     padding: '6px 14px',
     fontSize: 13,
   },
-
-  // Tags
   tagRow: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -381,21 +462,6 @@ const S = {
     fontSize: 13,
     fontWeight: 500,
   },
-
-  // Photos
-  photoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 4,
-  },
-  photo: {
-    width: '100%',
-    aspectRatio: '1 / 1',
-    objectFit: 'cover',
-    borderRadius: 8,
-  },
-
-  // Bottom CTA
   bottomBar: {
     position: 'fixed',
     bottom: 0, left: 0, right: 0,
