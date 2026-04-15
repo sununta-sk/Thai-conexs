@@ -65,7 +65,7 @@ export default function Discover() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
         const data = await res.json();
-        const city = data.address?.city || data.address?.state_district || data.address?.state || '';
+        const city = data.address?.province || data.address?.city || data.address?.state || '';
         if (city) await supabase.from('profiles').update({ city, last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
       } catch {}
     }, () => {
