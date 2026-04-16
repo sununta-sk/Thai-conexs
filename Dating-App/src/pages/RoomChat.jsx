@@ -232,7 +232,7 @@ export default function RoomChat() {
       recorder.ondataavailable = (e) => audioChunks.current.push(e.data);
       recorder.onstop = async () => {
         const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
-        const path = `chat/${session.user.id}/${Date.now()}.webm`;
+        const path = `${session.user.id}/chat-${Date.now()}.webm`;
         const { error } = await supabase.storage.from('avatars').upload(path, blob, { contentType: 'audio/webm' });
         if (!error) {
           const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
