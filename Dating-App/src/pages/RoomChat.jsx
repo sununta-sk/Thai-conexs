@@ -350,7 +350,7 @@ export default function RoomChat() {
           // ตรวจว่าเป็น GIF URL ไหม
           const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
           const isImage = msg.content?.startsWith("https://") && (msg.content?.includes("supabase") || msg.content?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
-          const isAudio = msg.content?.includes('supabase') && msg.content?.match(/\.(webm|mp3|ogg|m4a)$/i);
+          const isAudio = msg.content?.includes('supabase') && msg.content?.match(/\.(webm|mp3|ogg|m4a|wav)$/i) || msg.content?.includes("chat/");
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
