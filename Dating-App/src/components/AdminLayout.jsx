@@ -58,7 +58,7 @@ export default function AdminLayout({ children }) {
   const { session, adminUser, role, loading, can } = useAdminAuth();
 
   // ── Language state ──
-  const [lang, setLang]           = useState('en')
+  const [lang, setLang]           = useState('th')
   const [showLangMenu, setShowLangMenu] = useState(false)
 
   // โหลดภาษาจาก profiles เมื่อ session พร้อม
@@ -108,7 +108,7 @@ export default function AdminLayout({ children }) {
     return (
       <div style={S.loadingScreen}>
         <div style={S.spinner} />
-        <p style={{ color: '#64748b', marginTop: 12 }}>Verifying access...</p>
+        <p style={{ color: '#64748b', marginTop: 12 }}>กำลังตรวจสอบสิทธิ์...</p>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>🚫</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Access Denied</h2>
-        <p style={{ color: '#64748b' }}>No admin access</p>
-        <button onClick={() => navigate('/discover')} style={S.backBtn}>Back to Home</button>
+        <p style={{ color: '#64748b' }}>บัญชีนี้ไม่มีสิทธิ์เข้า Admin Portal</p>
+        <button onClick={() => navigate('/discover')} style={S.backBtn}>กลับไปหน้าหลัก</button>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>⏸️</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Account Suspended</h2>
-        <p style={{ color: '#64748b' }}>This admin account is suspended</p>
+        <p style={{ color: '#64748b' }}>บัญชี Admin นี้ถูก suspend</p>
         <button onClick={handleSignOut} style={S.backBtn}>Sign Out</button>
       </div>
     );
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }) {
       <main style={S.main}>
         <div style={S.header}>
           <div style={{ color: '#94a3b8', fontSize: 13 }}>
-            {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* ── View App ── */}
@@ -200,30 +200,6 @@ export default function AdminLayout({ children }) {
               onMouseLeave={e => e.currentTarget.style.background = '#10b98118'}>
               ↗ View App
             </a>
-
-            {/* ── Language Switcher ── */}
-            <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
-              <button
-                onClick={() => setShowLangMenu(v => !v)}
-                style={S.langBtn}>
-                <span>{currentLang.flag}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8' }}>{lang.toUpperCase()}</span>
-                <span style={{ color: '#475569', fontSize: 10 }}>▼</span>
-              </button>
-
-              {showLangMenu && (
-                <div style={S.langDropdown}>
-                  {LANGUAGES.map(l => (
-                    <button key={l.code} onClick={() => changeLang(l.code)}
-                      style={{ ...S.langOption, ...(lang === l.code ? S.langOptionActive : {}) }}>
-                      <span>{l.flag}</span>
-                      <span style={{ fontSize: 12 }}>{l.label}</span>
-                      {lang === l.code && <span style={{ marginLeft: 'auto', color: '#e91e63' }}>✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
 
             {/* ── Role + Name ── */}
             <span style={{ ...S.roleBadge, background: `${roleColor}22`, color: roleColor, border: `1px solid ${roleColor}44` }}>
