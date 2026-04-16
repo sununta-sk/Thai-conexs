@@ -232,7 +232,7 @@ export default function RoomChat() {
       recorder.ondataavailable = (e) => audioChunks.current.push(e.data);
       recorder.onstop = async () => {
         const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
-        const path = `${session.user.id}/chat-${Date.now()}.webm`;
+        const path = `chat/${session.user.id}/${Date.now()}.webm`;
         const { error } = await supabase.storage.from('avatars').upload(path, blob, { contentType: 'audio/webm' });
         if (!error) {
           const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -350,7 +350,14 @@ export default function RoomChat() {
           // ตรวจว่าเป็น GIF URL ไหม
           const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
           const isImage = msg.content?.startsWith("https://") && (msg.content?.includes("supabase") || msg.content?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
-          const isAudio = msg.content?.includes('supabase') && msg.content?.match(/\.(webm|mp3|ogg|m4a|wav)$/i) || msg.content?.includes("chat/");
+          const isAudio = msg.content?.includes('supabase') && msg.content?.includes('chat-') && msg.content?.includes('.webm');
+          {isGif || isImage ? (
+            <img src={msg.content} alt={isGif ? "gif" : "image"} style={{ maxWidth: 220, borderRadius: 12, display: "block", objectFit: "cover" }} />
+          ) : isAudio ? (
+            <audio controls src={msg.content} style={{ maxWidth: 220, borderRadius: 30 }} />
+          ) : (
+            <p style={S.bubbleText}>{msg.content}</p>
+          )}
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
