@@ -133,7 +133,9 @@ export default function RoomChat() {
   const inputRef = useRef(null);
   const photoScrollRef = useRef(null);
   const emojiPickerRef = useRef(null);
-  const gifPickerRef = useRef(null); // ── NEW
+  const gifPickerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [uploadingImg, setUploadingImg] = useState(false); // ── NEW
 
   useEffect(() => {
     if (!showEmoji) return;
@@ -219,6 +221,25 @@ export default function RoomChat() {
   const handleGifSelect = (gifUrl) => {
     setShowGif(false);
     sendMessage(gifUrl);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !session) return;
+    setUploadingImg(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = \`chat/${session.user.id}/${Date.now()}.${ext}\`;
+      const { error } = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      await sendMessage(publicUrl);
+    } catch (e) {
+      console.error("Upload error:", e);
+    } finally {
+      setUploadingImg(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const profileAge    = otherProfile?.details?.age    ?? "";
@@ -321,6 +342,7 @@ export default function RoomChat() {
           const showSeparator = !prevMsg || new Date(msg.created_at) - new Date(prevMsg.created_at) > 1000 * 60 * 30;
           // ตรวจว่าเป็น GIF URL ไหม
           const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
+                  const isImage = msg.content?.startsWith("https://") && (msg.content?.includes("supabase") || msg.content?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
