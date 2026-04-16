@@ -48,7 +48,7 @@ export default function PhotoQueuePage() {
     const statusMap = { approve: 'approved', reject: 'rejected' };
     await supabase
       .from('photo_moderation_queue')
-      .update({ status: statusMap[action], moderated_at: new Date().toISOString() })
+      .update({ status: statusMap[action], reviewed_at: new Date().toISOString() })
       .in('id', ids);
     setPreview(null);
     await fetchPhotos();
