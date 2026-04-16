@@ -2,17 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import logoImg from '../lib/LotusConnexs.jpeg';
-import slide1 from '../lib/1.jpeg';
-import slide2 from '../lib/2.jpeg';
-import slide3 from '../lib/3.jpeg';
-import slide4 from '../lib/4.jpeg';
-import slide5 from '../lib/5.jpeg';
-import slide6 from '../lib/6.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
-
-const SLIDES = [slide1, slide2, slide3, slide4, slide5, slide6];
 
 const CONTENT = {
   en: {
@@ -39,17 +31,129 @@ const CONTENT = {
   },
 };
 
+// ── User Photo Grid (แทน card stack) ──────────────────────────
+function UserPhotoGrid() {
+  const [profiles, setProfiles] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from('profiles')
+      .select('id, username, avatar_url, details')
+      .not('avatar_url', 'is', null)
+      .limit(20)
+      .then(({ data }) => {
+        if (data) setProfiles(data.filter(p => p.avatar_url));
+      });
+  }, []);
+
+  // fallback ถ้าไม่มี user
+  const fallbackColors = ['#fce4ec','#f8bbd0','#f48fb1','#f06292','#e91e63','#fce4ec','#fdf0f5','#fce4ec'];
+
+  return (
+    <div style={G.wrap}>
+      <div style={G.onlineBanner}>
+        <span style={G.onlineDot} />
+        <span style={G.onlineText}>
+          {profiles.length > 0 ? `${profiles.length}+ members online now` : 'Join thousands of members'}
+        </span>
+      </div>
+      <div style={G.grid}>
+        {profiles.length > 0 ? (
+          profiles.slice(0, 16).map((p, i) => (
+            <div key={p.id} style={G.cell}>
+              <img
+                src={p.avatar_url}
+                alt={p.username}
+                style={G.img}
+                onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
+              />
+              {p.details?.gender && (
+                <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
+              )}
+            </div>
+          ))
+        ) : (
+          // fallback placeholder cells
+          Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+const G = {
+  wrap: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px 16px',
+    gap: 12,
+  },
+  onlineBanner: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    background: '#fff',
+    borderRadius: 999,
+    padding: '6px 16px',
+    boxShadow: '0 2px 12px rgba(233,30,99,0.12)',
+    marginBottom: 8,
+  },
+  onlineDot: {
+    display: 'inline-block',
+    width: 9, height: 9,
+    borderRadius: '50%',
+    background: '#4caf50',
+    flexShrink: 0,
+  },
+  onlineText: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#1a1a2e',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 6,
+    width: '100%',
+    maxWidth: 360,
+  },
+  cell: {
+    position: 'relative',
+    aspectRatio: '1/1',
+    borderRadius: 12,
+    overflow: 'hidden',
+    background: '#fce4ec',
+  },
+  img: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+  },
+  badge: {
+    position: 'absolute',
+    bottom: 4, right: 4,
+    background: 'rgba(233,30,99,0.85)',
+    color: '#fff',
+    fontSize: 10,
+    borderRadius: 999,
+    padding: '1px 5px',
+    fontWeight: 700,
+  },
+};
+
+// ── Main Login Component ───────────────────────────────────────
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [current, setCurrent]   = useState(0);
   const [lang, setLang]         = useState('en');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrent(prev => (prev + 1) % SLIDES.length), 3000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -66,20 +170,20 @@ export default function Login() {
     if (error) alert(error.message);
   };
 
-  const getPhoto = (offset) => SLIDES[(current + offset) % SLIDES.length];
   const c = CONTENT[lang];
 
   return (
     <div style={{ background: '#fff', position: 'relative' }}>
 
-      {/* ── Language Toggle ── */}
+      {/* Language Toggle */}
       <div style={S.langToggle}>
         <button onClick={() => setLang('en')} style={{ ...S.flagBtn, opacity: lang === 'en' ? 1 : 0.35 }}>🇬🇧</button>
         <button onClick={() => setLang('th')} style={{ ...S.flagBtn, opacity: lang === 'th' ? 1 : 0.35 }}>🇹🇭</button>
       </div>
 
-      {/* ── Hero ── */}
+      {/* Hero */}
       <div style={S.page}>
+        {/* Form side */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
             <img src={logoImg} alt="logo" style={S.logo} />
@@ -103,25 +207,13 @@ export default function Login() {
           </div>
         </div>
 
+        {/* Photo grid side — แทน card stack */}
         <div style={S.cardsWrap}>
-          <div style={S.cardStack}>
-            <div style={{ ...S.card, ...S.card3 }}><img src={getPhoto(2)} alt="" style={S.cardImg} /></div>
-            <div style={{ ...S.card, ...S.card2 }}><img src={getPhoto(1)} alt="" style={S.cardImg} /></div>
-            <div style={{ ...S.card, ...S.card1 }}>
-              <img src={getPhoto(0)} alt="" style={S.cardImg} />
-              <div style={S.cardGradient} />
-              <div style={S.dots}>
-                {SLIDES.map((_, i) => (
-                  <div key={i} onClick={() => setCurrent(i)}
-                    style={{ ...S.dot, ...(i === current ? S.dotActive : {}) }} />
-                ))}
-              </div>
-            </div>
-          </div>
+          <UserPhotoGrid />
         </div>
       </div>
 
-      {/* ── About Section ── */}
+      {/* About Section — ไม่แตะ */}
       <div style={S.about}>
         <div style={S.aboutInner}>
           <h2 style={S.aboutTitle}>{c.title}</h2>
@@ -158,8 +250,6 @@ const S = {
   langToggle: { position: 'fixed', top: '16px', right: '16px', display: 'flex', gap: '6px', zIndex: 100 },
   flagBtn: { background: 'none', border: 'none', fontSize: '26px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
   page: { display: 'flex', minHeight: '100vh', background: '#fff' },
-
-  // ── Form ขยายใหญ่ขึ้น ──
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
   formInner: { width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logo: { width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.25)', marginBottom: '20px' },
@@ -174,20 +264,7 @@ const S = {
   btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #e8e8e8', background: '#fff', color: '#555', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
   signupText: { marginTop: '24px', textAlign: 'center', color: '#aaa', fontSize: '15px' },
   signupLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
-
   cardsWrap: { width: '420px', flexShrink: 0, background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  cardStack: { position: 'relative', width: '240px', height: '320px' },
-  card: { position: 'absolute', width: '240px', height: '320px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
-  card1: { top: 0, left: 0, zIndex: 3, boxShadow: '0 16px 48px rgba(233,30,99,0.2)' },
-  card2: { top: '-10px', left: '18px', zIndex: 2, opacity: 0.7, transform: 'rotate(5deg)' },
-  card3: { top: '-18px', left: '32px', zIndex: 1, opacity: 0.45, transform: 'rotate(10deg)' },
-  cardImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  cardGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)' },
-  dots: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px', zIndex: 1, cursor: 'pointer' },
-  dot: { width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.5)' },
-  dotActive: { background: '#fff' },
-
-  // ── About ──
   about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f8bbd0', padding: '60px 20px 40px' },
   aboutInner: { maxWidth: '800px', margin: '0 auto' },
   aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '32px' },
@@ -195,18 +272,7 @@ const S = {
   photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(233,30,99,0.12)', aspectRatio: '4/3' },
   photoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   aboutText: { fontSize: '17px', lineHeight: '1.9', color: '#555', marginBottom: '20px' },
-  ctaBtn: {
-    display: 'inline-block',
-    padding: '20px 56px',
-    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
-    color: '#fff',
-    fontWeight: 800,
-    fontSize: '18px',
-    borderRadius: '50px',
-    textDecoration: 'none',
-    boxShadow: '0 8px 28px rgba(233,30,99,0.35)',
-    letterSpacing: '0.5px',
-  },
+  ctaBtn: { display: 'inline-block', padding: '20px 56px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: '18px', borderRadius: '50px', textDecoration: 'none', boxShadow: '0 8px 28px rgba(233,30,99,0.35)', letterSpacing: '0.5px' },
   footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' },
   footerLink: { color: '#e91e63', fontSize: '14px', textDecoration: 'none' },
   copyright: { textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '8px' },
