@@ -53,8 +53,8 @@ export function assertNoServiceRoleKey() {
       `script-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,  // unsafe-inline needed for Vite dev
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
       `font-src 'self' https://fonts.gstatic.com`,
-      `img-src 'self' data: blob: https://${supabaseHost} https://www.google.com https://lh3.googleusercontent.com`,
-      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.supabase.co wss://*.supabase.co https://thai-conexs-production.up.railway.app wss://thai-conexs-production.up.railway.app https://api.anthropic.com https://nominatim.openstreetmap.org`,
+      `img-src 'self' data: blob: https://${supabaseHost} https://www.google.com https://lh3.googleusercontent.com https://media.giphy.com https://media0.giphy.com https://media1.giphy.com https://media2.giphy.com https://media3.giphy.com https://media4.giphy.com`,
+      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.supabase.co wss://*.supabase.co https://thai-conexs-production.up.railway.app wss://thai-conexs-production.up.railway.app https://api.anthropic.com https://nominatim.openstreetmap.org https://api.giphy.com`,
       `frame-src 'none'`,
       `object-src 'none'`,
       `base-uri 'self'`,
