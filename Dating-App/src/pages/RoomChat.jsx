@@ -134,6 +134,9 @@ export default function RoomChat() {
   const photoScrollRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const gifPickerRef = useRef(null); // ── NEW
+  const [recording, setRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const audioChunks = useRef([]);
 
   useEffect(() => {
     if (!showEmoji) return;
@@ -219,6 +222,31 @@ export default function RoomChat() {
   const handleGifSelect = (gifUrl) => {
     setShowGif(false);
     sendMessage(gifUrl);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunks.current = [];
+      recorder.ondataavailable = (e) => audioChunks.current.push(e.data);
+      recorder.onstop = async () => {
+        const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
+        const path = `chat/${session.user.id}/${Date.now()}.webm`;
+        const { error } = await supabase.storage.from('avatars').upload(path, blob, { contentType: 'audio/webm' });
+        if (!error) {
+          const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+          await sendMessage(publicUrl);
+        }
+        stream.getTracks().forEach(t => t.stop());
+      };
+      recorder.start();
+      setMediaRecorder(recorder);
+      setRecording(true);
+    } catch (e) { console.error('Mic error:', e); }
+  };
+  const stopRecording = () => {
+    if (mediaRecorder) { mediaRecorder.stop(); setRecording(false); setMediaRecorder(null); }
   };
 
   const profileAge    = otherProfile?.details?.age    ?? "";
@@ -321,6 +349,8 @@ export default function RoomChat() {
           const showSeparator = !prevMsg || new Date(msg.created_at) - new Date(prevMsg.created_at) > 1000 * 60 * 30;
           // ตรวจว่าเป็น GIF URL ไหม
           const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
+          const isImage = msg.content?.startsWith("https://") && (msg.content?.includes("supabase") || msg.content?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+          const isAudio = msg.content?.includes('supabase') && msg.content?.match(/\.(webm|mp3|ogg|m4a)$/i);
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
@@ -329,6 +359,10 @@ export default function RoomChat() {
                 <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs), ...(isGif ? { background: 'transparent', boxShadow: 'none', padding: 0 } : {}) }}>
                   {isGif ? (
                     <img src={msg.content} alt="gif" style={{ maxWidth: 200, borderRadius: 12, display: 'block' }} />
+                  ) : isImage ? (
+                    <img src={msg.content} alt="image" style={{ maxWidth: 220, borderRadius: 12, display: 'block' }} />
+                  ) : isAudio ? (
+                    <audio controls src={msg.content} style={{ maxWidth: 220 }} />
                   ) : (
                     <p style={S.bubbleText}>{msg.content}</p>
                   )}
@@ -385,9 +419,12 @@ export default function RoomChat() {
             <span style={S.sendText}>Send</span>
           </button>
         ) : (
-          <button className="icon-btn" style={S.iconBtn} title="Voice">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          <button className="icon-btn" style={{...S.iconBtn, background: recording ? '#fce4ec' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={recording ? "#e91e63" : "#5b9bd5"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
           </button>
         )}
