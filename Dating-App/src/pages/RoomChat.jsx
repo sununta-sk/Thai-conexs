@@ -229,7 +229,7 @@ export default function RoomChat() {
     setUploadingImg(true);
     try {
       const ext = file.name.split(".").pop();
-      const path = \`chat/${session.user.id}/${Date.now()}.${ext}\`;
+      const path = `chat/${session.user.id}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
