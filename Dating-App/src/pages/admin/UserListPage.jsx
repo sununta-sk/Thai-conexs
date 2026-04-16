@@ -47,7 +47,7 @@ export default function UserListPage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>👥 User Management</h2>
-            <p style={S.pageSubtitle}>จัดการ users ทั้งหมดในระบบ</p>
+            <p style={S.pageSubtitle}>Manage all users in the system</p>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function UserListPage() {
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(0); }}
-            placeholder="🔍  ค้นหา username..."
+            placeholder="🔍  Search username..."
             style={S.searchInput}
           />
           <div style={S.filterBtns}>
@@ -75,9 +75,9 @@ export default function UserListPage() {
         {/* Table */}
         <div style={S.tableCard}>
           {loading ? (
-            <div style={S.empty}>กำลังโหลด...</div>
+            <div style={S.empty}>Loading...</div>
           ) : users.length === 0 ? (
-            <div style={S.empty}>ไม่พบ users</div>
+            <div style={S.empty}>No users found</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={S.table}>
