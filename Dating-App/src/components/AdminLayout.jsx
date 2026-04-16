@@ -58,7 +58,7 @@ export default function AdminLayout({ children }) {
   const { session, adminUser, role, loading, can } = useAdminAuth();
 
   // ── Language state ──
-  const [lang, setLang]           = useState('th')
+  const [lang, setLang]           = useState('en')
   const [showLangMenu, setShowLangMenu] = useState(false)
 
   // โหลดภาษาจาก profiles เมื่อ session พร้อม
@@ -108,7 +108,7 @@ export default function AdminLayout({ children }) {
     return (
       <div style={S.loadingScreen}>
         <div style={S.spinner} />
-        <p style={{ color: '#64748b', marginTop: 12 }}>กำลังตรวจสอบสิทธิ์...</p>
+        <p style={{ color: '#64748b', marginTop: 12 }}>Verifying access...</p>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>🚫</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Access Denied</h2>
-        <p style={{ color: '#64748b' }}>บัญชีนี้ไม่มีสิทธิ์เข้า Admin Portal</p>
-        <button onClick={() => navigate('/discover')} style={S.backBtn}>กลับไปหน้าหลัก</button>
+        <p style={{ color: '#64748b' }}>No admin access</p>
+        <button onClick={() => navigate('/discover')} style={S.backBtn}>Back to Home</button>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>⏸️</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Account Suspended</h2>
-        <p style={{ color: '#64748b' }}>บัญชี Admin นี้ถูก suspend</p>
+        <p style={{ color: '#64748b' }}>This admin account is suspended</p>
         <button onClick={handleSignOut} style={S.backBtn}>Sign Out</button>
       </div>
     );
@@ -190,7 +190,7 @@ export default function AdminLayout({ children }) {
       <main style={S.main}>
         <div style={S.header}>
           <div style={{ color: '#94a3b8', fontSize: 13 }}>
-            {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* ── View App ── */}
