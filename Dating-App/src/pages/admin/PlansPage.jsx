@@ -60,7 +60,7 @@ export default function PlansPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
             <h2 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>🎫 Subscription Plans</h2>
-            <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>แผนการสมัครสมาชิกทั้งหมดในระบบ</p>
+            <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>All subscription plans</p>
           </div>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '6px 14px', color: '#94a3b8', fontSize: 13 }}>
             {plans.filter(p => p.is_active).length} active plans
@@ -68,7 +68,7 @@ export default function PlansPage() {
         </div>
 
         {loading ? (
-          <div style={{ color: '#475569', textAlign: 'center', padding: 60 }}>กำลังโหลด...</div>
+          <div style={{ color: '#475569', textAlign: 'center', padding: 60 }}>Loading...</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
             {plans.map(plan => {
@@ -87,10 +87,10 @@ export default function PlansPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-                    <Row label="ราคารายเดือน" value={plan.price_monthly ? `฿${plan.price_monthly}` : 'ฟรี'} color={color} />
-                    <Row label="ราคารายปี"    value={plan.price_yearly  ? `฿${plan.price_yearly}`  : 'ฟรี'} color={color} />
-                    {plan.trial_days > 0 && <Row label="Trial" value={`${plan.trial_days} วัน`} color={color} />}
-                    <Row label="สถานะ" value={plan.is_active ? '✅ Active' : '❌ Inactive'} color={color} />
+                    <Row label="Monthly Price" value={plan.price_monthly ? `฿${plan.price_monthly}` : 'ฟรี'} color={color} />
+                    <Row label="Yearly Price"    value={plan.price_yearly  ? `฿${plan.price_yearly}`  : 'ฟรี'} color={color} />
+                    {plan.trial_days > 0 && <Row label="Trial" value={`${plan.trial_days} days`} color={color} />}
+                    <Row label="Status" value={plan.is_active ? '✅ Active' : '❌ Inactive'} color={color} />
                     {plan.description && (
                       <div style={{ marginTop: 4, padding: '10px 12px', background: '#0f172a', borderRadius: 8 }}>
                         <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{plan.description}</p>
@@ -125,11 +125,11 @@ export default function PlansPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label style={S.label}>ราคารายเดือน (฿)</label>
+                  <label style={S.label}>Monthly Price (฿)</label>
                   <input type="number" step="0.01" value={editing.price_monthly || 0} onChange={e => setEditing({ ...editing, price_monthly: e.target.value })} style={S.input} />
                 </div>
                 <div>
-                  <label style={S.label}>ราคารายปี (฿)</label>
+                  <label style={S.label}>Yearly Price (฿)</label>
                   <input type="number" step="0.01" value={editing.price_yearly || 0} onChange={e => setEditing({ ...editing, price_yearly: e.target.value })} style={S.input} />
                 </div>
               </div>

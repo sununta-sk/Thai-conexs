@@ -68,7 +68,7 @@ export default function PhotoQueuePage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>🖼️ Photo Queue</h2>
-            <p style={S.pageSubtitle}>ตรวจสอบและอนุมัติรูปภาพของผู้ใช้</p>
+            <p style={S.pageSubtitle}>Review and approve user photos</p>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default function PhotoQueuePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <input type="checkbox" checked={selected.size === photos.length} onChange={toggleAll}
               style={{ width: 15, height: 15, accentColor: '#e91e63', cursor: 'pointer' }} />
-            <span style={{ color: '#64748b', fontSize: 12 }}>เลือกทั้งหมด ({photos.length} รูป)</span>
+            <span style={{ color: '#64748b', fontSize: 12 }}>Select all ({photos.length} รูป)</span>
           </div>
         )}
 
@@ -135,7 +135,7 @@ export default function PhotoQueuePage() {
             <div style={{ fontSize: 48, marginBottom: 8 }}>
               {activeTab === 'pending' ? '📭' : activeTab === 'approved' ? '✅' : '🗑️'}
             </div>
-            <div>ไม่มีรูปภาพ {activeTab}</div>
+            <div>No photos {activeTab}</div>
           </div>
         ) : (
           <div style={S.grid}>
@@ -220,7 +220,7 @@ export default function PhotoQueuePage() {
                   {preview.is_profile_photo && <span style={{ marginLeft: 'auto', ...S.primaryBadge, position: 'static' }}>Primary</span>}
                 </div>
                 <div style={{ color: '#475569', fontSize: 12, marginBottom: 16 }}>
-                  อัปโหลด: {new Date(preview.created_at).toLocaleString('th-TH')}
+                  Uploaded: {new Date(preview.created_at).toLocaleString('en-GB')}
                 </div>
 
                 {/* Actions */}

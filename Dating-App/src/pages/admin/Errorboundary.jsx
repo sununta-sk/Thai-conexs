@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component {
           Something went wrong
         </h2>
         <p style={{ color: '#64748b', margin: 0, fontSize: 14, textAlign: 'center', maxWidth: 400 }}>
-          {this.state.error?.message || 'เกิดข้อผิดพลาดที่ไม่คาดคิด'}
+          {this.state.error?.message || 'An error occurredที่ไม่คาดคิด'}
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
           <button
@@ -41,7 +41,7 @@ export default class ErrorBoundary extends Component {
               fontWeight: 700, fontSize: 13, cursor: 'pointer',
             }}
           >
-            ลองใหม่
+            Try Again
           </button>
           <button
             onClick={() => window.location.href = '/admin/dashboard'}
@@ -51,7 +51,7 @@ export default class ErrorBoundary extends Component {
               color: '#94a3b8', fontWeight: 600, fontSize: 13, cursor: 'pointer',
             }}
           >
-            กลับ Dashboard
+            Back to Dashboard
           </button>
         </div>
         {process.env.NODE_ENV === 'development' && (

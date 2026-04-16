@@ -37,7 +37,7 @@ export default function RevenuePage() {
         <div style={S.hdr}>
           <div>
             <h2 style={S.title}>💰 Revenue</h2>
-            <p style={S.sub}>ประวัติ subscription และการชำระเงิน</p>
+            <p style={S.sub}>Subscription and payment history</p>
           </div>
           <button onClick={fetchRevenue} style={S.btn}>🔄 Refresh</button>
         </div>
@@ -54,8 +54,8 @@ export default function RevenuePage() {
           ))}
         </div>
         <div style={S.card}>
-          {loading ? <div style={S.empty}>กำลังโหลด...</div>
-          : subs.length === 0 ? <div style={S.empty}>ยังไม่มีข้อมูล subscription</div>
+          {loading ? <div style={S.empty}>Loading...</div>
+          : subs.length === 0 ? <div style={S.empty}>No subscription data yet</div>
           : (
             <table style={S.table}>
               <thead><tr>{['User','Plan','Amount','Status','Expires'].map(h=><th key={h} style={S.th}>{h}</th>)}</tr></thead>
@@ -69,7 +69,7 @@ export default function RevenuePage() {
                     <td style={S.td}>{s.subscription_plans?.display_name ?? s.plan_id ?? '—'}</td>
                     <td style={{...S.td,color:'#10b981',fontWeight:700}}>${Number(s.amount_paid||0).toLocaleString()}</td>
                     <td style={S.td}><span style={{...S.badge,background:`${statusColor[s.status]??'#475569'}22`,color:statusColor[s.status]??'#475569'}}>{s.status}</span></td>
-                    <td style={S.td}>{s.end_date ? new Date(s.end_date).toLocaleDateString('th-TH') : '—'}</td>
+                    <td style={S.td}>{s.end_date ? new Date(s.end_date).toLocaleDateString('en-GB') : '—'}</td>
                   </tr>
                 ))}
               </tbody>

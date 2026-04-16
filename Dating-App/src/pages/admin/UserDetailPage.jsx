@@ -112,7 +112,7 @@ export default function UserDetailPage() {
       closeModal();
       fetchAll();
     } catch (err) {
-      showToast(`❌ เกิดข้อผิดพลาด: ${err.message}`, 'error');
+      showToast(`❌ An error occurred: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -126,8 +126,8 @@ export default function UserDetailPage() {
   const accountStatus = profile?.account_status || 'active';
   const actionColor = { warn: '#f59e0b', suspend: '#f97316', ban: '#ef4444', restore: '#10b981', note: '#3b82f6' };
 
-  if (loading) return <AdminLayout><div style={S.loading}>กำลังโหลด...</div></AdminLayout>;
-  if (!profile) return <AdminLayout><div style={S.loading}>ไม่พบ user</div></AdminLayout>;
+  if (loading) return <AdminLayout><div style={S.loading}>Loading...</div></AdminLayout>;
+  if (!profile) return <AdminLayout><div style={S.loading}>User not found</div></AdminLayout>;
 
   return (
     <AdminLayout>
@@ -152,7 +152,7 @@ export default function UserDetailPage() {
               <span style={S.infoBadge}>🆔 {profile.id.slice(0,8)}...</span>
               {profile.is_verified && <span style={{ ...S.infoBadge, color: '#10b981' }}>✅ Verified</span>}
               <span style={S.infoBadge}>{profile.subscription_plan?.toUpperCase() || 'FREE'}</span>
-              <span style={S.infoBadge}>Joined {new Date(profile.created_at).toLocaleDateString('th-TH')}</span>
+              <span style={S.infoBadge}>Joined {new Date(profile.created_at).toLocaleDateString('en-GB')}</span>
               <AccountStatusBadge status={accountStatus} />
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function UserDetailPage() {
           {tab === 'Subscription' && (
             <div style={S.card}>
               {subs.length === 0 ? (
-                <div style={S.empty}>ไม่มีประวัติ subscription</div>
+                <div style={S.empty}>No subscription history</div>
               ) : subs.map(s => (
                 <div key={s.id} style={S.subRow}>
                   <div>
@@ -225,7 +225,7 @@ export default function UserDetailPage() {
                     </span>
                   </div>
                   <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
-                    {new Date(s.current_period_start).toLocaleDateString('th-TH')} → {new Date(s.current_period_end).toLocaleDateString('th-TH')}
+                    {new Date(s.current_period_start).toLocaleDateString('en-GB')} → {new Date(s.current_period_end).toLocaleDateString('en-GB')}
                     {s.amount_paid && <span style={{ marginLeft: 8, color: '#10b981' }}>${s.amount_paid}</span>}
                   </div>
                 </div>
@@ -236,18 +236,18 @@ export default function UserDetailPage() {
           {tab === 'Moderation History' && (
             <div style={S.card}>
               {modHistory.length === 0 ? (
-                <div style={S.empty}>ไม่มีประวัติ moderation</div>
+                <div style={S.empty}>No moderation history</div>
               ) : modHistory.map(m => (
                 <div key={m.id} style={S.modRow}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ ...S.statusBadge, background: `${actionColor[m.action_type]}22`, color: actionColor[m.action_type] || '#94a3b8' }}>
                       {ACTION_CONFIG[m.action_type]?.icon} {m.action_type}
                     </span>
-                    {m.expires_at && <span style={{ color: '#64748b', fontSize: 11 }}>หมดอายุ {new Date(m.expires_at).toLocaleDateString('th-TH')}</span>}
+                    {m.expires_at && <span style={{ color: '#64748b', fontSize: 11 }}>Expires {new Date(m.expires_at).toLocaleDateString('en-GB')}</span>}
                   </div>
                   <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 6 }}>{m.reason}</div>
                   {m.message_to_user && <div style={{ color: '#64748b', fontSize: 12, marginTop: 4, fontStyle: 'italic' }}>"{m.message_to_user}"</div>}
-                  <div style={{ color: '#475569', fontSize: 11, marginTop: 4 }}>{new Date(m.created_at).toLocaleString('th-TH')}</div>
+                  <div style={{ color: '#475569', fontSize: 11, marginTop: 4 }}>{new Date(m.created_at).toLocaleString('en-GB')}</div>
                 </div>
               ))}
             </div>
@@ -285,7 +285,7 @@ export default function UserDetailPage() {
             {/* Suspend duration */}
             {modal.action === 'suspend' && (
               <div style={S.formGroup}>
-                <label style={S.label}>ระงับกี่วัน</label>
+                <label style={S.label}>Suspend for how many days</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[1, 3, 7, 14, 30].map(d => (
                     <button key={d} onClick={() => setSuspendDays(d)}
@@ -303,7 +303,7 @@ export default function UserDetailPage() {
             {modal.action !== 'restore' && (
               <div style={S.formGroup}>
                 <label style={S.label}>
-                  เหตุผล (internal) {modal.action !== 'note' && <span style={{ color: '#ef4444' }}>*</span>}
+                  Reason (internal) {modal.action !== 'note' && <span style={{ color: '#ef4444' }}>*</span>}
                 </label>
                 <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
                   placeholder={modal.action === 'note' ? 'บันทึกภายใน...' : 'ระบุเหตุผล...'}
@@ -314,9 +314,9 @@ export default function UserDetailPage() {
             {/* Message to user */}
             {(modal.action === 'warn' || modal.action === 'ban' || modal.action === 'suspend') && (
               <div style={S.formGroup}>
-                <label style={S.label}>ข้อความแจ้ง user (optional)</label>
+                <label style={S.label}>Message to user (optional)</label>
                 <textarea value={msgToUser} onChange={e => setMsgToUser(e.target.value)} rows={2}
-                  placeholder="ข้อความที่ user จะเห็น..."
+                  placeholder="Message user will see..."
                   style={S.textarea} />
               </div>
             )}
@@ -337,12 +337,12 @@ export default function UserDetailPage() {
 
             {/* Buttons */}
             <div style={S.modalFooter}>
-              <button onClick={closeModal} style={S.cancelBtn} disabled={submitting}>ยกเลิก</button>
+              <button onClick={closeModal} style={S.cancelBtn} disabled={submitting}>Cancel</button>
               <button
                 onClick={submitAction}
                 disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note')}
                 style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note')) ? 0.5 : 1 }}>
-                {submitting ? 'กำลังดำเนินการ...' : `ยืนยัน ${ACTION_CONFIG[modal.action].label}`}
+                {submitting ? 'Processing...' : `ยืนยัน ${ACTION_CONFIG[modal.action].label}`}
               </button>
             </div>
           </div>

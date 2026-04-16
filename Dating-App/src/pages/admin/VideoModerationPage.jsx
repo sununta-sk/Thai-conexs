@@ -77,7 +77,7 @@ export default function VideoModerationPage() {
         ) : videos.length === 0 ? (
           <div style={S.empty}>
             <span style={S.emptyIcon}>🎬</span>
-            <p style={S.emptyText}>ไม่มีวิดีโอในสถานะนี้</p>
+            <p style={S.emptyText}>No videos in this status</p>
           </div>
         ) : (
           <div style={S.grid}>
@@ -99,10 +99,10 @@ export default function VideoModerationPage() {
                     {v.profiles?.avatar_url && (
                       <img src={v.profiles.avatar_url} style={S.avatar} alt="" />
                     )}
-                    <span style={S.username}>{v.profiles?.display_name || 'ไม่ระบุ'}</span>
+                    <span style={S.username}>{v.profiles?.display_name || 'Unknown'}</span>
                   </div>
                   <span style={S.date}>
-                    {new Date(v.created_at).toLocaleDateString('th-TH')}
+                    {new Date(v.created_at).toLocaleDateString('en-GB')}
                   </span>
                 </div>
               </div>
@@ -114,7 +114,7 @@ export default function VideoModerationPage() {
         {selected && (
           <div style={S.panel}>
             <div style={S.panelHeader}>
-              <h3 style={S.panelTitle}>รายละเอียด</h3>
+              <h3 style={S.panelTitle}>Details</h3>
               <button style={S.closeBtn} onClick={() => setSelected(null)}>✕</button>
             </div>
 
@@ -123,7 +123,7 @@ export default function VideoModerationPage() {
             <div style={S.panelMeta}>
               <MetaRow label="ผู้ใช้"    value={selected.profiles?.display_name} />
               <MetaRow label="ขนาดไฟล์"  value={`${selected.file_size_mb} MB`} />
-              <MetaRow label="อัปโหลด"   value={new Date(selected.created_at).toLocaleString('th-TH')} />
+              <MetaRow label="อัปโหลด"   value={new Date(selected.created_at).toLocaleString('en-GB')} />
               <MetaRow label="สถานะ"     value={selected.status} />
               {selected.rejection_reason && (
                 <MetaRow label="เหตุผล"  value={selected.rejection_reason} />
@@ -163,7 +163,7 @@ export default function VideoModerationPage() {
                 onClick={() => moderate(selected.id, 'rejected')}
                 disabled={processing}
               >
-                ❌ ถอนการอนุมัติ
+                ❌ Revoke Approval
               </button>
             )}
 

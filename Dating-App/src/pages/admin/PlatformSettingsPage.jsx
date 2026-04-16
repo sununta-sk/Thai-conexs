@@ -47,7 +47,7 @@ export default function PlatformSettingsPage() {
       <div style={S.page}>
         {toast && <div style={S.toast}>{toast}</div>}
         <div style={S.hdr}>
-          <div><h2 style={S.title}>⚙️ Platform Settings</h2><p style={S.sub}>ตั้งค่าพฤติกรรมของแอป</p></div>
+          <div><h2 style={S.title}>⚙️ Platform Settings</h2><p style={S.sub}>Configure app behavior</p></div>
           <button onClick={saveAll} disabled={!dirty||saving} style={{...S.saveBtn,opacity:dirty?1:0.4}}>{saving?'Saving…':'💾 Save Changes'}</button>
         </div>
         {groups.map(group => (

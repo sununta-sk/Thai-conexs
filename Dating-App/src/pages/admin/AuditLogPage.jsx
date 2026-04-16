@@ -70,7 +70,7 @@ export default function AuditLogPage() {
         <div style={S.hdr}>
           <div>
             <h2 style={S.title}>📜 Audit Log</h2>
-            <p style={S.sub}>ประวัติการกระทำของ Admin ทั้งหมด</p>
+            <p style={S.sub}>All admin action history</p>
           </div>
           <input
             value={filter}
@@ -82,15 +82,15 @@ export default function AuditLogPage() {
 
         <div style={S.card}>
           {loading ? (
-            <div style={S.empty}>กำลังโหลด...</div>
+            <div style={S.empty}>Loading...</div>
           ) : filtered.length === 0 ? (
-            <div style={S.empty}>ไม่มีข้อมูล audit log</div>
+            <div style={S.empty}>No audit log data</div>
           ) : (
             <>
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['เวลา', 'Admin', 'Action', 'Target', 'รายละเอียด'].map(h => (
+                    {['Time', 'Admin', 'Action', 'Target', 'Details'].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -100,9 +100,9 @@ export default function AuditLogPage() {
                     const c = ACTION_COLOR[l.action_type] || '#64748b'
                     return (
                       <tr key={l.id ?? i} style={S.tr}>
-                        {/* เวลา */}
+                        {/* Time */}
                         <td style={{ ...S.td, fontSize: 11, whiteSpace: 'nowrap', color: '#475569' }}>
-                          {l.created_at ? new Date(l.created_at).toLocaleString('th-TH') : '—'}
+                          {l.created_at ? new Date(l.created_at).toLocaleString('en-GB') : '—'}
                         </td>
 
                         {/* Admin */}
@@ -127,7 +127,7 @@ export default function AuditLogPage() {
                           )}
                         </td>
 
-                        {/* รายละเอียด */}
+                        {/* Details */}
                         <td style={{ ...S.td, fontSize: 12, color: '#94a3b8', maxWidth: 300 }}>
                           {getDescription(l)}
                         </td>

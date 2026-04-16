@@ -74,7 +74,7 @@ export default function TeamPage() {
       if (roles.length > 0) setNewRole(roles[0].id)
       await fetchAll()
     } catch(err) {
-      showT(err.message || 'เกิดข้อผิดพลาด', 'error')
+      showT(err.message || 'An error occurred', 'error')
     }
     setAdding(false)
   }
@@ -97,7 +97,7 @@ export default function TeamPage() {
         {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}>{toast.msg}</div>}
 
         <div style={S.hdr}>
-          <div><h2 style={S.title}>👤 Team</h2><p style={S.sub}>จัดการ Admin accounts และสิทธิ์</p></div>
+          <div><h2 style={S.title}>👤 Team</h2><p style={S.sub}>Manage admin accounts and permissions</p></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={S.stat}>{members.filter(m => m.is_active).length} active admins</div>
             <button onClick={() => setShowModal(true)} style={S.btnAdd}>+ Add Admin</button>
@@ -117,8 +117,8 @@ export default function TeamPage() {
         </div>
 
         <div style={S.card}>
-          {loading ? <div style={S.empty}>กำลังโหลด...</div>
-          : members.length === 0 ? <div style={S.empty}>ไม่มีสมาชิกทีม</div>
+          {loading ? <div style={S.empty}>Loading...</div>
+          : members.length === 0 ? <div style={S.empty}>No team members</div>
           : (
             <table style={S.table}>
               <thead>
@@ -138,7 +138,7 @@ export default function TeamPage() {
                           {m.admin_roles?.name || '—'}
                         </span>
                       </td>
-                      <td style={S.td}>{m.last_login_at ? new Date(m.last_login_at).toLocaleString('th-TH') : 'Never'}</td>
+                      <td style={S.td}>{m.last_login_at ? new Date(m.last_login_at).toLocaleString('en-GB') : 'Never'}</td>
                       <td style={S.td}>
                         <span style={{ ...S.statusBadge, background: m.is_active ? '#10b98122' : '#ef444422', color: m.is_active ? '#10b981' : '#ef4444' }}>
                           {m.is_active ? 'Active' : 'Suspended'}
@@ -170,7 +170,7 @@ export default function TeamPage() {
               </div>
               <div>
                 <label style={S.label}>Display Name</label>
-                <input type="text" placeholder="ชื่อที่แสดงใน Admin portal" value={newDisplay} onChange={e => setNewDisplay(e.target.value)} style={S.input} />
+                <input type="text" placeholder="Display name in Admin portal" value={newDisplay} onChange={e => setNewDisplay(e.target.value)} style={S.input} />
               </div>
               <div>
                 <label style={S.label}>Role *</label>

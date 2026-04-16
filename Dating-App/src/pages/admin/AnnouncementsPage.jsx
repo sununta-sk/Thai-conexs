@@ -20,7 +20,7 @@ export default function AnnouncementsPage() {
   }
 
   async function save() {
-    if (!form.title.trim()||!form.body.trim()) { showT('กรุณากรอกให้ครบ','error'); return }
+    if (!form.title.trim()||!form.body.trim()) { showT('Please fill in all fields','error'); return }
     setSaving(true)
     try {
       await supabase.from('announcements').insert({...form, created_at:new Date().toISOString()})
@@ -46,7 +46,7 @@ export default function AnnouncementsPage() {
       <div style={S.page}>
         {toast && <div style={{...S.toast,background:toast.type==='error'?'#ef4444':'#10b981'}}>{toast.msg}</div>}
         <div style={S.hdr}>
-          <div><h2 style={S.title}>📢 Announcements</h2><p style={S.sub}>ประกาศและแบนเนอร์ในแอป</p></div>
+          <div><h2 style={S.title}>📢 Announcements</h2><p style={S.sub}>In-app announcements and banners</p></div>
           <button onClick={()=>setForm(v=>!v)} style={S.addBtn}>{showForm?'✕ Cancel':'+ New'}</button>
         </div>
         {showForm && (
@@ -65,15 +65,15 @@ export default function AnnouncementsPage() {
           </div>
         )}
         <div style={S.card}>
-          {loading?<div style={S.empty}>กำลังโหลด...</div>
-          :list.length===0?<div style={S.empty}>ยังไม่มีประกาศ</div>
+          {loading?<div style={S.empty}>Loading...</div>
+          :list.length===0?<div style={S.empty}>No announcements yet</div>
           :list.map(a=>(
             <div key={a.id} style={{...S.row,opacity:a.active?1:0.5}}>
               <div style={{...S.dot,background:typeColor[a.type]||'#475569'}}/>
               <div style={{flex:1}}>
                 <div style={{color:'#f1f5f9',fontWeight:700}}>{a.title}</div>
                 <div style={{color:'#94a3b8',fontSize:13,marginTop:2}}>{a.body}</div>
-                <div style={{color:'#475569',fontSize:11,marginTop:4}}>{new Date(a.created_at).toLocaleString('th-TH')}</div>
+                <div style={{color:'#475569',fontSize:11,marginTop:4}}>{new Date(a.created_at).toLocaleString('en-GB')}</div>
               </div>
               <div style={{display:'flex',gap:8}}>
                 <button onClick={()=>toggleActive(a)} style={S.actionBtn}>{a.active?'Deactivate':'Activate'}</button>

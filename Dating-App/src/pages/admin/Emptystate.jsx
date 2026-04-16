@@ -2,7 +2,7 @@
 
 export default function EmptyState({
     icon = '📭',
-    title = 'ไม่มีข้อมูล',
+    title = 'No data',
     description = '',
     action = null,   // { label: 'string', onClick: fn }
   }) {

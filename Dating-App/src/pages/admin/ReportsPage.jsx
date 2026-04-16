@@ -102,7 +102,7 @@ export default function ReportsPage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>🚨 User Reports</h2>
-            <p style={S.pageSubtitle}>จัดการรายงานที่ผู้ใช้ส่งมา</p>
+            <p style={S.pageSubtitle}>Manage user reports</p>
           </div>
         </div>
 
@@ -149,17 +149,17 @@ export default function ReportsPage() {
           {/* Table */}
           <div style={{ ...S.tableCard, flex: 1 }}>
             {loading ? (
-              <div style={S.empty}>กำลังโหลด...</div>
+              <div style={S.empty}>Loading...</div>
             ) : reports.length === 0 ? (
               <div style={S.empty}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
-                <div>ไม่มีรายงาน {activeTab}</div>
+                <div>No reports {activeTab}</div>
               </div>
             ) : (
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['ผู้รายงาน', 'ถูกรายงาน', 'ประเภท', 'วันที่', ''].map(h => (
+                    {['Reporter', 'Reported User', 'Type', 'Date', ''].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -188,7 +188,7 @@ export default function ReportsPage() {
                       </td>
                       {/* Date */}
                       <td style={{ ...S.td, color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>
-                        {new Date(r.created_at).toLocaleDateString('th-TH')}
+                        {new Date(r.created_at).toLocaleDateString('en-GB')}
                       </td>
                       {/* Arrow */}
                       <td style={{ ...S.td, color: '#334155' }}>›</td>
@@ -203,7 +203,7 @@ export default function ReportsPage() {
           {detail && (
             <div style={S.detailPanel}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14 }}>รายละเอียด</span>
+                <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14 }}>Details</span>
                 <button style={S.closePanelBtn} onClick={() => setDetail(null)}>✕</button>
               </div>
 
@@ -220,22 +220,22 @@ export default function ReportsPage() {
 
               {/* Users */}
               <div style={S.panelSection}>
-                <div style={S.panelLabel}>ผู้รายงาน</div>
+                <div style={S.panelLabel}>Reporter</div>
                 <UserRow user={detail.reporter} navigate={navigate} />
               </div>
               <div style={S.panelSection}>
-                <div style={S.panelLabel}>ถูกรายงาน</div>
+                <div style={S.panelLabel}>Reported User</div>
                 <UserRow user={detail.reported} navigate={navigate} />
               </div>
 
               {/* Category + Description */}
               <div style={S.panelSection}>
-                <div style={S.panelLabel}>ประเภท</div>
+                <div style={S.panelLabel}>Type</div>
                 <span style={S.catChip}>{CATEGORY_LABEL[detail.report_type] || detail.report_type}</span>
               </div>
               {detail.description && (
                 <div style={S.panelSection}>
-                  <div style={S.panelLabel}>รายละเอียด</div>
+                  <div style={S.panelLabel}>Details</div>
                   <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6 }}>{detail.description}</div>
                 </div>
               )}
@@ -300,7 +300,7 @@ export default function ReportsPage() {
                 style={{ ...S.actBtn, background: '#3b82f622', color: '#3b82f6', border: '1px solid #3b82f644', marginTop: 12 }}
                 onClick={() => navigate(`/admin/users/${detail.reported?.id}`)}
               >
-                👤 ดูโปรไฟล์ผู้ถูกรายงาน
+                👤 ดูโปรไฟล์ผู้Reported User
               </button>
             </div>
           )}

@@ -82,7 +82,7 @@ export default function PayoutRequestPage() {
       if (!bankInfo.bankCode)          errs.bankCode      = 'กรุณาเลือกธนาคาร'
       if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกเลขบัญชี'
     } else {
-      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกรายละเอียด'
+      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกDetails'
     }
     return errs
   }

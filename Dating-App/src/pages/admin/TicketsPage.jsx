@@ -130,7 +130,7 @@ export default function TicketsPage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>🎫 Support Tickets</h2>
-            <p style={S.pageSubtitle}>จัดการ ticket และตอบกลับผู้ใช้</p>
+            <p style={S.pageSubtitle}>Manage tickets and reply to users</p>
           </div>
         </div>
 
@@ -173,17 +173,17 @@ export default function TicketsPage() {
           {/* Ticket List */}
           <div style={{ ...S.tableCard, flex: 1 }}>
             {loading ? (
-              <div style={S.empty}>กำลังโหลด...</div>
+              <div style={S.empty}>Loading...</div>
             ) : tickets.length === 0 ? (
               <div style={S.empty}>
                 <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
-                <div>ไม่มี ticket {statusLabel(activeTab)}</div>
+                <div>No tickets {statusLabel(activeTab)}</div>
               </div>
             ) : (
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['ผู้ใช้', 'หัวข้อ', 'Priority', 'อัปเดต', ''].map(h => (
+                    {['ผู้ใช้', 'Subject', 'Priority', 'Updated', ''].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -228,7 +228,7 @@ export default function TicketsPage() {
                       </td>
                       {/* Updated */}
                       <td style={{ ...S.td, color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>
-                        {new Date(t.updated_at).toLocaleDateString('th-TH')}
+                        {new Date(t.updated_at).toLocaleDateString('en-GB')}
                       </td>
                       <td style={{ ...S.td, color: '#334155' }}>›</td>
                     </tr>
@@ -273,9 +273,9 @@ export default function TicketsPage() {
               {/* Messages */}
               <div style={S.msgThread}>
                 {msgLoading ? (
-                  <div style={{ color: '#475569', textAlign: 'center', padding: 20, fontSize: 13 }}>กำลังโหลด...</div>
+                  <div style={{ color: '#475569', textAlign: 'center', padding: 20, fontSize: 13 }}>Loading...</div>
                 ) : messages.length === 0 ? (
-                  <div style={{ color: '#475569', textAlign: 'center', padding: 20, fontSize: 13 }}>ยังไม่มีข้อความ</div>
+                  <div style={{ color: '#475569', textAlign: 'center', padding: 20, fontSize: 13 }}>No messages yet</div>
                 ) : (
                   messages.map(m => (
                     <div key={m.id} style={{ ...S.msgBubble, ...(m.is_admin ? S.msgAdmin : S.msgUser) }}>
@@ -294,7 +294,7 @@ export default function TicketsPage() {
                   <textarea
                     value={reply}
                     onChange={e => setReply(e.target.value)}
-                    placeholder="พิมพ์ข้อความตอบกลับ..."
+                    placeholder="Type a reply..."
                     style={S.textarea}
                     rows={3}
                     onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) sendReply(); }}
@@ -305,7 +305,7 @@ export default function TicketsPage() {
                       onClick={sendReply}
                       disabled={replyLoading || !reply.trim()}
                     >
-                      {replyLoading ? 'ส่ง...' : '↑ ส่งข้อความ'}
+                      {replyLoading ? 'Sending...' : '↑ ส่งข้อความ'}
                     </button>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function TicketsPage() {
 
               {/* Status actions */}
               <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>เปลี่ยนสถานะ</div>
+                <div style={{ color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Change Status</div>
                 {detail.status !== 'resolved' && (
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
                     onClick={() => updateStatus(detail.id, 'resolved')}>

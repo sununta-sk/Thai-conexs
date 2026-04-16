@@ -198,7 +198,7 @@ export default function SubscriptionPage() {
                     cursor: plan.id === "free" || isCurrentPlan ? "default" : "pointer",
                   }}
                 >
-                  {isLoading ? "⏳ กำลังโหลด..." : isCurrentPlan ? "Current Plan" : plan.id === "free" ? "Your Default Plan" : `Get ${plan.name}`}
+                  {isLoading ? "⏳ Loading..." : isCurrentPlan ? "Current Plan" : plan.id === "free" ? "Your Default Plan" : `Get ${plan.name}`}
                 </button>
               </div>
             );

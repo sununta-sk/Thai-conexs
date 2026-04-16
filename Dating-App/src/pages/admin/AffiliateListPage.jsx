@@ -49,7 +49,7 @@ export default function AffiliateListPage() {
   }
 
   async function handleDelete(id, name) {
-    if (!confirm(`ลบ "${name}" ออกจากระบบ?`)) return
+    if (!confirm(`ลบ "${name}" Sign Out?`)) return
     await supabase.from('affiliates').delete().eq('id', id)
     setAffiliates(prev => prev.filter(a => a.id !== id))
     setStats(prev => ({ ...prev, total: prev.total - 1 }))
@@ -127,7 +127,7 @@ export default function AffiliateListPage() {
         <div style={S.header}>
           <div>
             <h1 style={S.title}>🤝 Affiliates</h1>
-            <p style={S.subtitle}>จัดการ affiliate และดูข้อมูล referral</p>
+            <p style={S.subtitle}>Manage affiliates and referral data</p>
           </div>
           <button onClick={() => navigate('/admin/payouts/new')} style={S.btnPink}>
             + New Payout Request
@@ -169,14 +169,14 @@ export default function AffiliateListPage() {
         {/* Table */}
         <div style={S.tableWrap}>
           {loading ? (
-            <div style={S.empty}>กำลังโหลด...</div>
+            <div style={S.empty}>Loading...</div>
           ) : filtered.length === 0 ? (
-            <div style={S.empty}>ไม่พบ affiliate</div>
+            <div style={S.empty}>No affiliates found</div>
           ) : (
             <table style={S.table}>
               <thead>
                 <tr style={S.theadRow}>
-                  {['Affiliate', 'เบอร์โทร', 'Referral Code', 'Commission', 'Status', 'Joined', 'Actions'].map(h => (
+                  {['Affiliate', 'Phone', 'Referral Code', 'Commission', 'Status', 'Joined', 'Actions'].map(h => (
                     <th key={h} style={S.th}>{h}</th>
                   ))}
                 </tr>
@@ -197,10 +197,10 @@ export default function AffiliateListPage() {
                     <td style={S.td}><span style={{ color: '#e91e63', fontWeight: 700, fontFamily: 'monospace', fontSize: 13 }}>{a.referral_code}</span></td>
                     <td style={S.td}><span style={{ color: '#f1f5f9', fontWeight: 600 }}>{a.commission_rate || 20}%</span></td>
                     <td style={S.td}><span style={{ ...S.statusPill, ...statusStyle(a.status) }}>{a.status}</span></td>
-                    <td style={S.td}><span style={{ color: '#475569', fontSize: 12 }}>{new Date(a.created_at).toLocaleDateString('th-TH')}</span></td>
+                    <td style={S.td}><span style={{ color: '#475569', fontSize: 12 }}>{new Date(a.created_at).toLocaleDateString('en-GB')}</span></td>
                     <td style={S.td}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => openDetail(a)} style={S.btnDetail}>📄 รายละเอียด</button>
+                        <button onClick={() => openDetail(a)} style={S.btnDetail}>📄 Details</button>
                         <button onClick={() => navigate(`/admin/payouts/new?affiliate_id=${a.id}`)} style={S.btnPayout}>💸</button>
                         <button onClick={() => handleDelete(a.id, a.contact_name)} style={S.btnDelete}>✕</button>
                       </div>
@@ -231,22 +231,22 @@ export default function AffiliateListPage() {
             </div>
 
             <div style={S.section}>
-              <div style={S.sectionTitle}>📋 ข้อมูลติดต่อ</div>
+              <div style={S.sectionTitle}>📋 Contact Info</div>
               <Row label="ชื่อ-นามสกุล"  value={detailModal.contact_name  || '—'} />
-              <Row label="เบอร์โทร"       value={detailModal.contact_phone || '—'} highlight />
+              <Row label="Phone"       value={detailModal.contact_phone || '—'} highlight />
               <Row label="อีเมล"          value={detailModal.contact_email || '—'} />
             </div>
 
             <div style={S.section}>
-              <div style={S.sectionTitle}>🏦 ข้อมูลรับเงิน</div>
+              <div style={S.sectionTitle}>🏦 Payment Info</div>
               <Row label="ช่องทาง"         value={detailModal.payout_method  || '—'} />
-              <Row label="รายละเอียดบัญชี" value={detailModal.payout_details || '—'} highlight />
+              <Row label="Detailsบัญชี" value={detailModal.payout_details || '—'} highlight />
               <Row label="Commission"      value={`${detailModal.commission_rate || 20}%`} />
             </div>
 
             {detailModal.payouts?.length > 0 && (
               <div style={S.section}>
-                <div style={S.sectionTitle}>💸 Payout ล่าสุด</div>
+                <div style={S.sectionTitle}>💸 Recent Payouts</div>
                 {detailModal.payouts.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1e293b', fontSize: 13 }}>
                     <div>
@@ -255,7 +255,7 @@ export default function AffiliateListPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ ...S.statusPill, ...payoutStatusStyle(p.status), fontSize: 11 }}>{p.status}</span>
-                      <span style={{ color: '#475569', fontSize: 11 }}>{p.requested_at ? new Date(p.requested_at).toLocaleDateString('th-TH') : '—'}</span>
+                      <span style={{ color: '#475569', fontSize: 11 }}>{p.requested_at ? new Date(p.requested_at).toLocaleDateString('en-GB') : '—'}</span>
                     </div>
                   </div>
                 ))}
@@ -272,13 +272,13 @@ export default function AffiliateListPage() {
               <button
                 onClick={() => { setDetailModal(null); navigate(`/admin/affiliates/${detailModal.id}`) }}
                 style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-                ดูรายละเอียดเต็ม
+                ดูDetailsเต็ม
               </button>
               <button
                 onClick={handleConfirmPayout}
                 disabled={confirming}
                 style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, opacity: confirming ? 0.6 : 1 }}>
-                {confirming ? '⏳ กำลังบันทึก...' : '✅ ยืนยันโอนเงินแล้ว'}
+                {confirming ? '⏳ กำลังบันทึก...' : '✅ Transfer confirmed'}
               </button>
             </div>
           </div>
