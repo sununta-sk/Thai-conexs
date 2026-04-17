@@ -350,7 +350,8 @@ export default function ProfileSetup() {
       const file = e.target.files[0];
       if (!file) return;
       const { data: { user } } = await supabase.auth.getUser();
-      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const filePath = `${user.id}/${Date.now()}_${safeName}`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
