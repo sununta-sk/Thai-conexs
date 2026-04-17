@@ -258,6 +258,39 @@ function dataURLtoBlob(dataURL) {
   return new Blob([byteArray], { type: 'image/jpeg' });
 }
 
+function ChipSelect({ label, options, value, onChange, multi = false }) {
+  const toggle = (opt) => {
+    if (multi) {
+      const arr = Array.isArray(value) ? value : [];
+      onChange(arr.includes(opt) ? arr.filter(x => x !== opt) : [...arr, opt]);
+    } else {
+      onChange(value === opt ? '' : opt);
+    }
+  };
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#475569' }}>{label}</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {options.map(opt => {
+          const active = multi ? (Array.isArray(value) && value.includes(opt)) : value === opt;
+          return (
+            <button key={opt} onClick={() => toggle(opt)} type="button"
+              style={{
+                padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none',
+                background: active ? 'linear-gradient(135deg, #6366f1, #a855f7)' : '#f1f5f9',
+                color: active ? '#fff' : '#475569',
+                boxShadow: active ? '0 2px 8px rgba(99,102,241,0.3)' : 'none',
+                transition: 'all 0.15s',
+              }}>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ProfileSetup() {
   const navigate = useNavigate();
   const videoRef  = useRef(null);
@@ -269,6 +302,14 @@ export default function ProfileSetup() {
   const [mainPhoto, setMainPhoto] = useState('');
   const [uploading, setUploading] = useState(false);
   const [details, setDetails]     = useState({ age:'', height:'', weight:'', education:'', gender:'', lookingFor:'' });
+  const [lifestyle, setLifestyle] = useState({
+    hobbies: [],
+    sleepSchedule: '',
+    drinking: '',
+    smoking: '',
+    exercise: '',
+    personality: '',
+  });
   const [myReferralCode, setMyReferralCode] = useState('');
   const [friendCode, setFriendCode]         = useState('');
   const [balance, setBalance]               = useState(0);
@@ -326,6 +367,7 @@ export default function ProfileSetup() {
         setPreferredLang(data.preferred_lang || 'en');
         setFriendCode(data.referred_by || '');
         if (data.details) setDetails(prev => ({ ...prev, ...data.details }));
+        if (data.lifestyle) setLifestyle(prev => ({ ...prev, ...data.lifestyle }));
         const rawPhotos = data.photos || [];
         setPhotos(rawPhotos.map(p => {
           if (typeof p === 'string') {
@@ -350,8 +392,7 @@ export default function ProfileSetup() {
       const file = e.target.files[0];
       if (!file) return;
       const { data: { user } } = await supabase.auth.getUser();
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const filePath = `${user.id}/${Date.now()}_${safeName}`;
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
@@ -446,6 +487,7 @@ export default function ProfileSetup() {
     const { error } = await supabase.from('profiles').upsert({
       id: user.id, username, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
+      lifestyle,
       preferred_lang: preferredLang, updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
     }, { onConflict: 'id' });
@@ -588,6 +630,51 @@ export default function ProfileSetup() {
               {tx.lookingOptions.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </Field>
+
+          <SectionTitle>✨ Lifestyle</SectionTitle>
+
+          <ChipSelect
+            label="🎯 Hobbies"
+            multi={true}
+            value={lifestyle.hobbies}
+            onChange={v => setLifestyle(l => ({ ...l, hobbies: v }))}
+            options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']}
+          />
+
+          <ChipSelect
+            label="🌙 Sleep Schedule"
+            value={lifestyle.sleepSchedule}
+            onChange={v => setLifestyle(l => ({ ...l, sleepSchedule: v }))}
+            options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']}
+          />
+
+          <ChipSelect
+            label="🍺 Drinking"
+            value={lifestyle.drinking}
+            onChange={v => setLifestyle(l => ({ ...l, drinking: v }))}
+            options={['🚫 Never', '🥂 Social', '🍻 Regular']}
+          />
+
+          <ChipSelect
+            label="🚬 Smoking"
+            value={lifestyle.smoking}
+            onChange={v => setLifestyle(l => ({ ...l, smoking: v }))}
+            options={['🚭 No', '🚬 Sometimes', '💨 Yes']}
+          />
+
+          <ChipSelect
+            label="💪 Exercise"
+            value={lifestyle.exercise}
+            onChange={v => setLifestyle(l => ({ ...l, exercise: v }))}
+            options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']}
+          />
+
+          <ChipSelect
+            label="🧠 Personality"
+            value={lifestyle.personality}
+            onChange={v => setLifestyle(l => ({ ...l, personality: v }))}
+            options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']}
+          />
 
           <div style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
             <label style={S.label}>{tx.referralLabel}</label>
