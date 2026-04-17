@@ -49,7 +49,7 @@ const T = {
     referralLabel:"Enter a friend's code to get €30 bonus",
     saveBtn:'Save Profile', logoutBtn:'Logout',
     eduOptions:['High School','Bachelor Degree','Master Degree','PhD'],
-    genderOptions:['Male','Female','Other'], lookingOptions:['Men','Women','Everyone'],
+    genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
     copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
   },
   zh: {
