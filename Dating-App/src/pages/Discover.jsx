@@ -135,7 +135,8 @@ export default function Discover() {
         <div style={S.grid}>
           {profiles.map((profile) => {
             const photoUrl  = getMainPhoto(profile);
-            const isOnline  = onlineUsers.has(profile.id);
+            const lastSeenDate = profile.last_seen_at ? new Date(profile.last_seen_at) : null;
+            const isOnline = onlineUsers.has(profile.id) || (lastSeenDate && (Date.now() - lastSeenDate.getTime()) < 5 * 60 * 1000);
             const age       = profile.details?.age    ?? '';
             const gender    = profile.details?.gender ?? '';
             const city      = profile.city || profile.details?.city || '';
