@@ -191,9 +191,11 @@ const S = {
   onlineCount: { fontSize: 12, fontWeight: 700, color: '#4caf50' },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+    gridTemplateColumns: 'repeat(7, 1fr)',
     gap: '8px',
-    padding: '10px',
+    padding: '16px',
+    maxWidth: '1200px',
+    margin: '0 auto',
   },
   card: {
     background: '#fff',
