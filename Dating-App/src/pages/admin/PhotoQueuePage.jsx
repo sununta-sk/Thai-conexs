@@ -76,7 +76,7 @@ export default function PhotoQueuePage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>🖼️ Photo Queue</h2>
-            <p style={S.pageSubtitle}>ตรวจสอบและอนุมัติรูปภาพของผู้ใช้</p>
+            <p style={S.pageSubtitle}>Review and approve user photos</p>
           </div>
         </div>
 
@@ -127,7 +127,7 @@ export default function PhotoQueuePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <input type="checkbox" checked={selected.size === photos.length} onChange={toggleAll}
               style={{ width: 15, height: 15, accentColor: '#e91e63', cursor: 'pointer' }} />
-            <span style={{ color: '#64748b', fontSize: 12 }}>เลือกทั้งหมด ({photos.length} รูป)</span>
+            <span style={{ color: '#64748b', fontSize: 12 }}>Select all ({photos.length} รูป)</span>
           </div>
         )}
 
@@ -180,7 +180,7 @@ export default function PhotoQueuePage() {
                 {/* User info */}
                 <div style={S.cardBody}>
                   <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {photo.user?.display_name || 'Unknown'}
+                    {photo.profiles?.username || ''}
                   </div>
                   <div style={{ color: '#475569', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {photo.user?.email}
