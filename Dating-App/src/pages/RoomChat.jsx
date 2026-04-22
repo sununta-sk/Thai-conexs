@@ -41,7 +41,7 @@ function useIsDesktop(breakpoint = 900) {
   return isDesktop;
 }
 
-// ── Desktop Sidebar: photo slideshow + bio ──────────────────
+// ── Desktop Sidebar: photo slideshow + bio (centered) ──────
 function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
   const [idx, setIdx] = useState(0);
   const total = allPhotos.length;
@@ -60,81 +60,82 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
 
   return (
     <div style={DS.wrap}>
-      {/* Photo slideshow */}
-      <div style={DS.photoBox}>
-        {total > 0 ? (
+      <div style={DS.inner}>
+        <div style={DS.photoBox}>
+          {total > 0 ? (
+            <>
+              <img src={allPhotos[idx]} alt="" style={DS.photo} />
+              {total > 1 && (
+                <>
+                  <button style={{ ...DS.arrow, left: 8 }} onClick={prev}>‹</button>
+                  <button style={{ ...DS.arrow, right: 8 }} onClick={next}>›</button>
+                  <div style={DS.counter}>{idx + 1} / {total}</div>
+                  <div style={DS.dots}>
+                    {allPhotos.map((_, i) => (
+                      <div key={i} style={{ ...DS.dot, background: i === idx ? '#e91e63' : 'rgba(255,255,255,0.6)' }} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div style={DS.noPhoto}>No photos</div>
+          )}
+        </div>
+
+        <div style={DS.nameRow}>
+          <span style={DS.name}>{profile?.username ?? 'User'}</span>
+          {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
+        </div>
+
+        <div style={DS.statusRow}>
+          <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#ccc' }} />
+          <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#aaa' }}>{onlineStatusText}</span>
+        </div>
+
+        {city && <div style={DS.city}>📍 {city}</div>}
+
+        {bio && (
           <>
-            <img src={allPhotos[idx]} alt="" style={DS.photo} />
-            {total > 1 && (
-              <>
-                <button style={{ ...DS.arrow, left: 8 }} onClick={prev}>‹</button>
-                <button style={{ ...DS.arrow, right: 8 }} onClick={next}>›</button>
-                <div style={DS.counter}>{idx + 1} / {total}</div>
-                <div style={DS.dots}>
-                  {allPhotos.map((_, i) => (
-                    <div key={i} style={{ ...DS.dot, background: i === idx ? '#e91e63' : 'rgba(255,255,255,0.6)' }} />
-                  ))}
-                </div>
-              </>
-            )}
+            <div style={DS.sectionTitle}>ABOUT ME</div>
+            <div style={DS.bioText}>{bio}</div>
           </>
-        ) : (
-          <div style={DS.noPhoto}>No photos</div>
         )}
-      </div>
 
-      {/* Name + verified + online */}
-      <div style={DS.nameRow}>
-        <span style={DS.name}>{profile?.username ?? 'User'}</span>
-        {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
-      </div>
-      <div style={DS.statusRow}>
-        <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#ccc' }} />
-        <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#aaa' }}>{onlineStatusText}</span>
-      </div>
-      {city && <div style={DS.city}>📍 {city}</div>}
-
-      {/* About me */}
-      {bio && (
-        <>
-          <div style={DS.sectionTitle}>ABOUT ME</div>
-          <div style={DS.bioText}>{bio}</div>
-        </>
-      )}
-
-      {/* General info */}
-      <div style={DS.sectionTitle}>GENERAL INFO</div>
-      <div style={DS.chipRow}>
-        {gender && <span style={DS.chip}>👤 {gender}</span>}
-        {age && <span style={DS.chip}>🎂 {age}</span>}
-        {height && <span style={DS.chip}>📏 {height} cm</span>}
-        {weight && <span style={DS.chip}>⚖️ {weight} kg</span>}
-        {education && <span style={DS.chip}>🎓 {education}</span>}
-        {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
+        <div style={DS.sectionTitle}>GENERAL INFO</div>
+        <div style={DS.chipRow}>
+          {gender && <span style={DS.chip}>👤 {gender}</span>}
+          {age && <span style={DS.chip}>🎂 {age}</span>}
+          {height && <span style={DS.chip}>📏 {height} cm</span>}
+          {weight && <span style={DS.chip}>⚖️ {weight} kg</span>}
+          {education && <span style={DS.chip}>🎓 {education}</span>}
+          {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
+        </div>
       </div>
     </div>
   );
 }
 
 const DS = {
-  wrap: { width: 320, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: 16, gap: 8 },
-  photoBox: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#f0f0f0', marginBottom: 4 },
+  wrap: { width: 360, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
+  inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '28px 20px', gap: 10 },
+  photoBox: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#f0f0f0', marginBottom: 8 },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   noPhoto: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 },
   arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: '#333', lineHeight: 1, paddingBottom: 3 },
   counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12 },
   dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 },
   dot: { width: 6, height: 6, borderRadius: '50%' },
-  nameRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 },
-  name: { fontSize: 20, fontWeight: 800, color: '#1a1a2e' },
-  verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '2px 8px' },
-  statusRow: { display: 'flex', alignItems: 'center', gap: 6 },
+  nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
+  name: { fontSize: 22, fontWeight: 800, color: '#1a1a2e' },
+  verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
+  statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
   city: { fontSize: 13, color: '#666', fontWeight: 600 },
-  sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 12 },
-  bioText: { fontSize: 14, color: '#333', lineHeight: 1.5, fontWeight: 500 },
-  chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6 },
+  sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 14, alignSelf: 'flex-start' },
+  bioText: { fontSize: 14, color: '#333', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
+  chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { fontSize: 12, fontWeight: 600, background: '#fce4ec', color: '#c2185b', padding: '5px 10px', borderRadius: 99 },
 };
 
@@ -358,7 +359,6 @@ export default function RoomChat() {
     );
   }
 
-  // ─── Original chat column (unchanged for mobile) ─────────────
   const chatColumn = (
     <div style={S.page}>
       <style>{`
@@ -374,7 +374,6 @@ export default function RoomChat() {
         .photo-thumb:hover { transform: scale(1.05); }
       `}</style>
 
-      {/* HEADER */}
       <div style={S.header}>
         <button style={S.backBtn} onClick={() => navigate(-1)}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
@@ -390,7 +389,6 @@ export default function RoomChat() {
             <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#aaa" }}>{onlineStatusText}</span>
           </div>
         </div>
-        {/* Photo strip — hidden on desktop because sidebar shows them */}
         {!isDesktop && (
           <div style={S.photoStrip} ref={photoScrollRef}>
             {allPhotos.length > 0 ? allPhotos.map((url, i) => (
@@ -437,7 +435,6 @@ export default function RoomChat() {
         )}
       </div>
 
-      {/* MESSAGES */}
       <div style={S.messageArea}>
         {messages.length === 0 && <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>}
         {messages.map((msg, i) => {
@@ -473,21 +470,18 @@ export default function RoomChat() {
         <div ref={bottomRef} style={{ height: 4 }} />
       </div>
 
-      {/* EMOJI PICKER */}
       {showEmoji && (
         <div ref={emojiPickerRef} style={S.emojiPickerWrap}>
           <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="light" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
         </div>
       )}
 
-      {/* GIF PICKER */}
       {showGif && (
         <div ref={gifPickerRef} style={S.gifPickerWrap}>
           <GifPicker onSelect={handleGifSelect} />
         </div>
       )}
 
-      {/* INPUT BAR */}
       <div style={S.inputBar}>
         <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? '#fce4ec' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -527,7 +521,6 @@ export default function RoomChat() {
     </div>
   );
 
-  // ─── Wrap with sidebar on desktop ─────────────
   if (isDesktop) {
     return (
       <div style={{ display: 'flex', height: '100dvh', background: '#eef2f7', overflow: 'hidden' }}>

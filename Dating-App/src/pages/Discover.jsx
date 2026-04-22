@@ -96,6 +96,15 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate(`/room-chat/${getChatId(currentUserId, targetUserId)}`);
 
+  // กดการ์ด: desktop → chat ตรงๆ, mobile → bio
+  const handleCardClick = (targetUserId) => {
+    if (window.innerWidth >= 900) {
+      navigate(`/room-chat/${getChatId(currentUserId, targetUserId)}`);
+    } else {
+      navigate(`/profile/${targetUserId}`);
+    }
+  };
+
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
     if (!raw) return 'https://placehold.co/150x150?text=No+Photo';
@@ -124,7 +133,7 @@ export default function Discover() {
 
             return (
               <div key={profile.id} style={S.card}>
-                <div style={S.photoWrap} onClick={() => navigate(`/profile/${profile.id}`)}>
+                <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} />
                   {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#bbb' }} />
@@ -153,7 +162,8 @@ const S = {
   page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(6, 130px)', justifyContent: 'center',
+    gridTemplateColumns: 'repeat(6, 130px)',
+    justifyContent: 'center',
     gap: '10px',
     padding: '15px',
     maxWidth: '1400px',
