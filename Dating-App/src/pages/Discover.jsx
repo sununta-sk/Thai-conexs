@@ -153,7 +153,7 @@ const S = {
   page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+    gridTemplateColumns: 'repeat(6, 1fr)',
     gap: '10px',
     padding: '15px',
     maxWidth: '1400px',
