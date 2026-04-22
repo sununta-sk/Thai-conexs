@@ -80,17 +80,15 @@ export default function AdminDashboard() {
 
   async function fetchPlans() {
     try {
-      const { data: plans } = await supabase
-        .from('subscription_plans').select('id, name, display_name');
-      if (!plans) return;
-      const breakdown = await Promise.all(plans.map(async (p) => {
-        const { count } = await supabase
-          .from('user_subscriptions')
-          .select('*', { count: 'exact', head: true })
-          .eq('plan_id', p.id).eq('status', 'active');
-        return { ...p, count: count || 0 };
-      }));
-      setPlanBreakdown(breakdown);
+      const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { count: goldUsers } = await supabase.from('user_subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active').in('plan_id', (await supabase.from('subscription_plans').select('id').eq('name', 'gold')).data?.map(p => p.id) || []);
+      const { count: platinumUsers } = await supabase.from('user_subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active').in('plan_id', (await supabase.from('subscription_plans').select('id').eq('name', 'platinum')).data?.map(p => p.id) || []);
+      const freeUsers = (totalUsers || 0) - (goldUsers || 0) - (platinumUsers || 0);
+      setPlanBreakdown([
+        { id: 'free', name: 'free', display_name: 'Free', count: freeUsers },
+        { id: 'gold', name: 'gold', display_name: 'Gold', count: goldUsers || 0 },
+        { id: 'platinum', name: 'platinum', display_name: 'Premium', count: platinumUsers || 0 },
+      ]);
     } catch (e) { console.error('plans error', e.message); }
   }
 
@@ -104,7 +102,7 @@ export default function AdminDashboard() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>📊 Dashboard</h2>
-            <p style={S.pageSubtitle}>Business Overview - Thai Conexns</p>
+            <p style={S.pageSubtitle}>ภาพรวมธุรกิจ Thai Conexns</p>
           </div>
           <button onClick={fetchAll} style={S.refreshBtn} disabled={loading}>
             {loading ? '⏳' : '🔄'} Refresh
@@ -112,7 +110,7 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div style={S.loadingBox}>Loading...</div>
+          <div style={S.loadingBox}>กำลังโหลดข้อมูล...</div>
         ) : (
           <>
             {/* KPI Cards */}
@@ -148,7 +146,7 @@ export default function AdminDashboard() {
                     <button onClick={() => navigate('/admin/moderation/tickets')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentTickets.length === 0 ? (
-                    <div style={S.empty}>No tickets</div>
+                    <div style={S.empty}>ไม่มี ticket</div>
                   ) : (
                     <table style={S.table}>
                       <thead>
@@ -183,7 +181,7 @@ export default function AdminDashboard() {
                     <button onClick={() => navigate('/admin/affiliates')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentAffiliates.length === 0 ? (
-                    <div style={S.empty}>No affiliates yet</div>
+                    <div style={S.empty}>ยังไม่มี affiliate</div>
                   ) : (
                     <table style={S.table}>
                       <thead>
