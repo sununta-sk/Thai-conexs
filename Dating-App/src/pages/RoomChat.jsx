@@ -118,7 +118,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
 
 const DS = {
   wrap: { width: 360, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
-  inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '28px 20px', gap: 10 },
+  inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
   photoBox: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#f0f0f0', marginBottom: 8 },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   noPhoto: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 },
@@ -546,7 +546,7 @@ const S = {
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#c9a4d4", animation: "bounce 1.2s ease-in-out infinite" },
   header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#fff", borderBottom: "1px solid #e8ecf0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", minHeight: 72, position: "relative", zIndex: 10 },
   backBtn: { background: "none", border: "none", cursor: "pointer", color: "#5b9bd5", padding: "4px 2px", display: "flex", alignItems: "center", flexShrink: 0 },
-  headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0 },
+  headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0, marginLeft: 30 },
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
   headerName: { fontSize: 16, fontWeight: 800, color: "#1a1a2e", whiteSpace: "nowrap" },
   genderBadge: { fontSize: 11, fontWeight: 700, color: "#e91e63", background: "#fce4ec", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
