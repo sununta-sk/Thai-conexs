@@ -67,7 +67,7 @@ export default function Navbar() {
       </div>
 
       {/* Center: Nav buttons */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 28, justifySelf: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 60, justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
           <span style={{ fontSize: '11px' }}>Discover</span>
