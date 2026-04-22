@@ -2,13 +2,15 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useOnline } from '../contexts/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [onlineCount, setOnlineCount] = useState(9);
+  const { onlineCount } = useOnline();
 
   const isActive = (path) => location.pathname === path;
 
@@ -23,20 +25,6 @@ export default function Navbar() {
         .maybeSingle();
       setIsAdmin(!!data);
     });
-  }, []);
-
-  // Update online count every 4 minutes
-  useEffect(() => {
-    const fetchOnline = async () => {
-      const { count } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
-      if (count) setOnlineCount(count);
-    };
-    fetchOnline();
-    const interval = setInterval(fetchOnline, 4 * 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   const goTo = async (path) => {
@@ -78,8 +66,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Right: Nav buttons */}
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      {/* Right: Nav buttons + NotificationBell */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <span style={{ display: 'block', fontSize: '22px' }}>🔍</span>
           <span style={{ fontSize: '10px' }}>Discover</span>
@@ -103,6 +91,10 @@ export default function Navbar() {
           <span style={{ display: 'block', fontSize: '22px' }}>👤</span>
           <span style={{ fontSize: '10px' }}>Profile</span>
         </button>
+
+        <div style={{ marginLeft: 4 }}>
+          <NotificationBell />
+        </div>
       </div>
 
     </div>

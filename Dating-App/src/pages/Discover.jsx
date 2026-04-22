@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import logoImg from '../lib/LotusConnexs.jpeg';
 import { useNavigate } from 'react-router-dom';
+import { useOnline } from '../contexts/OnlineContext';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -52,9 +52,9 @@ function timeAgo(dateStr) {
 export default function Discover() {
   const [profiles, setProfiles]           = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
-  const [onlineUsers, setOnlineUsers]     = useState(new Set());
   const [loading, setLoading]             = useState(true);
   const [banInfo, setBanInfo]             = useState(null);
+  const { onlineUsers } = useOnline();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,15 +94,6 @@ export default function Discover() {
     fetchProfiles();
   }, [navigate]);
 
-  useEffect(() => {
-    if (!currentUserId) return;
-    const channel = supabase.channel('discover-presence', { config: { presence: { key: currentUserId } } });
-    channel
-      .on('presence', { event: 'sync' }, () => setOnlineUsers(new Set(Object.keys(channel.presenceState()))))
-      .subscribe(async (status) => { if (status === 'SUBSCRIBED') await channel.track({ online_at: new Date().toISOString() }); });
-    return () => { supabase.removeChannel(channel); };
-  }, [currentUserId]);
-
   const handleStartChat = (targetUserId) => navigate(`/room-chat/${getChatId(currentUserId, targetUserId)}`);
 
   const getMainPhoto = (profile) => {
@@ -116,8 +107,6 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      </div>
-
       {loading ? (
         <div style={S.emptyState}>Loading...</div>
       ) : profiles.length === 0 ? (
@@ -126,8 +115,7 @@ export default function Discover() {
         <div style={S.grid}>
           {profiles.map((profile) => {
             const photoUrl  = getMainPhoto(profile);
-            const lastSeenDate = profile.last_seen_at ? new Date(profile.last_seen_at) : null;
-            const isOnline = onlineUsers.has(profile.id) || (lastSeenDate && (Date.now() - lastSeenDate.getTime()) < 5 * 60 * 1000);
+            const isOnline  = onlineUsers.has(profile.id);
             const age       = profile.details?.age    ?? '';
             const gender    = profile.details?.gender ?? '';
             const city      = profile.city || profile.details?.city || '';
@@ -136,21 +124,18 @@ export default function Discover() {
 
             return (
               <div key={profile.id} style={S.card}>
-                {/* Photo — คลิกเพื่อดูโปรไฟล์ (เปลี่ยนจาก handleStartChat → navigate profile) */}
                 <div style={S.photoWrap} onClick={() => navigate(`/profile/${profile.id}`)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} />
                   {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#bbb' }} />
                 </div>
 
-                {/* Info */}
                 <div style={S.info}>
                   <div style={S.name}>{profile.username || '—'}</div>
                   {metaParts.length > 0 && <div style={S.meta}>{metaParts.join(', ')}</div>}
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#999' }}>{lastSeen}</div>
                 </div>
 
-                {/* Action buttons — ✕ และ 💬 คงเดิม */}
                 <div style={S.actions}>
                   <button style={S.btnX} onClick={e => e.stopPropagation()}>✕</button>
                   <button style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
@@ -166,21 +151,6 @@ export default function Discover() {
 
 const S = {
   page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 60 },
-  header: {
-    padding: '10px 15px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    background: '#fff',
-    borderBottom: '1px solid #e0e0e0',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-  },
-  headerTitle: { fontSize: 16, fontWeight: 800, color: '#e91e63' },
-  onlinePill: { display: 'flex', alignItems: 'center', gap: 5, background: '#e8f5e9', borderRadius: 12, padding: '4px 10px' },
-  onlineDot: { width: 7, height: 7, borderRadius: '50%', background: '#4caf50' },
-  onlineCount: { fontSize: 12, fontWeight: 700, color: '#4caf50' },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(7, 1fr)',

@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './lib/supabaseClient';
+import { OnlineProvider } from './contexts/OnlineContext';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
@@ -221,7 +222,9 @@ function NotFound() {
 export default function App() {
   return (
     <Router>
-      <AppContent />
+      <OnlineProvider>
+        <AppContent />
+      </OnlineProvider>
     </Router>
   );
 }
