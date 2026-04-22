@@ -35,7 +35,7 @@ const T = {
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
-    genderOptions:['ชาย','หญิง','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
+    genderOptions:['ชาย','หญิง','Transgender','Non-binary','เกย์','ไบเซ็กชวล','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
     copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
   },
   en: {
