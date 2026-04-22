@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logoImg from '../lib/LotusConnexs.jpeg';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
 
@@ -117,14 +118,14 @@ export default function Discover() {
   return (
     <div style={S.page}>
       <div style={S.header}>
-        <img src='/LotusConnexs.jpeg' alt='logo' style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src={logoImg} alt='logo' style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover' }} />
           <div style={S.onlinePill}>
             <div style={S.onlineDot} />
             <span style={S.onlineCount}>{onlineUsers.size + 8} online</span>
           </div>
-          <NotificationBell />
         </div>
+        <NotificationBell />
       </div>
 
       {loading ? (
