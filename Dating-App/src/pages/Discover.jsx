@@ -117,7 +117,7 @@ export default function Discover() {
   return (
     <div style={S.page}>
       <div style={S.header}>
-        <span style={S.headerTitle}>Thai Conexns</span>
+        <img src='/LotusConnexs.jpeg' alt='logo' style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={S.onlinePill}>
             <div style={S.onlineDot} />

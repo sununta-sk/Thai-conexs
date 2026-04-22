@@ -29,7 +29,7 @@ export default function Navbar() {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: 0, width: '100%', background: '#ffffff', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '12px 0', borderTop: '1px solid #eeeeee', zIndex: 1000, boxShadow: '0 -2px 10px rgba(0,0,0,0.05)' }}>
+    <div style={{ position: 'fixed', top: 0, width: '100%', background: '#ffffff', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #eeeeee', zIndex: 1000, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
       <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
         <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
         <span style={{ fontSize: '10px' }}>Discover</span>
