@@ -150,13 +150,13 @@ export default function Discover() {
 }
 
 const S = {
-  page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 60 },
+  page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(7, 1fr)',
-    gap: '8px',
-    padding: '16px',
-    maxWidth: '1200px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+    gap: '16px',
+    padding: '20px',
+    maxWidth: '1400px',
     margin: '0 auto',
   },
   card: {
@@ -175,27 +175,27 @@ const S = {
   },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: {
-    position: 'absolute', top: 4, left: 4,
-    width: 16, height: 16, borderRadius: '50%',
+    position: 'absolute', top: 8, left: 8,
+    width: 22, height: 22, borderRadius: '50%',
     background: '#3b82f6', color: '#fff',
     fontSize: 9, fontWeight: 800,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   onlineBadge: {
-    position: 'absolute', top: 4, right: 4,
-    width: 9, height: 9, borderRadius: '50%',
+    position: 'absolute', top: 8, right: 8,
+    width: 14, height: 14, borderRadius: '50%',
     border: '2px solid #fff',
   },
-  info: { padding: '6px 6px 4px' },
+  info: { padding: '10px 10px 6px' },
   name: {
-    fontSize: '12px', fontWeight: 700, color: '#333',
+    fontSize: '15px', fontWeight: 700, color: '#333',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   meta: {
-    fontSize: '10px', color: '#777', marginTop: '1px',
+    fontSize: '12px', color: '#777', marginTop: '2px',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
-  lastSeen: { fontSize: '9px', marginTop: '1px' },
+  lastSeen: { fontSize: '11px', marginTop: '2px', fontWeight: 600 },
   actions: {
     display: 'flex',
     justifyContent: 'space-around',

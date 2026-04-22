@@ -39,10 +39,10 @@ export default function Navbar() {
       top: 0,
       width: '100%',
       background: '#ffffff',
-      display: 'flex',
-      justifyContent: 'space-between',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
-      padding: '8px 16px',
+      padding: '10px 20px',
       borderBottom: '1px solid #eeeeee',
       zIndex: 1000,
       boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
@@ -50,51 +50,52 @@ export default function Navbar() {
     }}>
 
       {/* Left: Logo + Online pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifySelf: 'start' }}>
         <img
           src={logoImg}
           alt="Thai Conexns"
-          style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }}
+          style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
           onClick={() => goTo('/discover')}
         />
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 5,
-          background: '#e8f5e9', borderRadius: 12, padding: '4px 10px',
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: '#e8f5e9', borderRadius: 14, padding: '6px 12px',
         }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4caf50' }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#4caf50' }}>{onlineCount} online</span>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4caf50' }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#4caf50' }}>{onlineCount} online</span>
         </div>
       </div>
 
-      {/* Right: Nav buttons + NotificationBell */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      {/* Center: Nav buttons */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
-          <span style={{ display: 'block', fontSize: '22px' }}>🔍</span>
-          <span style={{ fontSize: '10px' }}>Discover</span>
+          <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
+          <span style={{ fontSize: '11px' }}>Discover</span>
         </button>
 
         <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
-          <span style={{ display: 'block', fontSize: '22px' }}>💬</span>
-          <span style={{ fontSize: '10px' }}>Messages</span>
+          <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
+          <span style={{ fontSize: '11px' }}>Messages</span>
         </button>
 
         {isAdmin && (
           <button
             onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin-secret-portal')}
             style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : '#f39c12' }}>
-            <span style={{ display: 'block', fontSize: '22px' }}>⚡</span>
-            <span style={{ fontSize: '10px' }}>Admin</span>
+            <span style={{ display: 'block', fontSize: '24px' }}>⚡</span>
+            <span style={{ fontSize: '11px' }}>Admin</span>
           </button>
         )}
 
         <button onClick={() => goTo('/profile-setup')} style={navBtnStyle(isActive('/profile-setup'))}>
-          <span style={{ display: 'block', fontSize: '22px' }}>👤</span>
-          <span style={{ fontSize: '10px' }}>Profile</span>
+          <span style={{ display: 'block', fontSize: '24px' }}>👤</span>
+          <span style={{ fontSize: '11px' }}>Profile</span>
         </button>
+      </div>
 
-        <div style={{ marginLeft: 4 }}>
-          <NotificationBell />
-        </div>
+      {/* Right: NotificationBell */}
+      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center' }}>
+        <NotificationBell />
       </div>
 
     </div>
@@ -108,8 +109,9 @@ const navBtnStyle = (active) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  color: active ? '#e91e63' : '#cccccc',
+  color: active ? '#e91e63' : '#888',
   cursor: 'pointer',
   transition: '0.2s',
-  padding: '4px 12px',
+  padding: '4px 14px',
+  fontWeight: 600,
 });
