@@ -2,7 +2,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useOnline } from '../contexts/OnlineContext';
+import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import NotificationBell from './NotificationBell';
 
