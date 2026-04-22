@@ -158,7 +158,7 @@ export default function UserProfilePage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, bio, photos, details, city, location, last_seen_at, is_verified')
+        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified')
         .eq('id', userId)
         .maybeSingle();
 
@@ -238,6 +238,22 @@ export default function UserProfilePage() {
           <div style={S.section}>
             <div style={S.sectionLabel}>About Me</div>
             <p style={S.bioText}>{profile.bio}</p>
+          </div>
+        )}
+
+        {profile.lifestyle && Object.values(profile.lifestyle).some(v => v && (Array.isArray(v) ? v.length > 0 : true)) && (
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #f0f0f0' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#e91e63', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>✨ Lifestyle</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {Array.isArray(profile.lifestyle.hobbies) && profile.lifestyle.hobbies.map(h => (
+                <span key={h} style={{ padding: '6px 14px', borderRadius: 999, background: '#fce4ec', color: '#e91e63', fontSize: 12, fontWeight: 600 }}>{h}</span>
+              ))}
+              {profile.lifestyle.sleepSchedule && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#f3e8ff', color: '#7c3aed', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.sleepSchedule}</span>}
+              {profile.lifestyle.drinking && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#e0f2fe', color: '#0369a1', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.drinking}</span>}
+              {profile.lifestyle.smoking && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.smoking}</span>}
+              {profile.lifestyle.exercise && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#dcfce7', color: '#166534', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.exercise}</span>}
+              {profile.lifestyle.personality && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#f1f5f9', color: '#475569', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.personality}</span>}
+            </div>
           </div>
         )}
 
