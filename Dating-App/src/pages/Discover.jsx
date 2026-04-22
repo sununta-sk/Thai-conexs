@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { useOnline } from '../contexts/OnlineContext';
+import { useOnline } from '../context/OnlineContext';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
