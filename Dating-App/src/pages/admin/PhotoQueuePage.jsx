@@ -21,7 +21,7 @@ export default function PhotoQueuePage() {
     const { data } = await supabase
       .from('photo_moderation_queue')
       .select(`
-        id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id
+        id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id, profiles(username, avatar_url)
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: true })
@@ -172,7 +172,7 @@ export default function PhotoQueuePage() {
                 {/* User info */}
                 <div style={S.cardBody}>
                   <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {photo.user?.display_name || 'Unknown'}
+                    {photo.profiles?.username || 'Unknown'}
                   </div>
                   <div style={{ color: '#475569', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {photo.user?.email}
