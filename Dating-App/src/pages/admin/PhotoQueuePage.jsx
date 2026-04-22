@@ -21,12 +21,20 @@ export default function PhotoQueuePage() {
     const { data } = await supabase
       .from('photo_moderation_queue')
       .select(`
-        id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id, profiles(username, avatar_url)
+        id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: true })
       .limit(60);
     setPhotos(data || []);
+    if (data && data.length > 0) {
+      const userIds = [...new Set(data.map(p => p.user_id))];
+      const { data: profileData } = await supabase.from('profiles').select('id, username, avatar_url').in('id', userIds);
+      if (profileData) {
+        const profileMap = Object.fromEntries(profileData.map(p => [p.id, p]));
+        setPhotos(prev => prev.map(photo => ({ ...photo, profiles: profileMap[photo.user_id] })));
+      }
+    }
     setLoading(false);
   }, [activeTab]);
 
@@ -48,7 +56,7 @@ export default function PhotoQueuePage() {
     const statusMap = { approve: 'approved', reject: 'rejected' };
     await supabase
       .from('photo_moderation_queue')
-      .update({ status: statusMap[action], reviewed_at: new Date().toISOString() })
+      .update({ status: statusMap[action], moderated_at: new Date().toISOString() })
       .in('id', ids);
     setPreview(null);
     await fetchPhotos();
@@ -68,7 +76,7 @@ export default function PhotoQueuePage() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>🖼️ Photo Queue</h2>
-            <p style={S.pageSubtitle}>Review and approve user photos</p>
+            <p style={S.pageSubtitle}>ตรวจสอบและอนุมัติรูปภาพของผู้ใช้</p>
           </div>
         </div>
 
@@ -119,7 +127,7 @@ export default function PhotoQueuePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <input type="checkbox" checked={selected.size === photos.length} onChange={toggleAll}
               style={{ width: 15, height: 15, accentColor: '#e91e63', cursor: 'pointer' }} />
-            <span style={{ color: '#64748b', fontSize: 12 }}>Select all ({photos.length} รูป)</span>
+            <span style={{ color: '#64748b', fontSize: 12 }}>เลือกทั้งหมด ({photos.length} รูป)</span>
           </div>
         )}
 
@@ -135,7 +143,7 @@ export default function PhotoQueuePage() {
             <div style={{ fontSize: 48, marginBottom: 8 }}>
               {activeTab === 'pending' ? '📭' : activeTab === 'approved' ? '✅' : '🗑️'}
             </div>
-            <div>No photos {activeTab}</div>
+            <div>ไม่มีรูปภาพ {activeTab}</div>
           </div>
         ) : (
           <div style={S.grid}>
@@ -172,7 +180,7 @@ export default function PhotoQueuePage() {
                 {/* User info */}
                 <div style={S.cardBody}>
                   <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {photo.profiles?.username || 'Unknown'}
+                    {photo.user?.display_name || 'Unknown'}
                   </div>
                   <div style={{ color: '#475569', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {photo.user?.email}
@@ -220,7 +228,7 @@ export default function PhotoQueuePage() {
                   {preview.is_profile_photo && <span style={{ marginLeft: 'auto', ...S.primaryBadge, position: 'static' }}>Primary</span>}
                 </div>
                 <div style={{ color: '#475569', fontSize: 12, marginBottom: 16 }}>
-                  Uploaded: {new Date(preview.created_at).toLocaleString('en-GB')}
+                  อัปโหลด: {new Date(preview.created_at).toLocaleString('th-TH')}
                 </div>
 
                 {/* Actions */}
