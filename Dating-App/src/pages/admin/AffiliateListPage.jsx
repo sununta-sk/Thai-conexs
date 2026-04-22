@@ -159,7 +159,7 @@ export default function AffiliateListPage() {
             ))}
           </div>
           <input
-            placeholder="ค้นหาชื่อ, อีเมล, เบอร์, โค้ด..."
+            placeholder="Search name, email, phone, code..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={S.searchInput}
@@ -232,15 +232,15 @@ export default function AffiliateListPage() {
 
             <div style={S.section}>
               <div style={S.sectionTitle}>📋 Contact Info</div>
-              <Row label="ชื่อ-นามสกุล"  value={detailModal.contact_name  || '—'} />
+              <Row label="Full Name"  value={detailModal.contact_name  || '—'} />
               <Row label="Phone"       value={detailModal.contact_phone || '—'} highlight />
-              <Row label="อีเมล"          value={detailModal.contact_email || '—'} />
+              <Row label="Email"          value={detailModal.contact_email || '—'} />
             </div>
 
             <div style={S.section}>
               <div style={S.sectionTitle}>🏦 Payment Info</div>
-              <Row label="ช่องทาง"         value={detailModal.payout_method  || '—'} />
-              <Row label="Detailsบัญชี" value={detailModal.payout_details || '—'} highlight />
+              <Row label="Method"         value={detailModal.payout_method  || '—'} />
+              <Row label="Aails" value={detailModal.payout_details || '—'} highlight />
               <Row label="Commission"      value={`${detailModal.commission_rate || 20}%`} />
             </div>
 
@@ -272,7 +272,7 @@ export default function AffiliateListPage() {
               <button
                 onClick={() => { setDetailModal(null); navigate(`/admin/affiliates/${detailModal.id}`) }}
                 style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
-                ดูDetailsเต็ม
+                View Full Details
               </button>
               <button
                 onClick={handleConfirmPayout}

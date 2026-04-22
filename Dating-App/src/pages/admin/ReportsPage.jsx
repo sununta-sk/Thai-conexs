@@ -246,7 +246,7 @@ export default function ReportsPage() {
                 <textarea
                   value={adminNote}
                   onChange={e => setAdminNote(e.target.value)}
-                  placeholder="บันทึกการดำเนินการ..."
+                  placeholder="Action note..."
                   style={S.textarea}
                   rows={3}
                 />
@@ -300,7 +300,7 @@ export default function ReportsPage() {
                 style={{ ...S.actBtn, background: '#3b82f622', color: '#3b82f6', border: '1px solid #3b82f644', marginTop: 12 }}
                 onClick={() => navigate(`/admin/users/${detail.reported?.id}`)}
               >
-                👤 ดูโปรไฟล์ผู้Reported User
+                👤 View Profile
               </button>
             </div>
           )}
