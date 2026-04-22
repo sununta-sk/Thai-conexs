@@ -2,11 +2,14 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logoImg from '../lib/LotusConnexs.jpeg';
 
 export default function Navbar() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [onlineCount, setOnlineCount] = useState(9);
+
   const isActive = (path) => location.pathname === path;
 
   useEffect(() => {
@@ -22,6 +25,20 @@ export default function Navbar() {
     });
   }, []);
 
+  // Update online count every 4 minutes
+  useEffect(() => {
+    const fetchOnline = async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_seen_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+      if (count) setOnlineCount(count);
+    };
+    fetchOnline();
+    const interval = setInterval(fetchOnline, 4 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const goTo = async (path) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate('/login'); return; }
@@ -29,32 +46,78 @@ export default function Navbar() {
   };
 
   return (
-    <div style={{ position: 'fixed', top: 0, width: '100%', background: '#ffffff', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #eeeeee', zIndex: 1000, boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-      <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
-        <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
-        <span style={{ fontSize: '10px' }}>Discover</span>
-      </button>
-      <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
-        <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
-        <span style={{ fontSize: '10px' }}>Messages</span>
-      </button>
-      {isAdmin && (
-        <button onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin/dashboard')}
-          style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : '#f39c12' }}>
-          <span style={{ display: 'block', fontSize: '24px' }}>⚡</span>
-          <span style={{ fontSize: '10px' }}>Admin</span>
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      width: '100%',
+      background: '#ffffff',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '8px 16px',
+      borderBottom: '1px solid #eeeeee',
+      zIndex: 1000,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+      boxSizing: 'border-box',
+    }}>
+
+      {/* Left: Logo + Online pill */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <img
+          src={logoImg}
+          alt="Thai Conexns"
+          style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }}
+          onClick={() => goTo('/discover')}
+        />
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          background: '#e8f5e9', borderRadius: 12, padding: '4px 10px',
+        }}>
+          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4caf50' }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#4caf50' }}>{onlineCount} online</span>
+        </div>
+      </div>
+
+      {/* Right: Nav buttons */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
+          <span style={{ display: 'block', fontSize: '22px' }}>🔍</span>
+          <span style={{ fontSize: '10px' }}>Discover</span>
         </button>
-      )}
-      <button onClick={() => goTo('/profile-setup')} style={navBtnStyle(isActive('/profile-setup'))}>
-        <span style={{ display: 'block', fontSize: '24px' }}>👤</span>
-        <span style={{ fontSize: '10px' }}>Profile</span>
-      </button>
+
+        <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
+          <span style={{ display: 'block', fontSize: '22px' }}>💬</span>
+          <span style={{ fontSize: '10px' }}>Messages</span>
+        </button>
+
+        {isAdmin && (
+          <button
+            onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin-secret-portal')}
+            style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : '#f39c12' }}>
+            <span style={{ display: 'block', fontSize: '22px' }}>⚡</span>
+            <span style={{ fontSize: '10px' }}>Admin</span>
+          </button>
+        )}
+
+        <button onClick={() => goTo('/profile-setup')} style={navBtnStyle(isActive('/profile-setup'))}>
+          <span style={{ display: 'block', fontSize: '22px' }}>👤</span>
+          <span style={{ fontSize: '10px' }}>Profile</span>
+        </button>
+      </div>
+
     </div>
   );
 }
 
 const navBtnStyle = (active) => ({
-  background: 'none', border: 'none', display: 'flex', flexDirection: 'column',
-  alignItems: 'center', justifyContent: 'center',
-  color: active ? '#e91e63' : '#cccccc', cursor: 'pointer', transition: '0.2s', flex: 1,
+  background: 'none',
+  border: 'none',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: active ? '#e91e63' : '#cccccc',
+  cursor: 'pointer',
+  transition: '0.2s',
+  padding: '4px 12px',
 });
