@@ -102,7 +102,7 @@ export default function AdminDashboard() {
         <div style={S.pageHeader}>
           <div>
             <h2 style={S.pageTitle}>📊 Dashboard</h2>
-            <p style={S.pageSubtitle}>ภาพรวมธุรกิจ Thai Conexns</p>
+            <p style={S.pageSubtitle}>Business Overview - Thai Conexns</p>
           </div>
           <button onClick={fetchAll} style={S.refreshBtn} disabled={loading}>
             {loading ? '⏳' : '🔄'} Refresh
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div style={S.loadingBox}>กำลังโหลดข้อมูล...</div>
+          <div style={S.loadingBox}>Loading...</div>
         ) : (
           <>
             {/* KPI Cards */}
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
                     <button onClick={() => navigate('/admin/moderation/tickets')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentTickets.length === 0 ? (
-                    <div style={S.empty}>ไม่มี ticket</div>
+                    <div style={S.empty}>No tickets</div>
                   ) : (
                     <table style={S.table}>
                       <thead>
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
                     <button onClick={() => navigate('/admin/affiliates')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentAffiliates.length === 0 ? (
-                    <div style={S.empty}>ยังไม่มี affiliate</div>
+                    <div style={S.empty}>No affiliates yet</div>
                   ) : (
                     <table style={S.table}>
                       <thead>
