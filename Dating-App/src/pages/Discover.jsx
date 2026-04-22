@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useNavigate } from 'react-router-dom';
-import NotificationBell from '../components/NotificationBell';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -125,7 +124,6 @@ export default function Discover() {
             <span style={S.onlineCount}>{onlineUsers.size + 8} online</span>
           </div>
         </div>
-        <NotificationBell />
       </div>
 
       {loading ? (
