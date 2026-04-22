@@ -26,7 +26,7 @@ const THAI_BANKS = [
   { code: 'KKP',   name: 'ธนาคารเกียรตินาคินภัทร (KKP)' },
   { code: 'LHFG',  name: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
   { code: 'IBANK', name: 'ธนาคารอิสลามแห่งประเทศไทย (IBANK)' },
-  { code: 'OTHER', name: 'อื่นๆ / ต่างประเทศ' },
+  { code: 'OTHER', name: 'Other / International' },
 ]
 
 export default function PayoutRequestPage() {
@@ -79,8 +79,8 @@ export default function PayoutRequestPage() {
     else if (settings?.min_payout && amt < settings.min_payout) errs.amount = `Minimum payout is €${settings.min_payout}`
     // ── validate bank fields เฉพาะ bank_transfer ──
     if (form.payment_method === 'bank_transfer') {
-      if (!bankInfo.bankCode)          errs.bankCode      = 'กรุณาเลือกธนาคาร'
-      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกเลขบัญชี'
+      if (!bankInfo.bankCode)          errs.bankCode      = 'กรุณาSelect Bank'
+      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'Please enter account number'
     } else {
       if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกDetails'
     }
@@ -223,14 +223,14 @@ export default function PayoutRequestPage() {
                   placeholder="📱 Phone Number * (required)"
                   style={{ ...S.input, ...(errors.phone ? S.inputError : {}), borderColor: errors.phone ? '#ef4444' : payee.phone ? '#10b981' : '#334155' }} />
                 {errors.phone && <span style={S.errorMsg}>{errors.phone}</span>}
-                <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>ใช้สำหรับติดต่อและยืนยันการโอนเงิน</span>
+                <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>Used for contact and transfer verification</span>
               </div>
               <div>
                 <input value={payee.email} onChange={e => { setPayee(p => ({ ...p, email: e.target.value })); setErrors(ev => ({ ...ev, email: null })) }}
                   placeholder="✉️ Email * (for sending slip)" type="email"
                   style={{ ...S.input, ...(errors.email ? S.inputError : {}) }} />
                 {errors.email && <span style={S.errorMsg}>{errors.email}</span>}
-                <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>สลิปการโอนเงินจะส่งไปยังอีเมลนี้</span>
+                <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>Transfer slip will be sent to this email</span>
               </div>
             </div>
 
@@ -266,7 +266,7 @@ export default function PayoutRequestPage() {
             {/* ── Step 4: Bank Details (3 ช่อง) ── */}
             <div style={S.section}>
               <label style={S.label}>
-                4. {isBankTransfer ? 'ข้อมูลธนาคาร *' : 'Payment Detail *'}
+                4. {isBankTransfer ? 'Bank Details *' : 'Payment Detail *'}
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 10 }}>
 
@@ -277,7 +277,7 @@ export default function PayoutRequestPage() {
                       value={bankInfo.bankCode}
                       onChange={e => { setBankInfo(b => ({ ...b, bankCode: e.target.value })); setErrors(ev => ({ ...ev, bankCode: null })) }}
                       style={{ ...S.input, ...(errors.bankCode ? S.inputError : {}), color: bankInfo.bankCode ? '#f1f5f9' : '#475569' }}>
-                      <option value="">🏦 เลือกธนาคาร *</option>
+                      <option value="">🏦 Select Bank *</option>
                       {THAI_BANKS.map(b => (
                         <option key={b.code} value={b.code}>{b.name}</option>
                       ))}
@@ -287,34 +287,34 @@ export default function PayoutRequestPage() {
   <input
     value={bankInfo.extra}
     onChange={e => setBankInfo(b => ({ ...b, extra: e.target.value }))}
-    placeholder="อื่นๆ (optional)"
+    placeholder="Other (optional)"
     style={S.input} />
     <span style={{ display: 'block', marginTop: 4, fontSize: 11, color: '#ef4444', fontWeight: 600 }}>
-      ⚠️ ชื่อผู้รับเงินต้องตรงกับชื่อเจ้าของบัญชีเท่านั้น
+      ⚠️ Payee name must match account holder name
     </span>
 </div>
                   )}
                   {errors.bankCode && <span style={S.errorMsg}>{errors.bankCode}</span>}
                 </div>
 
-                {/* ช่อง 2: เลขบัญชี (เฉพาะ bank transfer) */}
+                {/* Field 2: Account Number (bank transfer only) */}
                 {isBankTransfer && (
                   <div>
                     <input
                       value={bankInfo.accountNumber}
                       onChange={e => { setBankInfo(b => ({ ...b, accountNumber: e.target.value })); setErrors(ev => ({ ...ev, accountNumber: null })) }}
-                      placeholder="เลขบัญชี *"
+                      placeholder="Account Number *"
                       style={{ ...S.input, ...(errors.accountNumber ? S.inputError : {}) }} />
                     {errors.accountNumber && <span style={S.errorMsg}>{errors.accountNumber}</span>}
                   </div>
                 )}
 
-                {/* ช่อง 3: อื่นๆ */}
+                {/* Field 3: Other */}
                 <div>
                   <input
                     value={bankInfo.extra}
                     onChange={e => setBankInfo(b => ({ ...b, extra: e.target.value }))}
-                    placeholder="อื่นๆ (optional)"
+                    placeholder="Other (optional)"
                     style={S.input} />
                 </div>
               </div>
@@ -357,12 +357,12 @@ export default function PayoutRequestPage() {
             <div style={{ ...S.sideCard, marginTop: 16, background: '#6366f111', border: '1px solid #6366f133' }}>
               <h3 style={{ ...S.sideTitle, color: '#818cf8' }}>📋 Required Info</h3>
               <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.7, margin: 0 }}>
-  ✅ ชื่อ-นามสกุล<br />
-  ✅ เบอร์โทรศัพท์ (บังคับ)<br />
-  ✅ อีเมล (รับสลิปโอนเงิน)<br />
-  ✅ ธนาคาร + เลขบัญชี<br />
+  ✅ Full Name<br />
+  ✅ Phone Number (required)<br />
+  ✅ Email (to receive slip)<br />
+  ✅ Bank + Account Number<br />
   <span style={{ color: '#ef4444', fontWeight: 700, fontSize: 12 }}>
-    ⚠️ ชื่อผู้รับเงินต้องตรงกับชื่อเจ้าของบัญชีเท่านั้น
+    ⚠️ Payee name must match account holder name
   </span>
 </p>
             </div>
