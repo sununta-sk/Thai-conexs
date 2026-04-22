@@ -30,16 +30,121 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
+// ── Hook: detect desktop viewport ────────────────────────────
+function useIsDesktop(breakpoint = 900) {
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= breakpoint : false);
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isDesktop;
+}
+
+// ── Desktop Sidebar: photo slideshow + bio ──────────────────
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
+  const [idx, setIdx] = useState(0);
+  const total = allPhotos.length;
+  const prev = () => setIdx(i => (i - 1 + total) % total);
+  const next = () => setIdx(i => (i + 1) % total);
+
+  const d = profile?.details || {};
+  const age = d.age || '';
+  const gender = d.gender || '';
+  const height = d.height || '';
+  const weight = d.weight || '';
+  const education = d.education || '';
+  const lookingFor = d.lookingFor || '';
+  const city = profile?.city || d.city || '';
+  const bio = profile?.bio || profile?.about_me || '';
+
+  return (
+    <div style={DS.wrap}>
+      {/* Photo slideshow */}
+      <div style={DS.photoBox}>
+        {total > 0 ? (
+          <>
+            <img src={allPhotos[idx]} alt="" style={DS.photo} />
+            {total > 1 && (
+              <>
+                <button style={{ ...DS.arrow, left: 8 }} onClick={prev}>‹</button>
+                <button style={{ ...DS.arrow, right: 8 }} onClick={next}>›</button>
+                <div style={DS.counter}>{idx + 1} / {total}</div>
+                <div style={DS.dots}>
+                  {allPhotos.map((_, i) => (
+                    <div key={i} style={{ ...DS.dot, background: i === idx ? '#e91e63' : 'rgba(255,255,255,0.6)' }} />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div style={DS.noPhoto}>No photos</div>
+        )}
+      </div>
+
+      {/* Name + verified + online */}
+      <div style={DS.nameRow}>
+        <span style={DS.name}>{profile?.username ?? 'User'}</span>
+        {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
+      </div>
+      <div style={DS.statusRow}>
+        <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#ccc' }} />
+        <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#aaa' }}>{onlineStatusText}</span>
+      </div>
+      {city && <div style={DS.city}>📍 {city}</div>}
+
+      {/* About me */}
+      {bio && (
+        <>
+          <div style={DS.sectionTitle}>ABOUT ME</div>
+          <div style={DS.bioText}>{bio}</div>
+        </>
+      )}
+
+      {/* General info */}
+      <div style={DS.sectionTitle}>GENERAL INFO</div>
+      <div style={DS.chipRow}>
+        {gender && <span style={DS.chip}>👤 {gender}</span>}
+        {age && <span style={DS.chip}>🎂 {age}</span>}
+        {height && <span style={DS.chip}>📏 {height} cm</span>}
+        {weight && <span style={DS.chip}>⚖️ {weight} kg</span>}
+        {education && <span style={DS.chip}>🎓 {education}</span>}
+        {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
+      </div>
+    </div>
+  );
+}
+
+const DS = {
+  wrap: { width: 320, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: 16, gap: 8 },
+  photoBox: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#f0f0f0', marginBottom: 4 },
+  photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  noPhoto: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 },
+  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: '#333', lineHeight: 1, paddingBottom: 3 },
+  counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12 },
+  dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 },
+  dot: { width: 6, height: 6, borderRadius: '50%' },
+  nameRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 },
+  name: { fontSize: 20, fontWeight: 800, color: '#1a1a2e' },
+  verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '2px 8px' },
+  statusRow: { display: 'flex', alignItems: 'center', gap: 6 },
+  statusDot: { width: 8, height: 8, borderRadius: '50%' },
+  statusText: { fontSize: 13, fontWeight: 700 },
+  city: { fontSize: 13, color: '#666', fontWeight: 600 },
+  sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 12 },
+  bioText: { fontSize: 14, color: '#333', lineHeight: 1.5, fontWeight: 500 },
+  chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6 },
+  chip: { fontSize: 12, fontWeight: 600, background: '#fce4ec', color: '#c2185b', padding: '5px 10px', borderRadius: 99 },
+};
+
 // ── GIF Picker Component ────────────────────────────────────
 function GifPicker({ onSelect }) {
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load trending on mount
-  useEffect(() => {
-    fetchGifs("");
-  }, []);
+  useEffect(() => { fetchGifs(""); }, []);
 
   const fetchGifs = async (q) => {
     setLoading(true);
@@ -65,23 +170,11 @@ function GifPicker({ onSelect }) {
 
   return (
     <div style={GP.wrap}>
-      <input
-        autoFocus
-        placeholder="Search GIFs..."
-        value={query}
-        onChange={handleSearch}
-        style={GP.input}
-      />
+      <input autoFocus placeholder="Search GIFs..." value={query} onChange={handleSearch} style={GP.input} />
       <div style={GP.grid}>
         {loading && <div style={GP.loading}>Loading...</div>}
         {!loading && gifs.map(gif => (
-          <img
-            key={gif.id}
-            src={gif.images.fixed_height_small.url}
-            alt={gif.title}
-            style={GP.gif}
-            onClick={() => onSelect(gif.images.original.url)}
-          />
+          <img key={gif.id} src={gif.images.fixed_height_small.url} alt={gif.title} style={GP.gif} onClick={() => onSelect(gif.images.original.url)} />
         ))}
       </div>
       <div style={GP.poweredBy}>Powered by GIPHY</div>
@@ -102,6 +195,7 @@ const GP = {
 export default function RoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop(900);
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -116,7 +210,7 @@ export default function RoomChat() {
   const [showTicket, setShowTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
-  const [showGif, setShowGif] = useState(false); // ── NEW
+  const [showGif, setShowGif] = useState(false);
 
   const submitReport = async () => {
     if (!reportReason || !session) return;
@@ -133,7 +227,7 @@ export default function RoomChat() {
   const inputRef = useRef(null);
   const photoScrollRef = useRef(null);
   const emojiPickerRef = useRef(null);
-  const gifPickerRef = useRef(null); // ── NEW
+  const gifPickerRef = useRef(null);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const audioChunks = useRef([]);
@@ -145,7 +239,6 @@ export default function RoomChat() {
     return () => document.removeEventListener("mousedown", h);
   }, [showEmoji]);
 
-  // ── Close GIF picker on outside click ── NEW
   useEffect(() => {
     if (!showGif) return;
     const h = (e) => { if (gifPickerRef.current && !gifPickerRef.current.contains(e.target)) setShowGif(false); };
@@ -165,7 +258,7 @@ export default function RoomChat() {
 
   useEffect(() => {
     if (!otherUserId) return;
-    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at").eq("id", otherUserId).single()
+    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio").eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
   }, [otherUserId]);
 
@@ -218,7 +311,6 @@ export default function RoomChat() {
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
   const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
 
-  // ── NEW: ส่ง GIF URL เป็น message ──
   const handleGifSelect = (gifUrl) => {
     setShowGif(false);
     sendMessage(gifUrl);
@@ -266,7 +358,8 @@ export default function RoomChat() {
     );
   }
 
-  return (
+  // ─── Original chat column (unchanged for mobile) ─────────────
+  const chatColumn = (
     <div style={S.page}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
@@ -297,15 +390,19 @@ export default function RoomChat() {
             <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#aaa" }}>{onlineStatusText}</span>
           </div>
         </div>
-        <div style={S.photoStrip} ref={photoScrollRef}>
-          {allPhotos.length > 0 ? allPhotos.map((url, i) => (
-            <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
-          )) : (
-            <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
-            </div>
-          )}
-        </div>
+        {/* Photo strip — hidden on desktop because sidebar shows them */}
+        {!isDesktop && (
+          <div style={S.photoStrip} ref={photoScrollRef}>
+            {allPhotos.length > 0 ? allPhotos.map((url, i) => (
+              <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
+            )) : (
+              <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+              </div>
+            )}
+          </div>
+        )}
+        {isDesktop && <div style={{ flex: 1 }} />}
         <div style={{position:'relative'}}>
           <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}><span style={S.moreDots}>···</span></button>
           {showMenu && (
@@ -347,17 +444,9 @@ export default function RoomChat() {
           const isMine = msg.sender_id === session?.user?.id;
           const prevMsg = messages[i - 1];
           const showSeparator = !prevMsg || new Date(msg.created_at) - new Date(prevMsg.created_at) > 1000 * 60 * 30;
-          // ตรวจว่าเป็น GIF URL ไหม
           const isGif = msg.content?.startsWith("https://media") && msg.content?.includes("giphy.com");
           const isImage = msg.content?.startsWith("https://") && (msg.content?.includes("supabase") || msg.content?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
           const isAudio = msg.content?.includes('supabase') && msg.content?.includes('chat-') && msg.content?.includes('.webm');
-          {isGif || isImage ? (
-            <img src={msg.content} alt={isGif ? "gif" : "image"} style={{ maxWidth: 220, borderRadius: 12, display: "block", objectFit: "cover" }} />
-          ) : isAudio ? (
-            <audio controls src={msg.content} style={{ maxWidth: 220, borderRadius: 30 }} />
-          ) : (
-            <p style={S.bubbleText}>{msg.content}</p>
-          )}
           return (
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
@@ -391,7 +480,7 @@ export default function RoomChat() {
         </div>
       )}
 
-      {/* GIF PICKER — NEW */}
+      {/* GIF PICKER */}
       {showGif && (
         <div ref={gifPickerRef} style={S.gifPickerWrap}>
           <GifPicker onSelect={handleGifSelect} />
@@ -406,7 +495,6 @@ export default function RoomChat() {
           </svg>
         </button>
 
-        {/* GIF — NOW WORKS */}
         <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#3a7bbf' : '#5b9bd5' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
           <span style={S.gifText}>GIF</span>
         </button>
@@ -438,6 +526,25 @@ export default function RoomChat() {
       </div>
     </div>
   );
+
+  // ─── Wrap with sidebar on desktop ─────────────
+  if (isDesktop) {
+    return (
+      <div style={{ display: 'flex', height: '100dvh', background: '#eef2f7', overflow: 'hidden' }}>
+        <DesktopSidebar
+          profile={otherProfile}
+          allPhotos={allPhotos}
+          isOnline={isOnline}
+          onlineStatusText={onlineStatusText}
+        />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {chatColumn}
+        </div>
+      </div>
+    );
+  }
+
+  return chatColumn;
 }
 
 const S = {
@@ -470,7 +577,7 @@ const S = {
   bubbleText: { margin: 0, fontSize: 15, lineHeight: 1.45, color: "#1a1a2e", fontWeight: 600, wordBreak: "break-word" },
   bubbleTime: { fontSize: 10, alignSelf: "flex-end", fontWeight: 700 },
   emojiPickerWrap: { position: "absolute", bottom: 80, left: 8, zIndex: 50 },
-  gifPickerWrap: { position: "absolute", bottom: 80, left: 44, zIndex: 50 }, // ── NEW
+  gifPickerWrap: { position: "absolute", bottom: 80, left: 44, zIndex: 50 },
   inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px 14px", background: "#fff", borderTop: "1px solid #e8ecf0", boxShadow: "0 -2px 8px rgba(0,0,0,0.04)" },
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s" },
   gifBtn: { borderRadius: 6, padding: "3px 6px" },
