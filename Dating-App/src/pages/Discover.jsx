@@ -175,7 +175,7 @@ export default function Discover() {
 }
 
 const S = {
-  page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80 },
+  page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 60 },
   header: {
     padding: '10px 15px',
     display: 'flex',
