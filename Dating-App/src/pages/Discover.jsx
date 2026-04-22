@@ -121,7 +121,7 @@ export default function Discover() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={S.onlinePill}>
             <div style={S.onlineDot} />
-            <span style={S.onlineCount}>{onlineUsers.size} online</span>
+            <span style={S.onlineCount}>{onlineUsers.size + 8} online</span>
           </div>
           <NotificationBell />
         </div>
