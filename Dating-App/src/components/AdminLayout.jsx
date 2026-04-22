@@ -190,7 +190,7 @@ export default function AdminLayout({ children }) {
       <main style={S.main}>
         <div style={S.header}>
           <div style={{ color: '#94a3b8', fontSize: 13 }}>
-            {new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* ── View App ── */}
