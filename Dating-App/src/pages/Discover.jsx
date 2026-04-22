@@ -116,14 +116,6 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      <div style={S.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src={logoImg} alt='logo' style={{ height: 36, width: 36, borderRadius: '50%', objectFit: 'cover' }} />
-          <div style={S.onlinePill}>
-            <div style={S.onlineDot} />
-            <span style={S.onlineCount}>{onlineUsers.size + 8} online</span>
-          </div>
-        </div>
       </div>
 
       {loading ? (
