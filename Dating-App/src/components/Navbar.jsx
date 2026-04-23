@@ -99,7 +99,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Center: Nav buttons */}
+      {/* Center: Discover | Messages | Admin | Avatar dropdown */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 80, justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
@@ -119,12 +119,8 @@ export default function Navbar() {
             <span style={{ fontSize: '11px' }}>Admin</span>
           </button>
         )}
-      </div>
 
-      {/* Right: NotificationBell + Profile avatar dropdown */}
-      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <NotificationBell />
-
+        {/* Avatar dropdown — positioned where Profile used to be */}
         <div style={{ position: 'relative' }} ref={menuRef}>
           <button
             onClick={() => setShowProfileMenu(v => !v)}
@@ -178,6 +174,11 @@ export default function Navbar() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Right: NotificationBell */}
+      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center' }}>
+        <NotificationBell />
       </div>
 
     </div>

@@ -6,6 +6,7 @@ import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
+const FREE_LIMIT = 3;
 
 function getChatId(uid1, uid2) { return [uid1, uid2].sort().join("_"); }
 function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
@@ -41,13 +42,75 @@ function useIsDesktop(breakpoint = 900) {
   return isDesktop;
 }
 
-// ── Desktop Sidebar: photo slideshow + bio (centered) ──────
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
-  const [idx, setIdx] = useState(0);
-  const total = allPhotos.length;
-  const prev = () => setIdx(i => (i - 1 + total) % total);
-  const next = () => setIdx(i => (i + 1) % total);
+// ── Sidebar Photo Carousel with lock ────────────────────────
+function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
+  const [current, setCurrent] = useState(0);
+  if (!photos || photos.length === 0) {
+    return <div style={SC.noPhoto}>No photos</div>;
+  }
+  const prev = () => setCurrent(i => (i - 1 + photos.length) % photos.length);
+  const next = () => setCurrent(i => (i + 1) % photos.length);
+  const isLocked = !isSubscriber && current >= FREE_LIMIT;
 
+  return (
+    <div style={SC.wrap}>
+      <img
+        key={current}
+        src={photos[current]}
+        alt={`photo-${current}`}
+        style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+      />
+
+      {isLocked && (
+        <div style={SC.lockOverlay}>
+          <div style={SC.lockBox}>
+            <div style={SC.lockIcon}>🔒</div>
+            <div style={SC.lockTitle}>Priority Members Only</div>
+            <div style={SC.lockSub}>Available to Priority Members</div>
+            <button style={SC.lockBtn} onClick={onUpgrade}>🚀 Upgrade for full access</button>
+          </div>
+        </div>
+      )}
+
+      {photos.length > 1 && (
+        <>
+          <button style={{ ...SC.arrow, left: 8 }} onClick={prev}>‹</button>
+          <button style={{ ...SC.arrow, right: 8 }} onClick={next}>›</button>
+          <div style={SC.counter}>{current + 1} / {photos.length}</div>
+          <div style={SC.dots}>
+            {photos.map((_, i) => (
+              <div key={i} style={{ ...SC.dot, background: i === current ? '#e91e63' : 'rgba(255,255,255,0.6)' }} onClick={() => setCurrent(i)} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {!isSubscriber && photos.length > FREE_LIMIT && (
+        <div style={SC.freeBadge}>🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free</div>
+      )}
+    </div>
+  );
+}
+
+const SC = {
+  wrap: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#fce4ec', marginBottom: 8 },
+  img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'filter 0.3s, transform 0.3s' },
+  noPhoto: { width: '100%', aspectRatio: '3/4', borderRadius: 16, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13, marginBottom: 8 },
+  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: '#333', lineHeight: 1, paddingBottom: 3, zIndex: 5 },
+  counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
+  freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.85)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 3 },
+  dot: { width: 6, height: 6, borderRadius: '50%', cursor: 'pointer' },
+  lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20 },
+  lockBox: { textAlign: 'center', padding: '20px 16px', background: 'rgba(255,255,255,0.95)', borderRadius: 16, boxShadow: '0 8px 24px rgba(233,30,99,0.2)', maxWidth: 220 },
+  lockIcon: { fontSize: 32, marginBottom: 6 },
+  lockTitle: { fontSize: 14, fontWeight: 800, color: '#1a1a2e', marginBottom: 6 },
+  lockSub: { fontSize: 12, color: '#666', marginBottom: 12, lineHeight: 1.4 },
+  lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+};
+
+// ── Desktop Sidebar ──────────────────────────────────────────
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -61,27 +124,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
   return (
     <div style={DS.wrap}>
       <div style={DS.inner}>
-        <div style={DS.photoBox}>
-          {total > 0 ? (
-            <>
-              <img src={allPhotos[idx]} alt="" style={DS.photo} />
-              {total > 1 && (
-                <>
-                  <button style={{ ...DS.arrow, left: 8 }} onClick={prev}>‹</button>
-                  <button style={{ ...DS.arrow, right: 8 }} onClick={next}>›</button>
-                  <div style={DS.counter}>{idx + 1} / {total}</div>
-                  <div style={DS.dots}>
-                    {allPhotos.map((_, i) => (
-                      <div key={i} style={{ ...DS.dot, background: i === idx ? '#e91e63' : 'rgba(255,255,255,0.6)' }} />
-                    ))}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div style={DS.noPhoto}>No photos</div>
-          )}
-        </div>
+        <SidebarPhotoCarousel photos={allPhotos} isSubscriber={isSubscriber} onUpgrade={onUpgrade} />
 
         <div style={DS.nameRow}>
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
@@ -119,13 +162,6 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText }) {
 const DS = {
   wrap: { width: 360, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
-  photoBox: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#f0f0f0', marginBottom: 8 },
-  photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  noPhoto: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13 },
-  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: '#333', lineHeight: 1, paddingBottom: 3 },
-  counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12 },
-  dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 },
-  dot: { width: 6, height: 6, borderRadius: '50%' },
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#1a1a2e' },
   verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
@@ -139,7 +175,7 @@ const DS = {
   chip: { fontSize: 12, fontWeight: 600, background: '#fce4ec', color: '#c2185b', padding: '5px 10px', borderRadius: 99 },
 };
 
-// ── GIF Picker Component ────────────────────────────────────
+// ── GIF Picker ──────────────────────────────────────────────
 function GifPicker({ onSelect }) {
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState([]);
@@ -156,11 +192,7 @@ function GifPicker({ onSelect }) {
       const res = await fetch(endpoint);
       const json = await res.json();
       setGifs(json.data || []);
-    } catch (e) {
-      console.error("Giphy error:", e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error("Giphy error:", e); } finally { setLoading(false); }
   };
 
   const handleSearch = (e) => {
@@ -212,6 +244,7 @@ export default function RoomChat() {
   const [ticketMsg, setTicketMsg] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
   const [showGif, setShowGif] = useState(false);
+  const [isSubscriber, setIsSubscriber] = useState(false);
 
   const submitReport = async () => {
     if (!reportReason || !session) return;
@@ -254,6 +287,16 @@ export default function RoomChat() {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Check if current user is subscriber
+  useEffect(() => {
+    if (!session) return;
+    supabase.from('profiles').select('subscription_plan').eq('id', session.user.id).maybeSingle()
+      .then(({ data }) => {
+        const plan = data?.subscription_plan;
+        setIsSubscriber(plan === 'gold' || plan === 'platinum');
+      });
+  }, [session]);
 
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
 
@@ -342,6 +385,8 @@ export default function RoomChat() {
     if (mediaRecorder) { mediaRecorder.stop(); setRecording(false); setMediaRecorder(null); }
   };
 
+  const handleUpgrade = () => navigate('/subscription');
+
   const profileAge    = otherProfile?.details?.age    ?? "";
   const profileGender = otherProfile?.details?.gender ?? "";
   const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
@@ -372,11 +417,14 @@ export default function RoomChat() {
         .icon-btn:active { transform: scale(0.88); }
         .photo-thumb { transition: transform 0.15s; cursor: pointer; }
         .photo-thumb:hover { transform: scale(1.05); }
+        .back-btn-big:hover { background: #fce4ec; }
       `}</style>
 
       <div style={S.header}>
-        <button style={S.backBtn} onClick={() => navigate(-1)}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        {/* BIG, EYE-CATCHING BACK BUTTON */}
+        <button className="back-btn-big" style={S.backBtnBig} onClick={() => navigate(-1)}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          <span style={{ fontSize: 14, fontWeight: 800 }}>Back</span>
         </button>
         <div style={{ ...S.headerInfo, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           <div style={S.nameGenderRow}>
@@ -529,6 +577,8 @@ export default function RoomChat() {
           allPhotos={allPhotos}
           isOnline={isOnline}
           onlineStatusText={onlineStatusText}
+          isSubscriber={isSubscriber}
+          onUpgrade={handleUpgrade}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}
@@ -545,7 +595,8 @@ const S = {
   loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#eef2f7" },
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#c9a4d4", animation: "bounce 1.2s ease-in-out infinite" },
   header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#fff", borderBottom: "1px solid #e8ecf0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", minHeight: 72, position: "relative", zIndex: 10 },
-  backBtn: { background: "none", border: "none", cursor: "pointer", color: "#5b9bd5", padding: "4px 2px", display: "flex", alignItems: "center", flexShrink: 0 },
+  // BIG back button — pink pill, easy to see
+  backBtnBig: { display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '2px solid #e91e63', cursor: 'pointer', color: '#e91e63', padding: '8px 16px', borderRadius: 24, flexShrink: 0, transition: 'background 0.15s', boxShadow: '0 2px 6px rgba(233,30,99,0.15)' },
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0, marginLeft: 30 },
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
   headerName: { fontSize: 16, fontWeight: 800, color: "#1a1a2e", whiteSpace: "nowrap" },
