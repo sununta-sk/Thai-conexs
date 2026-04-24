@@ -71,14 +71,14 @@ export default function Navbar() {
       position: 'fixed',
       top: 0,
       width: '100%',
-      background: '#ffffff',
+      background: '#1e293b',
       display: 'grid',
       gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
       padding: '10px 20px',
-      borderBottom: '1px solid #eeeeee',
+      borderBottom: '1px solid #334155',
       zIndex: 1000,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       boxSizing: 'border-box',
     }}>
 
@@ -87,12 +87,12 @@ export default function Navbar() {
         <img
           src={logoImg}
           alt="Thai Conexns"
-          style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}
+          style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', boxShadow: '0 2px 6px rgba(233,30,99,0.3)' }}
           onClick={() => goTo('/discover')}
         />
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          background: '#e8f5e9', borderRadius: 14, padding: '6px 12px',
+          background: 'rgba(76, 175, 80, 0.15)', border: '1px solid rgba(76, 175, 80, 0.3)', borderRadius: 14, padding: '6px 12px',
         }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4caf50' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: '#4caf50' }}>{onlineCount} online</span>
@@ -120,7 +120,7 @@ export default function Navbar() {
           </button>
         )}
 
-        {/* Avatar dropdown — positioned where Profile used to be */}
+        {/* Avatar dropdown */}
         <div style={{ position: 'relative' }} ref={menuRef}>
           <button
             onClick={() => setShowProfileMenu(v => !v)}
@@ -135,15 +135,15 @@ export default function Navbar() {
               borderRadius: 30,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#334155'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
           >
             {myAvatar ? (
-              <img src={myAvatar} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #eee' }} />
+              <img src={myAvatar} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #334155' }} />
             ) : (
-              <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+              <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
             )}
-            <span style={{ fontSize: 12, color: '#666', fontWeight: 700 }}>▼</span>
+            <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>▼</span>
           </button>
 
           {showProfileMenu && (
@@ -151,17 +151,17 @@ export default function Navbar() {
               position: 'absolute',
               top: '110%',
               right: 0,
-              background: '#fff',
+              background: '#1e293b',
               borderRadius: 12,
-              boxShadow: '0 6px 28px rgba(0,0,0,0.15)',
+              boxShadow: '0 6px 28px rgba(0,0,0,0.5)',
               minWidth: 200,
               overflow: 'hidden',
               zIndex: 100,
-              border: '1px solid #eee',
+              border: '1px solid #334155',
             }}>
               {myUsername && (
-                <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', background: '#fafafa' }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: '#1a1a2e' }}>{myUsername}</div>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid #334155', background: '#0f172a' }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>{myUsername}</div>
                 </div>
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ Edit Profile</MenuItem>
@@ -169,7 +169,7 @@ export default function Navbar() {
               <MenuItem onClick={() => goTo('/profile-setup')}>⚙️ Account Settings</MenuItem>
               <MenuItem onClick={() => goTo('/subscription')}>⭐ Upgrade</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 Notifications</MenuItem>
-              <div style={{ borderTop: '1px solid #f0f0f0' }} />
+              <div style={{ borderTop: '1px solid #334155' }} />
               <MenuItem onClick={handleLogout} color="#e91e63">🚪 Logout</MenuItem>
             </div>
           )}
@@ -185,7 +185,7 @@ export default function Navbar() {
   );
 }
 
-function MenuItem({ children, onClick, color = '#334155' }) {
+function MenuItem({ children, onClick, color = '#94a3b8' }) {
   return (
     <button
       onClick={onClick}
@@ -202,7 +202,7 @@ function MenuItem({ children, onClick, color = '#334155' }) {
         color: color,
         transition: 'background 0.15s',
       }}
-      onMouseEnter={(e) => e.currentTarget.style.background = '#f9fafb'}
+      onMouseEnter={(e) => e.currentTarget.style.background = '#334155'}
       onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
     >
       {children}
@@ -217,7 +217,7 @@ const navBtnStyle = (active) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  color: active ? '#e91e63' : '#888',
+  color: active ? '#e91e63' : '#94a3b8',
   cursor: 'pointer',
   transition: '0.2s',
   padding: '4px 14px',

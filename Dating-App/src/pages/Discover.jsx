@@ -96,7 +96,6 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate(`/room-chat/${getChatId(currentUserId, targetUserId)}`);
 
-  // กดการ์ด: desktop → chat ตรงๆ, mobile → bio
   const handleCardClick = (targetUserId) => {
     if (window.innerWidth >= 900) {
       navigate(`/room-chat/${getChatId(currentUserId, targetUserId)}`);
@@ -107,7 +106,7 @@ export default function Discover() {
 
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
-    if (!raw) return 'https://placehold.co/150x150?text=No+Photo';
+    if (!raw) return 'https://placehold.co/150x150/1e293b/94a3b8?text=No+Photo';
     if (typeof raw === 'string') return raw;
     return raw.url;
   };
@@ -136,13 +135,13 @@ export default function Discover() {
                 <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} />
                   {profile.is_verified && <div style={S.verifiedBadge}>✓</div>}
-                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#bbb' }} />
+                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
                 </div>
 
                 <div style={S.info}>
                   <div style={S.name}>{profile.username || '—'}</div>
                   {metaParts.length > 0 && <div style={S.meta}>{metaParts.join(', ')}</div>}
-                  <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#999' }}>{lastSeen}</div>
+                  <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#64748b' }}>{lastSeen}</div>
                 </div>
 
                 <div style={S.actions}>
@@ -159,7 +158,7 @@ export default function Discover() {
 }
 
 const S = {
-  page: { background: '#f5f5f5', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
+  page: { background: '#0f172a', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(6, 130px)',
@@ -170,17 +169,18 @@ const S = {
     margin: '0 auto',
   },
   card: {
-    background: '#fff',
+    background: '#1e293b',
+    border: '1px solid #334155',
     borderRadius: '8px',
     overflow: 'hidden',
     cursor: 'pointer',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
   },
   photoWrap: {
     position: 'relative',
     width: '100%',
     aspectRatio: '1/1',
-    background: '#eee',
+    background: '#334155',
     overflow: 'hidden',
   },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
@@ -194,15 +194,15 @@ const S = {
   onlineBadge: {
     position: 'absolute', top: 5, right: 5,
     width: 11, height: 11, borderRadius: '50%',
-    border: '2px solid #fff',
+    border: '2px solid #1e293b',
   },
   info: { padding: '8px 8px 4px' },
   name: {
-    fontSize: '13px', fontWeight: 700, color: '#333',
+    fontSize: '13px', fontWeight: 700, color: '#f1f5f9',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   meta: {
-    fontSize: '11px', color: '#777', marginTop: '1px',
+    fontSize: '11px', color: '#94a3b8', marginTop: '1px',
     whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   },
   lastSeen: { fontSize: '10px', marginTop: '1px', fontWeight: 600 },
@@ -211,18 +211,19 @@ const S = {
     justifyContent: 'space-around',
     alignItems: 'center',
     padding: '4px',
-    borderTop: '1px solid #f0f0f0',
+    borderTop: '1px solid #334155',
   },
   btnX: {
     background: 'none', border: 'none',
-    color: '#ccc', fontSize: '13px',
+    color: '#64748b', fontSize: '13px',
     cursor: 'pointer', padding: '3px 10px',
   },
   btnChat: {
-    background: '#fce4ec', border: 'none',
+    background: 'rgba(233, 30, 99, 0.15)',
+    border: '1px solid rgba(233, 30, 99, 0.3)',
     borderRadius: '12px', color: '#e91e63',
     fontSize: '13px', cursor: 'pointer',
     padding: '3px 10px',
   },
-  emptyState: { textAlign: 'center', padding: '60px 20px', color: '#999', fontSize: 14 },
+  emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 };
