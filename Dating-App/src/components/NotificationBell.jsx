@@ -76,18 +76,18 @@ export default function NotificationBell() {
             alignItems: "center", padding: "12px 16px",
             borderBottom: "1px solid #334155",
           }}>
-            <span style={{ fontWeight: 700 }}>การแจ้งเตือน</span>
+            <span style={{ fontWeight: 700 }}>Notifications</span>
             <div style={{ display: "flex", gap: 8 }}>
               {hasUnread && (
                 <button onClick={markAllAsRead} style={{
                   background: "none", border: "none", color: "#e91e63",
                   cursor: "pointer", fontSize: 12,
-                }}>อ่านทั้งหมด</button>
+                }}>Mark all read</button>
               )}
               <button onClick={() => { navigate("/notifications"); setOpen(false); }} style={{
                 background: "none", border: "none", color: "#94a3b8",
                 cursor: "pointer", fontSize: 12,
-              }}>ดูทั้งหมด →</button>
+              }}>See all →</button>
             </div>
           </div>
 
@@ -96,19 +96,19 @@ export default function NotificationBell() {
               padding: "10px 16px", background: "#0f172a",
               display: "flex", justifyContent: "space-between", alignItems: "center",
             }}>
-              <span style={{ fontSize: 12, color: "#94a3b8" }}>เปิดรับการแจ้งเตือน</span>
+              <span style={{ fontSize: 12, color: "#94a3b8" }}>เปิดรับNotifications</span>
               <button onClick={handleRequestPermission} disabled={requesting} style={{
                 background: "#e91e63", border: "none", color: "#fff",
                 borderRadius: 6, padding: "4px 10px", cursor: "pointer", fontSize: 12,
               }}>
-                {requesting ? "..." : "เปิด"}
+                {requesting ? "..." : "Enable"}
               </button>
             </div>
           )}
 
           {notifications.length === 0 ? (
             <div style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
-              ไม่มีการแจ้งเตือน
+              ไม่มีNotifications
             </div>
           ) : (
             notifications.slice(0, 5).map(notif => (
