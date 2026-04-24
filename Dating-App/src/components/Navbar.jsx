@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
-import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const navigate  = useNavigate();
@@ -178,7 +177,6 @@ export default function Navbar() {
 
       {/* Right: NotificationBell */}
       <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center' }}>
-        <NotificationBell />
       </div>
 
     </div>
