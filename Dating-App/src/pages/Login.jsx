@@ -31,7 +31,7 @@ const CONTENT = {
   },
 };
 
-// ── User Photo Grid (แทน card stack) ──────────────────────────
+// ── User Photo Grid ──────────────────────────────────────────
 function UserPhotoGrid() {
   const [profiles, setProfiles] = useState([]);
 
@@ -46,8 +46,7 @@ function UserPhotoGrid() {
       });
   }, []);
 
-  // fallback ถ้าไม่มี user
-  const fallbackColors = ['#fce4ec','#f8bbd0','#f48fb1','#f06292','#e91e63','#fce4ec','#fdf0f5','#fce4ec'];
+  const fallbackColors = ['#334155','#1e293b','#475569','#64748b','#e91e63','#334155','#1e293b','#475569'];
 
   return (
     <div style={G.wrap}>
@@ -73,7 +72,6 @@ function UserPhotoGrid() {
             </div>
           ))
         ) : (
-          // fallback placeholder cells
           Array.from({ length: 12 }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
           ))
@@ -86,23 +84,23 @@ function UserPhotoGrid() {
 const G = {
   wrap: {
     width: '100%',
-    height: '100%',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '20px 16px',
-    gap: 12,
+    padding: '24px 20px 16px',
+    gap: 14,
   },
   onlineBanner: {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    background: '#fff',
+    background: '#1e293b',
+    border: '1px solid #334155',
     borderRadius: 999,
     padding: '6px 16px',
-    boxShadow: '0 2px 12px rgba(233,30,99,0.12)',
-    marginBottom: 8,
+    boxShadow: '0 2px 12px rgba(233,30,99,0.2)',
+    marginBottom: 4,
   },
   onlineDot: {
     display: 'inline-block',
@@ -114,7 +112,7 @@ const G = {
   onlineText: {
     fontSize: 13,
     fontWeight: 700,
-    color: '#1a1a2e',
+    color: '#f1f5f9',
   },
   grid: {
     display: 'grid',
@@ -128,7 +126,7 @@ const G = {
     aspectRatio: '1/1',
     borderRadius: 12,
     overflow: 'hidden',
-    background: '#fce4ec',
+    background: '#334155',
   },
   img: {
     width: '100%',
@@ -139,7 +137,7 @@ const G = {
   badge: {
     position: 'absolute',
     bottom: 4, right: 4,
-    background: 'rgba(233,30,99,0.85)',
+    background: 'rgba(233,30,99,0.9)',
     color: '#fff',
     fontSize: 10,
     borderRadius: 999,
@@ -173,7 +171,7 @@ export default function Login() {
   const c = CONTENT[lang];
 
   return (
-    <div style={{ background: '#fff', position: 'relative' }}>
+    <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
 
       {/* Language Toggle */}
       <div style={S.langToggle}>
@@ -207,13 +205,23 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Photo grid side — แทน card stack */}
+        {/* Photo grid side + BIG Join button under it */}
         <div style={S.cardsWrap}>
           <UserPhotoGrid />
+
+          {/* ⭐ BIG Join Button — moved here from bottom */}
+          <div style={S.joinWrap}>
+            <Link to="/register" style={S.joinBtn}>
+              {c.cta}
+            </Link>
+            <p style={S.joinSubtext}>
+              {lang === 'en' ? 'No credit card required • Free to join' : 'ไม่ต้องใช้บัตรเครดิต • สมัครฟรี'}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* About Section — ไม่แตะ */}
+      {/* About Section — dark theme */}
       <div style={S.about}>
         <div style={S.aboutInner}>
           <h2 style={S.aboutTitle}>{c.title}</h2>
@@ -227,10 +235,6 @@ export default function Login() {
           {c.paragraphs.map((p, i) => (
             <p key={i} style={S.aboutText}>{p}</p>
           ))}
-
-          <div style={{ textAlign: 'center', margin: '40px 0 32px' }}>
-            <Link to="/register" style={S.ctaBtn}>{c.cta}</Link>
-          </div>
 
           <div style={S.footerLinks}>
             <a href="#" style={S.footerLink}>Privacy Policy</a>
@@ -249,31 +253,51 @@ export default function Login() {
 const S = {
   langToggle: { position: 'fixed', top: '16px', right: '16px', display: 'flex', gap: '6px', zIndex: 100 },
   flagBtn: { background: 'none', border: 'none', fontSize: '26px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
-  page: { display: 'flex', minHeight: '100vh', background: '#fff' },
-  formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#fff' },
+  page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
+  formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  logo: { width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.25)', marginBottom: '20px' },
-  heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center' },
-  subheading: { margin: '0 0 32px', color: '#999', fontSize: '16px', textAlign: 'center' },
+  logo: { width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.4)', marginBottom: '20px' },
+  heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
+  subheading: { margin: '0 0 32px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
-  input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #e8e8e8', fontSize: '17px', background: '#fafafa', color: '#333', outline: 'none' },
+  input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
   divider: { display: 'flex', alignItems: 'center', margin: '6px 0' },
-  hr: { flex: 1, border: 'none', borderTop: '1px solid #eee' },
-  orText: { padding: '0 14px', color: '#ccc', fontSize: '14px' },
-  btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #e8e8e8', background: '#fff', color: '#555', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-  signupText: { marginTop: '24px', textAlign: 'center', color: '#aaa', fontSize: '15px' },
+  hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
+  orText: { padding: '0 14px', color: '#64748b', fontSize: '14px' },
+  btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
+  signupText: { marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   signupLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
-  cardsWrap: { width: '420px', flexShrink: 0, background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  about: { background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', borderTop: '1px solid #f8bbd0', padding: '60px 20px 40px' },
+  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' },
+
+  // ⭐ Big Join CTA under photo grid
+  joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
+  joinBtn: {
+    display: 'inline-block',
+    width: '100%',
+    maxWidth: 380,
+    padding: '22px 32px',
+    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: '20px',
+    borderRadius: '50px',
+    textDecoration: 'none',
+    boxShadow: '0 10px 32px rgba(233,30,99,0.5), 0 0 0 1px rgba(233,30,99,0.3)',
+    letterSpacing: '0.5px',
+    textAlign: 'center',
+    transition: 'transform 0.15s, box-shadow 0.15s',
+  },
+  joinSubtext: { color: '#94a3b8', fontSize: 13, fontWeight: 600, margin: 0, textAlign: 'center' },
+
+  about: { background: '#0f172a', borderTop: '1px solid #334155', padding: '60px 20px 40px' },
   aboutInner: { maxWidth: '800px', margin: '0 auto' },
-  aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#1a1a2e', textAlign: 'center', marginBottom: '32px' },
+  aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center', marginBottom: '32px' },
   photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' },
-  photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(233,30,99,0.12)', aspectRatio: '4/3' },
+  photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', aspectRatio: '4/3', border: '1px solid #334155' },
   photoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  aboutText: { fontSize: '17px', lineHeight: '1.9', color: '#555', marginBottom: '20px' },
-  ctaBtn: { display: 'inline-block', padding: '20px 56px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: '18px', borderRadius: '50px', textDecoration: 'none', boxShadow: '0 8px 28px rgba(233,30,99,0.35)', letterSpacing: '0.5px' },
+  aboutText: { fontSize: '17px', lineHeight: '1.9', color: '#94a3b8', marginBottom: '20px' },
   footerLinks: { display: 'flex', flexWrap: 'wrap', gap: '16px', justifyContent: 'center', marginTop: '32px', marginBottom: '16px' },
   footerLink: { color: '#e91e63', fontSize: '14px', textDecoration: 'none' },
-  copyright: { textAlign: 'center', color: '#999', fontSize: '13px', marginTop: '8px' },
+  copyright: { textAlign: 'center', color: '#64748b', fontSize: '13px', marginTop: '8px' },
 };
