@@ -31,7 +31,6 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// ── Hook: detect desktop viewport ────────────────────────────
 function useIsDesktop(breakpoint = 900) {
   const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= breakpoint : false);
   useEffect(() => {
@@ -42,7 +41,6 @@ function useIsDesktop(breakpoint = 900) {
   return isDesktop;
 }
 
-// ── Sidebar Photo Carousel with lock ────────────────────────
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
   if (!photos || photos.length === 0) {
@@ -93,23 +91,22 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 }
 
 const SC = {
-  wrap: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#fce4ec', marginBottom: 8 },
+  wrap: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#0f172a', marginBottom: 8, border: '1px solid #334155' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'filter 0.3s, transform 0.3s' },
-  noPhoto: { width: '100%', aspectRatio: '3/4', borderRadius: 16, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 13, marginBottom: 8 },
-  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', color: '#333', lineHeight: 1, paddingBottom: 3, zIndex: 5 },
-  counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
-  freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.85)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  noPhoto: { width: '100%', aspectRatio: '3/4', borderRadius: 16, background: '#0f172a', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, marginBottom: 8 },
+  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.9)', border: '1px solid #334155', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', color: '#f1f5f9', lineHeight: 1, paddingBottom: 3, zIndex: 5 },
+  counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
+  freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 3 },
   dot: { width: 6, height: 6, borderRadius: '50%', cursor: 'pointer' },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20 },
-  lockBox: { textAlign: 'center', padding: '20px 16px', background: 'rgba(255,255,255,0.95)', borderRadius: 16, boxShadow: '0 8px 24px rgba(233,30,99,0.2)', maxWidth: 220 },
+  lockBox: { textAlign: 'center', padding: '20px 16px', background: 'rgba(30, 41, 59, 0.95)', border: '1px solid #334155', borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxWidth: 220 },
   lockIcon: { fontSize: 32, marginBottom: 6 },
-  lockTitle: { fontSize: 14, fontWeight: 800, color: '#1a1a2e', marginBottom: 6 },
-  lockSub: { fontSize: 12, color: '#666', marginBottom: 12, lineHeight: 1.4 },
+  lockTitle: { fontSize: 14, fontWeight: 800, color: '#f1f5f9', marginBottom: 6 },
+  lockSub: { fontSize: 12, color: '#94a3b8', marginBottom: 12, lineHeight: 1.4 },
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-// ── Desktop Sidebar ──────────────────────────────────────────
 function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade }) {
   const d = profile?.details || {};
   const age = d.age || '';
@@ -132,8 +129,8 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
         </div>
 
         <div style={DS.statusRow}>
-          <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#ccc' }} />
-          <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#aaa' }}>{onlineStatusText}</span>
+          <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#64748b' }} />
+          <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#94a3b8' }}>{onlineStatusText}</span>
         </div>
 
         {city && <div style={DS.city}>📍 {city}</div>}
@@ -160,22 +157,21 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
 }
 
 const DS = {
-  wrap: { width: 360, flexShrink: 0, background: '#fff', borderRight: '1px solid #e8ecf0', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
+  wrap: { width: 360, flexShrink: 0, background: '#1e293b', borderRight: '1px solid #334155', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
-  name: { fontSize: 22, fontWeight: 800, color: '#1a1a2e' },
+  name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
   verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
-  city: { fontSize: 13, color: '#666', fontWeight: 600 },
+  city: { fontSize: 13, color: '#94a3b8', fontWeight: 600 },
   sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 14, alignSelf: 'flex-start' },
-  bioText: { fontSize: 14, color: '#333', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
+  bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  chip: { fontSize: 12, fontWeight: 600, background: '#fce4ec', color: '#c2185b', padding: '5px 10px', borderRadius: 99 },
+  chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
 };
 
-// ── GIF Picker ──────────────────────────────────────────────
 function GifPicker({ onSelect }) {
   const [query, setQuery] = useState("");
   const [gifs, setGifs] = useState([]);
@@ -216,15 +212,14 @@ function GifPicker({ onSelect }) {
 }
 
 const GP = {
-  wrap: { width: 300, background: "#fff", borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.15)", overflow: "hidden", display: "flex", flexDirection: "column" },
-  input: { margin: 10, padding: "8px 12px", borderRadius: 20, border: "1px solid #e2e8f0", fontSize: 14, outline: "none", background: "#f8fafc" },
+  wrap: { width: 300, background: "#1e293b", border: '1px solid #334155', borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.5)", overflow: "hidden", display: "flex", flexDirection: "column" },
+  input: { margin: 10, padding: "8px 12px", borderRadius: 20, border: "1px solid #334155", fontSize: 14, outline: "none", background: "#0f172a", color: '#f1f5f9' },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, padding: "0 10px 8px", maxHeight: 260, overflowY: "auto" },
   gif: { width: "100%", borderRadius: 8, cursor: "pointer", objectFit: "cover", aspectRatio: "1/1" },
-  loading: { gridColumn: "1/-1", textAlign: "center", color: "#aaa", fontSize: 13, padding: 20 },
-  poweredBy: { textAlign: "center", fontSize: 10, color: "#aaa", padding: "4px 0 8px", fontWeight: 700, letterSpacing: 0.5 },
+  loading: { gridColumn: "1/-1", textAlign: "center", color: "#64748b", fontSize: 13, padding: 20 },
+  poweredBy: { textAlign: "center", fontSize: 10, color: "#64748b", padding: "4px 0 8px", fontWeight: 700, letterSpacing: 0.5 },
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function RoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
@@ -288,7 +283,6 @@ export default function RoomChat() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Check if current user is subscriber
   useEffect(() => {
     if (!session) return;
     supabase.from('profiles').select('subscription_plan').eq('id', session.user.id).maybeSingle()
@@ -417,11 +411,10 @@ export default function RoomChat() {
         .icon-btn:active { transform: scale(0.88); }
         .photo-thumb { transition: transform 0.15s; cursor: pointer; }
         .photo-thumb:hover { transform: scale(1.05); }
-        .back-btn-big:hover { background: #fce4ec; }
+        .back-btn-big:hover { background: rgba(233, 30, 99, 0.15); }
       `}</style>
 
       <div style={S.header}>
-        {/* BIG, EYE-CATCHING BACK BUTTON */}
         <button className="back-btn-big" style={S.backBtnBig} onClick={() => navigate(-1)}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           <span style={{ fontSize: 14, fontWeight: 800 }}>Back</span>
@@ -433,8 +426,8 @@ export default function RoomChat() {
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
           <div style={S.onlineRow}>
-            <div style={{ ...S.onlineDot, background: isOnline ? "#4caf50" : "#ccc" }} />
-            <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#aaa" }}>{onlineStatusText}</span>
+            <div style={{ ...S.onlineDot, background: isOnline ? "#4caf50" : "#64748b" }} />
+            <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#94a3b8" }}>{onlineStatusText}</span>
           </div>
         </div>
         {!isDesktop && (
@@ -443,7 +436,7 @@ export default function RoomChat() {
               <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
             )) : (
               <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#64748b"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
               </div>
             )}
           </div>
@@ -452,18 +445,18 @@ export default function RoomChat() {
         <div style={{position:'relative'}}>
           <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}><span style={S.moreDots}>···</span></button>
           {showMenu && (
-            <div style={{position:'absolute',right:0,top:'110%',background:'#fff',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:160,overflow:'hidden'}}>
+            <div style={{position:'absolute',right:0,top:'110%',background:'#1e293b',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:100,minWidth:160,overflow:'hidden',border:'1px solid #334155'}}>
               <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
-              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#334155'}}>🎫 Support Ticket</button>
+              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#cbd5e1'}}>🎫 Support Ticket</button>
             </div>
           )}
         </div>
         {showReport && (
-          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
-            <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
-              <div style={{fontWeight:700,marginBottom:12}}>Report User</div>
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
+            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700,marginBottom:12,color:'#f1f5f9'}}>Report User</div>
               {['harassment','fake_profile','inappropriate_photo','spam','scam','underage','other'].map(r => (
-                <label key={r} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,cursor:'pointer'}}>
+                <label key={r} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8,cursor:'pointer',color:'#cbd5e1'}}>
                   <input type="radio" name="reason" value={r} onChange={() => setReportReason(r)} />
                   <span style={{fontSize:14,textTransform:'capitalize'}}>{r.replace('_',' ')}</span>
                 </label>
@@ -473,10 +466,10 @@ export default function RoomChat() {
           </div>
         )}
         {showTicket && (
-          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
-            <div style={{background:'#fff',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
-              <div style={{fontWeight:700,marginBottom:12}}>Support Ticket</div>
-              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder="อธิบายปัญหา..." style={{width:'100%',height:100,borderRadius:8,border:'1px solid #e2e8f0',padding:8,fontSize:14,resize:'none'}} />
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
+            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700,marginBottom:12,color:'#f1f5f9'}}>Support Ticket</div>
+              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder="อธิบายปัญหา..." style={{width:'100%',height:100,borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',padding:8,fontSize:14,resize:'none'}} />
               <button onClick={submitTicket} style={{marginTop:12,width:'100%',padding:'10px',background:'#e91e63',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Send Ticket</button>
             </div>
           </div>
@@ -497,7 +490,7 @@ export default function RoomChat() {
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
                 {!isMine && <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = "none"; }} />}
-                <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs), ...(isGif ? { background: 'transparent', boxShadow: 'none', padding: 0 } : {}) }}>
+                <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs), ...(isGif ? { background: 'transparent', boxShadow: 'none', padding: 0, border: 'none' } : {}) }}>
                   {isGif ? (
                     <img src={msg.content} alt="gif" style={{ maxWidth: 200, borderRadius: 12, display: 'block' }} />
                   ) : isImage ? (
@@ -505,9 +498,9 @@ export default function RoomChat() {
                   ) : isAudio ? (
                     <audio controls src={msg.content} style={{ maxWidth: 220 }} />
                   ) : (
-                    <p style={S.bubbleText}>{msg.content}</p>
+                    <p style={{ ...S.bubbleText, color: isMine ? '#fff' : '#f1f5f9' }}>{msg.content}</p>
                   )}
-                  <span style={{ ...S.bubbleTime, color: isMine ? "rgba(255,255,255,0.65)" : "#aaa", ...(isGif ? { paddingLeft: 4 } : {}) }}>
+                  <span style={{ ...S.bubbleTime, color: isMine ? "rgba(255,255,255,0.7)" : "#64748b", ...(isGif ? { paddingLeft: 4 } : {}) }}>
                     {formatTime(msg.created_at)}
                   </span>
                 </div>
@@ -520,7 +513,7 @@ export default function RoomChat() {
 
       {showEmoji && (
         <div ref={emojiPickerRef} style={S.emojiPickerWrap}>
-          <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="light" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
+          <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="dark" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
         </div>
       )}
 
@@ -531,18 +524,18 @@ export default function RoomChat() {
       )}
 
       <div style={S.inputBar}>
-        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? '#fce4ec' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
           </svg>
         </button>
 
-        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#3a7bbf' : '#5b9bd5' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
+        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
           <span style={S.gifText}>GIF</span>
         </button>
 
         <button className="icon-btn" style={S.iconBtn} title="Photo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5b9bd5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
           </svg>
         </button>
@@ -556,8 +549,8 @@ export default function RoomChat() {
             <span style={S.sendText}>Send</span>
           </button>
         ) : (
-          <button className="icon-btn" style={{...S.iconBtn, background: recording ? '#fce4ec' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={recording ? "#e91e63" : "#5b9bd5"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button className="icon-btn" style={{...S.iconBtn, background: recording ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={recording ? "#f87171" : "#e91e63"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
               <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
               <line x1="12" y1="19" x2="12" y2="23"/>
@@ -571,7 +564,7 @@ export default function RoomChat() {
 
   if (isDesktop) {
     return (
-      <div style={{ display: 'flex', height: '100dvh', background: '#eef2f7', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', height: '100dvh', background: '#0f172a', overflow: 'hidden' }}>
         <DesktopSidebar
           profile={otherProfile}
           allPhotos={allPhotos}
@@ -591,43 +584,42 @@ export default function RoomChat() {
 }
 
 const S = {
-  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#eef2f7", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
-  loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#eef2f7" },
-  loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#c9a4d4", animation: "bounce 1.2s ease-in-out infinite" },
-  header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#fff", borderBottom: "1px solid #e8ecf0", boxShadow: "0 2px 8px rgba(0,0,0,0.06)", minHeight: 72, position: "relative", zIndex: 10 },
-  // BIG back button — pink pill, easy to see
-  backBtnBig: { display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '2px solid #e91e63', cursor: 'pointer', color: '#e91e63', padding: '8px 16px', borderRadius: 24, flexShrink: 0, transition: 'background 0.15s', boxShadow: '0 2px 6px rgba(233,30,99,0.15)' },
+  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#0f172a" },
+  loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
+  header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#1e293b", borderBottom: "1px solid #334155", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", minHeight: 72, position: "relative", zIndex: 10 },
+  backBtnBig: { display: 'flex', alignItems: 'center', gap: 6, background: '#0f172a', border: '2px solid #e91e63', cursor: 'pointer', color: '#e91e63', padding: '8px 16px', borderRadius: 24, flexShrink: 0, transition: 'background 0.15s', boxShadow: '0 2px 6px rgba(233,30,99,0.2)' },
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0, marginLeft: 30 },
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
-  headerName: { fontSize: 16, fontWeight: 800, color: "#1a1a2e", whiteSpace: "nowrap" },
-  genderBadge: { fontSize: 11, fontWeight: 700, color: "#e91e63", background: "#fce4ec", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
-  headerMeta: { fontSize: 12, color: "#666", fontWeight: 600 },
+  headerName: { fontSize: 16, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap" },
+  genderBadge: { fontSize: 11, fontWeight: 700, color: "#e91e63", background: "rgba(233, 30, 99, 0.15)", border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
+  headerMeta: { fontSize: 12, color: "#94a3b8", fontWeight: 600 },
   onlineRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 1 },
   onlineDot: { width: 7, height: 7, borderRadius: "50%" },
   onlineText: { fontSize: 12, fontWeight: 700 },
   photoStrip: { display: "flex", gap: 6, overflowX: "auto", flex: 1, alignItems: "center", padding: "0 4px", scrollbarWidth: "none" },
-  photoThumb: { width: 52, height: 52, borderRadius: 10, objectFit: "cover", border: "2px solid #e8ecf0", flexShrink: 0 },
-  photoPlaceholder: { width: 52, height: 52, borderRadius: 10, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  photoThumb: { width: 52, height: 52, borderRadius: 10, objectFit: "cover", border: "2px solid #334155", flexShrink: 0 },
+  photoPlaceholder: { width: 52, height: 52, borderRadius: 10, background: "#0f172a", border: '1px solid #334155', display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   moreBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 6px", flexShrink: 0 },
-  moreDots: { fontSize: 22, color: "#999", letterSpacing: 1, fontWeight: 900 },
-  messageArea: { flex: 1, overflowY: "auto", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 4 },
-  emptyState: { textAlign: "center", color: "#aaa", fontSize: 14, marginTop: 40, fontWeight: 600 },
-  separator: { textAlign: "center", color: "#aaa", fontSize: 12, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },
+  moreDots: { fontSize: 22, color: "#94a3b8", letterSpacing: 1, fontWeight: 900 },
+  messageArea: { flex: 1, overflowY: "auto", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
+  emptyState: { textAlign: "center", color: "#64748b", fontSize: 14, marginTop: 40, fontWeight: 600 },
+  separator: { textAlign: "center", color: "#64748b", fontSize: 12, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },
   msgRow: { display: "flex", alignItems: "flex-end", gap: 7, marginBottom: 4 },
-  msgAvatar: { width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid #fff", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" },
-  bubble: { maxWidth: "72%", padding: "10px 14px", borderRadius: 20, display: "flex", flexDirection: "column", gap: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" },
-  bubbleMine: { background: "linear-gradient(135deg, #e8b4f0 0%, #d4a0e8 100%)", borderBottomRightRadius: 5, alignSelf: "flex-end" },
-  bubbleTheirs: { background: "#fff", borderBottomLeftRadius: 5, alignSelf: "flex-start" },
-  bubbleText: { margin: 0, fontSize: 15, lineHeight: 1.45, color: "#1a1a2e", fontWeight: 600, wordBreak: "break-word" },
+  msgAvatar: { width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: "2px solid #334155", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" },
+  bubble: { maxWidth: "72%", padding: "10px 14px", borderRadius: 20, display: "flex", flexDirection: "column", gap: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.3)" },
+  bubbleMine: { background: "linear-gradient(135deg, #e91e63, #c2185b)", borderBottomRightRadius: 5, alignSelf: "flex-end" },
+  bubbleTheirs: { background: "#1e293b", border: '1px solid #334155', borderBottomLeftRadius: 5, alignSelf: "flex-start" },
+  bubbleText: { margin: 0, fontSize: 15, lineHeight: 1.45, fontWeight: 600, wordBreak: "break-word" },
   bubbleTime: { fontSize: 10, alignSelf: "flex-end", fontWeight: 700 },
   emojiPickerWrap: { position: "absolute", bottom: 80, left: 8, zIndex: 50 },
   gifPickerWrap: { position: "absolute", bottom: 80, left: 44, zIndex: 50 },
-  inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px 14px", background: "#fff", borderTop: "1px solid #e8ecf0", boxShadow: "0 -2px 8px rgba(0,0,0,0.04)" },
+  inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px 14px", background: "#1e293b", borderTop: "1px solid #334155", boxShadow: "0 -2px 8px rgba(0,0,0,0.3)" },
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s" },
   gifBtn: { borderRadius: 6, padding: "3px 6px" },
   gifText: { color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 0.5 },
-  inputWrap: { flex: 1, background: "#f2f4f7", borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
-  textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#1a1a2e", lineHeight: 1.4, maxHeight: 80 },
+  inputWrap: { flex: 1, background: "#0f172a", border: '1px solid #334155', borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
+  textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
   sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
-  sendText: { fontSize: 15, fontWeight: 800, color: "#5b9bd5" },
+  sendText: { fontSize: 15, fontWeight: 800, color: "#e91e63" },
 };
