@@ -56,14 +56,14 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #f1f5f9;
+    background-color: #0f172a;
   }
   a:hover {
     color: #747bff;
   }
   button {
-    background-color: #f9f9f9;
+    background-color: #1e293b;
   }
   @keyframes boostFloat {
     0%, 100% { transform: translateY(0); }
