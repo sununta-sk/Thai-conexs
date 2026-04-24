@@ -269,17 +269,17 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
   };
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#475569' }}>{label}</label>
+      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#94a3b8' }}>{label}</label>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {options.map(opt => {
           const active = multi ? (Array.isArray(value) && value.includes(opt)) : value === opt;
           return (
             <button key={opt} onClick={() => toggle(opt)} type="button"
               style={{
-                padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none',
-                background: active ? 'linear-gradient(135deg, #6366f1, #a855f7)' : '#f1f5f9',
-                color: active ? '#fff' : '#475569',
-                boxShadow: active ? '0 2px 8px rgba(99,102,241,0.3)' : 'none',
+                padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: '1px solid ' + (active ? '#e91e63' : '#334155'),
+                background: active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : '#0f172a',
+                color: active ? '#fff' : '#94a3b8',
+                boxShadow: active ? '0 2px 8px rgba(233,30,99,0.3)' : 'none',
                 transition: 'all 0.15s',
               }}>
               {opt}
@@ -482,7 +482,6 @@ export default function ProfileSetup() {
     } finally { setVerifying(false); }
   };
 
-  // ── handleSave fixed ──────────────────────────────────────────────────────
   const handleSave = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('profiles').upsert({
@@ -504,11 +503,11 @@ export default function ProfileSetup() {
   const referralDisabled = isVerified && !!friendCode;
 
   return (
-    <div style={{ background: '#f1f5f9', minHeight: '100vh', paddingBottom: '120px' }}>
-      <div style={{ maxWidth: '500px', margin: '0 auto', background: '#fff', borderRadius: '0 0 30px 30px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: '90px' }}>
+      <div style={{ maxWidth: '500px', margin: '0 auto', background: '#1e293b', borderRadius: '20px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', overflow: 'hidden', border: '1px solid #334155' }}>
 
-        <div style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)', padding: '40px 20px', color: '#fff', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: '12px', opacity: 0.8, fontWeight: 'bold' }}>TCN REFERRAL SYSTEM</p>
+        <div style={{ background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '40px 20px', color: '#fff', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: '12px', opacity: 0.9, fontWeight: 'bold' }}>TCN REFERRAL SYSTEM</p>
           <h2 style={{ margin: '5px 0', fontSize: '32px', fontWeight: '900' }}>{myReferralCode}</h2>
           <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '5px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}>
             My Earnings: €{balance}
@@ -527,7 +526,7 @@ export default function ProfileSetup() {
           <SectionTitle>{tx.profilePhotos}</SectionTitle>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
             {photos.map((p, i) => (
-              <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #a855f7' : '1px solid #e2e8f0' }}>
+              <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
                 <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
                 <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} style={S.delBtn}>✕</button>
               </div>
@@ -541,20 +540,20 @@ export default function ProfileSetup() {
 
           <SectionTitle>{tx.faceVerify}</SectionTitle>
           {isVerified ? (
-            <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1.5px solid #22c55e', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <span style={{ fontSize: '28px' }}>✅</span>
               <div>
-                <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '15px' }}>{tx.verifiedTitle}</div>
-                <div style={{ fontSize: '13px', color: '#4ade80' }}>{tx.verifiedSub}</div>
+                <div style={{ fontWeight: 'bold', color: '#4ade80', fontSize: '15px' }}>{tx.verifiedTitle}</div>
+                <div style={{ fontSize: '13px', color: '#86efac' }}>{tx.verifiedSub}</div>
               </div>
             </div>
           ) : (
-            <div style={{ background: '#fef9c3', border: '1.5px solid #fde047', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
+            <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1.5px solid #eab308', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
                 <span style={{ fontSize: '24px' }}>⚠️</span>
                 <div>
-                  <div style={{ fontWeight: 'bold', color: '#92400e', fontSize: '14px' }}>{tx.notVerifiedTitle}</div>
-                  <div style={{ fontSize: '12px', color: '#a16207' }}>{tx.notVerifiedSub}</div>
+                  <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '14px' }}>{tx.notVerifiedTitle}</div>
+                  <div style={{ fontSize: '12px', color: '#fcd34d' }}>{tx.notVerifiedSub}</div>
                 </div>
               </div>
               {cameraOpen && (
@@ -569,26 +568,26 @@ export default function ProfileSetup() {
                   <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
                 </div>
               )}
-              {cameraError && <div style={{ background: '#fee2e2', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#dc2626', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
-              {verifyResult === 'pass' && <div style={{ background: '#dcfce7', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#15803d', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
-              {verifyResult === 'fail' && <div style={{ background: '#fee2e2', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#dc2626', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
+              {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
+              {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
+              {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
               {!cameraOpen && !capturedImage && (
-                <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+                <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
                   📷 เปิดกล้องถ่ายรูป
                 </button>
               )}
               {cameraOpen && (
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
-                  <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
+                  <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
                 </div>
               )}
               {capturedImage && !cameraOpen && (
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#d1d5db' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
+                  <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
                     {verifying ? tx.verifyingBtn : tx.verifyBtn}
                   </button>
-                  <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
+                  <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
                 </div>
               )}
             </div>
@@ -634,55 +633,36 @@ export default function ProfileSetup() {
 
           <SectionTitle>✨ Lifestyle</SectionTitle>
 
-          <ChipSelect
-            label="🎯 Hobbies"
-            multi={true}
-            value={lifestyle.hobbies}
+          <ChipSelect label="🎯 Hobbies" multi={true} value={lifestyle.hobbies}
             onChange={v => setLifestyle(l => ({ ...l, hobbies: v }))}
-            options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']}
-          />
+            options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']} />
 
-          <ChipSelect
-            label="🌙 Sleep Schedule"
-            value={lifestyle.sleepSchedule}
+          <ChipSelect label="🌙 Sleep Schedule" value={lifestyle.sleepSchedule}
             onChange={v => setLifestyle(l => ({ ...l, sleepSchedule: v }))}
-            options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']}
-          />
+            options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']} />
 
-          <ChipSelect
-            label="🍺 Drinking"
-            value={lifestyle.drinking}
+          <ChipSelect label="🍺 Drinking" value={lifestyle.drinking}
             onChange={v => setLifestyle(l => ({ ...l, drinking: v }))}
-            options={['🚫 Never', '🥂 Social', '🍻 Regular']}
-          />
+            options={['🚫 Never', '🥂 Social', '🍻 Regular']} />
 
-          <ChipSelect
-            label="🚬 Smoking"
-            value={lifestyle.smoking}
+          <ChipSelect label="🚬 Smoking" value={lifestyle.smoking}
             onChange={v => setLifestyle(l => ({ ...l, smoking: v }))}
-            options={['🚭 No', '🚬 Sometimes', '💨 Yes']}
-          />
+            options={['🚭 No', '🚬 Sometimes', '💨 Yes']} />
 
-          <ChipSelect
-            label="💪 Exercise"
-            value={lifestyle.exercise}
+          <ChipSelect label="💪 Exercise" value={lifestyle.exercise}
             onChange={v => setLifestyle(l => ({ ...l, exercise: v }))}
-            options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']}
-          />
+            options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']} />
 
-          <ChipSelect
-            label="🧠 Personality"
-            value={lifestyle.personality}
+          <ChipSelect label="🧠 Personality" value={lifestyle.personality}
             onChange={v => setLifestyle(l => ({ ...l, personality: v }))}
-            options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']}
-          />
+            options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']} />
 
-          <div style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '15px', border: '1px dashed #cbd5e1' }}>
+          <div style={{ marginTop: '20px', padding: '15px', background: '#0f172a', borderRadius: '15px', border: '1px dashed #334155' }}>
             <label style={S.label}>{tx.referralLabel}</label>
             <input placeholder="TCN-XXXX" value={friendCode}
               onChange={e => setFriendCode(e.target.value)} disabled={referralDisabled}
               style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }} />
-            {referralDisabled && <p style={{ fontSize: '11px', color: '#94a3b8', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
+            {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
           </div>
 
           <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
@@ -696,7 +676,7 @@ export default function ProfileSetup() {
                 {LANGUAGES.map(lang => (
                   <button key={lang.code}
                     onClick={() => { setPreferredLang(lang.code); setShowLangPicker(false); }}
-                    style={{ ...S.langOption, background: preferredLang === lang.code ? '#ede9fe' : 'transparent', color: preferredLang === lang.code ? '#6366f1' : '#374151', fontWeight: preferredLang === lang.code ? 'bold' : 'normal' }}>
+                    style={{ ...S.langOption, background: preferredLang === lang.code ? 'rgba(233, 30, 99, 0.15)' : 'transparent', color: preferredLang === lang.code ? '#e91e63' : '#cbd5e1', fontWeight: preferredLang === lang.code ? 'bold' : 'normal' }}>
                     {lang.label}
                   </button>
                 ))}
@@ -714,17 +694,17 @@ export default function ProfileSetup() {
   );
 }
 
-const SectionTitle = ({children}) => <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#6366f1', marginTop: '25px', marginBottom: '15px', textTransform: 'uppercase' }}>{children}</h3>;
+const SectionTitle = ({children}) => <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#e91e63', marginTop: '25px', marginBottom: '15px', textTransform: 'uppercase', letterSpacing: 0.5 }}>{children}</h3>;
 const Field = ({label, children}) => <div style={{ marginBottom: '15px' }}><label style={S.label}>{label}</label>{children}</div>;
 
 const S = {
-  label:     { display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#475569' },
-  input:     { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#000', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
-  delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '10px' },
-  uploadBox: { aspectRatio: '1/1', border: '2px dashed #cbd5e1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: '#94a3b8', background: '#f8fafc' },
-  saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' },
-  langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#6366f1', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
-  logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #e2e8f0', background: 'transparent', color: '#94a3b8', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
-  langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },
+  label:     { display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#94a3b8' },
+  input:     { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
+  delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.75)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '10px' },
+  uploadBox: { aspectRatio: '1/1', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: '#64748b', background: '#0f172a' },
+  saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
+  logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
+  langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.5)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },
   langOption:{ display: 'block', width: '100%', padding: '10px 14px', border: 'none', borderRadius: '10px', fontSize: '14px', cursor: 'pointer', textAlign: 'left' },
 };
