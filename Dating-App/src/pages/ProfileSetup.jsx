@@ -37,6 +37,7 @@ const T = {
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
     genderOptions:['ชาย','หญิง','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
     copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
+    sidebarAbout:'เกี่ยวกับฉัน', sidebarInfo:'ข้อมูลส่วนตัว', sidebarLifestyle:'ไลฟ์สไตล์',
   },
   en: {
     profilePhotos:'Profile Photos (max 6)', faceVerify:'Identity Verification',
@@ -51,6 +52,7 @@ const T = {
     eduOptions:['High School','Bachelor Degree','Master Degree','PhD'],
     genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
     copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
+    sidebarAbout:'About Me', sidebarInfo:'Personal Info', sidebarLifestyle:'Lifestyle',
   },
   zh: {
     profilePhotos:'个人照片（最多6张）', faceVerify:'身份验证',
@@ -65,6 +67,7 @@ const T = {
     eduOptions:['高中','学士学位','硕士学位','博士学位'],
     genderOptions:['男','女','其他'], lookingOptions:['男性','女性','所有人'],
     copyBtn:'📋 复制代码', copiedBtn:'✅ 已复制！',
+    sidebarAbout:'关于我', sidebarInfo:'个人信息', sidebarLifestyle:'生活方式',
   },
   ja: {
     profilePhotos:'プロフィール写真（最大6枚）', faceVerify:'本人確認（顔認証）',
@@ -79,6 +82,7 @@ const T = {
     eduOptions:['高校','学士号','修士号','博士号'],
     genderOptions:['男性','女性','その他'], lookingOptions:['男性','女性','全員'],
     copyBtn:'📋 コードをコピー', copiedBtn:'✅ コピーしました！',
+    sidebarAbout:'私について', sidebarInfo:'個人情報', sidebarLifestyle:'ライフスタイル',
   },
   ko: {
     profilePhotos:'프로필 사진 (최대 6장)', faceVerify:'본인 인증',
@@ -93,6 +97,7 @@ const T = {
     eduOptions:['고등학교','학사','석사','박사'],
     genderOptions:['남성','여성','기타'], lookingOptions:['남성','여성','모두'],
     copyBtn:'📋 코드 복사', copiedBtn:'✅ 복사됨!',
+    sidebarAbout:'나에 대해', sidebarInfo:'개인 정보', sidebarLifestyle:'라이프스타일',
   },
   fr: {
     profilePhotos:'Photos de profil (max 6)', faceVerify:"Vérification d'identité",
@@ -107,6 +112,7 @@ const T = {
     eduOptions:['Lycée','Licence','Master','Doctorat'],
     genderOptions:['Homme','Femme','Autre'], lookingOptions:['Hommes','Femmes','Tout le monde'],
     copyBtn:'📋 Copier le code', copiedBtn:'✅ Copié !',
+    sidebarAbout:'À propos', sidebarInfo:'Infos perso', sidebarLifestyle:'Style de vie',
   },
   de: {
     profilePhotos:'Profilfotos (max. 6)', faceVerify:'Identitätsverifizierung',
@@ -121,6 +127,7 @@ const T = {
     eduOptions:['Gymnasium','Bachelor','Master','Doktor'],
     genderOptions:['Männlich','Weiblich','Andere'], lookingOptions:['Männer','Frauen','Alle'],
     copyBtn:'📋 Code kopieren', copiedBtn:'✅ Kopiert!',
+    sidebarAbout:'Über mich', sidebarInfo:'Persönliche Daten', sidebarLifestyle:'Lebensstil',
   },
   es: {
     profilePhotos:'Fotos de perfil (máx. 6)', faceVerify:'Verificación de identidad',
@@ -135,6 +142,7 @@ const T = {
     eduOptions:['Bachillerato','Licenciatura','Maestría','Doctorado'],
     genderOptions:['Hombre','Mujer','Otro'], lookingOptions:['Hombres','Mujeres','Todos'],
     copyBtn:'📋 Copiar código', copiedBtn:'✅ ¡Copiado!',
+    sidebarAbout:'Sobre mí', sidebarInfo:'Info personal', sidebarLifestyle:'Estilo de vida',
   },
   it: {
     profilePhotos:'Foto profilo (max 6)', faceVerify:'Verifica identità',
@@ -149,6 +157,7 @@ const T = {
     eduOptions:['Liceo','Laurea triennale','Laurea magistrale','Dottorato'],
     genderOptions:['Uomo','Donna','Altro'], lookingOptions:['Uomini','Donne','Tutti'],
     copyBtn:'📋 Copia codice', copiedBtn:'✅ Copiato!',
+    sidebarAbout:'Su di me', sidebarInfo:'Info personali', sidebarLifestyle:'Stile di vita',
   },
   pt: {
     profilePhotos:'Fotos do perfil (máx. 6)', faceVerify:'Verificação de identidade',
@@ -163,6 +172,7 @@ const T = {
     eduOptions:['Ensino Médio','Bacharelado','Mestrado','Doutorado'],
     genderOptions:['Masculino','Feminino','Outro'], lookingOptions:['Homens','Mulheres','Todos'],
     copyBtn:'📋 Copiar código', copiedBtn:'✅ Copiado!',
+    sidebarAbout:'Sobre mim', sidebarInfo:'Info pessoal', sidebarLifestyle:'Estilo de vida',
   },
   ru: {
     profilePhotos:'Фото профиля (макс. 6)', faceVerify:'Верификация личности',
@@ -177,6 +187,7 @@ const T = {
     eduOptions:['Школа','Бакалавр','Магистр','Доктор'],
     genderOptions:['Мужской','Женский','Другой'], lookingOptions:['Мужчин','Женщин','Всех'],
     copyBtn:'📋 Копировать код', copiedBtn:'✅ Скопировано!',
+    sidebarAbout:'Обо мне', sidebarInfo:'Личные данные', sidebarLifestyle:'Образ жизни',
   },
   ar: {
     profilePhotos:'صور الملف الشخصي (حتى 6)', faceVerify:'التحقق من الهوية',
@@ -191,6 +202,7 @@ const T = {
     eduOptions:['ثانوية','بكالوريوس','ماجستير','دكتوراه'],
     genderOptions:['ذكر','أنثى','آخر'], lookingOptions:['رجال','نساء','الجميع'],
     copyBtn:'📋 نسخ الكود', copiedBtn:'✅ تم النسخ!',
+    sidebarAbout:'عني', sidebarInfo:'معلومات شخصية', sidebarLifestyle:'نمط الحياة',
   },
   hi: {
     profilePhotos:'प्रोफ़ाइल फ़ोटो (अधिकतम 6)', faceVerify:'पहचान सत्यापन',
@@ -205,6 +217,7 @@ const T = {
     eduOptions:['हाई स्कूल','स्नातक','स्नातकोत्तर','पीएचडी'],
     genderOptions:['पुरुष','महिला','अन्य'], lookingOptions:['पुरुष','महिला','सभी'],
     copyBtn:'📋 कोड कॉपी करें', copiedBtn:'✅ कॉपी हो गया!',
+    sidebarAbout:'मेरे बारे में', sidebarInfo:'व्यक्तिगत जानकारी', sidebarLifestyle:'जीवन शैली',
   },
   vi: {
     profilePhotos:'Ảnh hồ sơ (tối đa 6)', faceVerify:'Xác minh danh tính',
@@ -219,6 +232,7 @@ const T = {
     eduOptions:['THPT','Đại học','Thạc sĩ','Tiến sĩ'],
     genderOptions:['Nam','Nữ','Khác'], lookingOptions:['Nam','Nữ','Tất cả'],
     copyBtn:'📋 Sao chép mã', copiedBtn:'✅ Đã sao chép!',
+    sidebarAbout:'Về tôi', sidebarInfo:'Thông tin cá nhân', sidebarLifestyle:'Phong cách sống',
   },
   id: {
     profilePhotos:'Foto Profil (maks. 6)', faceVerify:'Verifikasi Identitas',
@@ -233,6 +247,7 @@ const T = {
     eduOptions:['SMA','Sarjana','Magister','Doktor'],
     genderOptions:['Laki-laki','Perempuan','Lainnya'], lookingOptions:['Laki-laki','Perempuan','Semua'],
     copyBtn:'📋 Salin kode', copiedBtn:'✅ Tersalin!',
+    sidebarAbout:'Tentang Saya', sidebarInfo:'Info Pribadi', sidebarLifestyle:'Gaya Hidup',
   },
   ms: {
     profilePhotos:'Foto Profil (maks. 6)', faceVerify:'Pengesahan Identiti',
@@ -247,6 +262,7 @@ const T = {
     eduOptions:['Sekolah Menengah','Sarjana Muda','Sarjana','Doktor'],
     genderOptions:['Lelaki','Perempuan','Lain-lain'], lookingOptions:['Lelaki','Perempuan','Semua'],
     copyBtn:'📋 Salin kod', copiedBtn:'✅ Disalin!',
+    sidebarAbout:'Tentang Saya', sidebarInfo:'Maklumat Peribadi', sidebarLifestyle:'Gaya Hidup',
   },
 };
 
@@ -256,6 +272,16 @@ function dataURLtoBlob(dataURL) {
   const byteArray = new Uint8Array(byteCharacters.length);
   for (let i = 0; i < byteCharacters.length; i++) byteArray[i] = byteCharacters.charCodeAt(i);
   return new Blob([byteArray], { type: 'image/jpeg' });
+}
+
+function useIsDesktop(breakpoint = 900) {
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= breakpoint : false);
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isDesktop;
 }
 
 function ChipSelect({ label, options, value, onChange, multi = false }) {
@@ -268,15 +294,15 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
     }
   };
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#94a3b8' }}>{label}</label>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6, color: '#94a3b8' }}>{label}</label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {options.map(opt => {
           const active = multi ? (Array.isArray(value) && value.includes(opt)) : value === opt;
           return (
             <button key={opt} onClick={() => toggle(opt)} type="button"
               style={{
-                padding: '8px 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, cursor: 'pointer', border: '1px solid ' + (active ? '#e91e63' : '#334155'),
+                padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: '1px solid ' + (active ? '#e91e63' : '#334155'),
                 background: active ? 'linear-gradient(135deg, #e91e63, #c2185b)' : '#0f172a',
                 color: active ? '#fff' : '#94a3b8',
                 boxShadow: active ? '0 2px 8px rgba(233,30,99,0.3)' : 'none',
@@ -293,6 +319,7 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop(900);
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
 
@@ -502,193 +529,275 @@ export default function ProfileSetup() {
   const selectedLang = LANGUAGES.find(l => l.code === preferredLang);
   const referralDisabled = isVerified && !!friendCode;
 
-  return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: '90px' }}>
-      <div style={{ maxWidth: '500px', margin: '0 auto', background: '#1e293b', borderRadius: '20px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', overflow: 'hidden', border: '1px solid #334155' }}>
+  // ──────────────────────────────────────────────
+  // SIDEBAR (Desktop only)
+  // ──────────────────────────────────────────────
+  const Sidebar = (
+    <div style={S.sidebar}>
+      {/* Avatar */}
+      <div style={S.avatarWrap}>
+        {mainPhoto ? (
+          <img src={mainPhoto} alt="me" style={S.avatarImg} />
+        ) : (
+          <div style={S.avatarPlaceholder}>👤</div>
+        )}
+        {isVerified && <div style={S.verifiedRibbon}>✓ Verified</div>}
+      </div>
 
-        <div style={{ background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '40px 20px', color: '#fff', textAlign: 'center' }}>
-          <p style={{ margin: 0, fontSize: '12px', opacity: 0.9, fontWeight: 'bold' }}>TCN REFERRAL SYSTEM</p>
-          <h2 style={{ margin: '5px 0', fontSize: '32px', fontWeight: '900' }}>{myReferralCode}</h2>
-          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '5px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' }}>
-            My Earnings: €{balance}
-          </div>
-          <div style={{ marginTop: '10px' }}>
-            <button
-              onClick={() => { navigator.clipboard.writeText(myReferralCode); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-              style={{ background: copied ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: '20px', padding: '6px 18px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
-              {copied ? tx.copiedBtn : tx.copyBtn}
-            </button>
+      <div style={S.sidebarUsername}>{username || '—'}</div>
+
+      {/* About Me */}
+      {bio && (
+        <div style={S.sidebarCard}>
+          <div style={S.sidebarSection}>{tx.sidebarAbout}</div>
+          <div style={S.sidebarBio}>{bio}</div>
+        </div>
+      )}
+
+      {/* Personal Info Table */}
+      <div style={S.sidebarCard}>
+        <div style={S.sidebarSection}>{tx.sidebarInfo}</div>
+        <table style={S.infoTable}>
+          <tbody>
+            {details.gender     && <tr><td style={S.infoKey}>{tx.gender}</td><td style={S.infoVal}>{details.gender}</td></tr>}
+            {details.age        && <tr><td style={S.infoKey}>{tx.age}</td><td style={S.infoVal}>{details.age}</td></tr>}
+            {details.height     && <tr><td style={S.infoKey}>{tx.height}</td><td style={S.infoVal}>{details.height} cm</td></tr>}
+            {details.weight     && <tr><td style={S.infoKey}>{tx.weight}</td><td style={S.infoVal}>{details.weight} kg</td></tr>}
+            {details.education  && <tr><td style={S.infoKey}>{tx.education}</td><td style={S.infoVal}>{details.education}</td></tr>}
+            {details.lookingFor && <tr><td style={S.infoKey}>{tx.lookingFor}</td><td style={S.infoVal}>{details.lookingFor}</td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Lifestyle */}
+      {(lifestyle.hobbies?.length > 0 || lifestyle.sleepSchedule || lifestyle.drinking || lifestyle.smoking || lifestyle.exercise || lifestyle.personality) && (
+        <div style={S.sidebarCard}>
+          <div style={S.sidebarSection}>{tx.sidebarLifestyle}</div>
+          <div style={S.sidebarChipRow}>
+            {lifestyle.hobbies?.map(h => <span key={h} style={S.sidebarChip}>{h}</span>)}
+            {lifestyle.sleepSchedule && <span style={S.sidebarChip}>{lifestyle.sleepSchedule}</span>}
+            {lifestyle.drinking && <span style={S.sidebarChip}>{lifestyle.drinking}</span>}
+            {lifestyle.smoking && <span style={S.sidebarChip}>{lifestyle.smoking}</span>}
+            {lifestyle.exercise && <span style={S.sidebarChip}>{lifestyle.exercise}</span>}
+            {lifestyle.personality && <span style={S.sidebarChip}>{lifestyle.personality}</span>}
           </div>
         </div>
+      )}
+    </div>
+  );
 
-        <div style={{ padding: '20px' }}>
-
-          <SectionTitle>{tx.profilePhotos}</SectionTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
-            {photos.map((p, i) => (
-              <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
-                <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
-                <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} style={S.delBtn}>✕</button>
-              </div>
-            ))}
-            {photos.length < 6 && (
-              <label style={S.uploadBox}>
-                <input type="file" hidden onChange={handleUpload} accept="image/*" />{uploading ? '...' : '+'}
-              </label>
-            )}
+  // ──────────────────────────────────────────────
+  // MAIN CONTENT (forms)
+  // ──────────────────────────────────────────────
+  const MainContent = (
+    <div style={S.main}>
+      {/* Profile Photos */}
+      <SectionTitle>{tx.profilePhotos}</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
+        {photos.map((p, i) => (
+          <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
+            <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
+            <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} style={S.delBtn}>✕</button>
+            {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>
+        ))}
+        {photos.length < 6 && (
+          <label style={S.uploadBox}>
+            <input type="file" hidden onChange={handleUpload} accept="image/*" />{uploading ? '...' : '+'}
+          </label>
+        )}
+      </div>
 
-          <SectionTitle>{tx.faceVerify}</SectionTitle>
-          {isVerified ? (
-            <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1.5px solid #22c55e', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <span style={{ fontSize: '28px' }}>✅</span>
-              <div>
-                <div style={{ fontWeight: 'bold', color: '#4ade80', fontSize: '15px' }}>{tx.verifiedTitle}</div>
-                <div style={{ fontSize: '13px', color: '#86efac' }}>{tx.verifiedSub}</div>
-              </div>
+      {/* Identity Verification */}
+      <SectionTitle>{tx.faceVerify}</SectionTitle>
+      {isVerified ? (
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1.5px solid #22c55e', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <span style={{ fontSize: '28px' }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 'bold', color: '#4ade80', fontSize: '15px' }}>{tx.verifiedTitle}</div>
+            <div style={{ fontSize: '13px', color: '#86efac' }}>{tx.verifiedSub}</div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1.5px solid #eab308', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '24px' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '14px' }}>{tx.notVerifiedTitle}</div>
+              <div style={{ fontSize: '12px', color: '#fcd34d' }}>{tx.notVerifiedSub}</div>
             </div>
-          ) : (
-            <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1.5px solid #eab308', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '24px' }}>⚠️</span>
-                <div>
-                  <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '14px' }}>{tx.notVerifiedTitle}</div>
-                  <div style={{ fontSize: '12px', color: '#fcd34d' }}>{tx.notVerifiedSub}</div>
-                </div>
-              </div>
-              {cameraOpen && (
-                <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#000' }}>
-                  <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', borderRadius: '12px' }} />
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', height: '160px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.8)', pointerEvents: 'none' }} />
-                  <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center', color: '#fff', fontSize: '12px', opacity: 0.8 }}>วางใบหน้าให้อยู่ในวงกลม</div>
-                </div>
-              )}
-              {capturedImage && !cameraOpen && (
-                <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-                  <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
-                </div>
-              )}
-              {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
-              {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
-              {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
-              {!cameraOpen && !capturedImage && (
-                <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
-                  📷 เปิดกล้องถ่ายรูป
-                </button>
-              )}
-              {cameraOpen && (
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
-                  <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-                </div>
-              )}
-              {capturedImage && !cameraOpen && (
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
-                    {verifying ? tx.verifyingBtn : tx.verifyBtn}
-                  </button>
-                  <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
-                </div>
-              )}
+          </div>
+          {cameraOpen && (
+            <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#000' }}>
+              <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', borderRadius: '12px' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', height: '160px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.8)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center', color: '#fff', fontSize: '12px', opacity: 0.8 }}>วางใบหน้าให้อยู่ในวงกลม</div>
             </div>
           )}
-
-          <SectionTitle>{tx.aboutYou}</SectionTitle>
-          <Field label={tx.username}><input value={username} onChange={e => setUsername(e.target.value)} style={S.input} /></Field>
-          <Field label={tx.bio}><textarea value={bio} onChange={e => setBio(e.target.value)} style={{ ...S.input, height: '80px', resize: 'none' }} /></Field>
-
-          <SectionTitle>{tx.bodyEdu}</SectionTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
-            <Field label={tx.age}>
-              <input type="number" min="18" max="99" placeholder="25"
-                value={details.age} onChange={e => setDetails({...details, age: e.target.value})} style={S.input} />
-            </Field>
-            <Field label={tx.height}>
-              <input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} />
-            </Field>
-            <Field label={tx.weight}>
-              <input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} />
-            </Field>
-          </div>
-          <Field label={tx.education}>
-            <select value={details.education} onChange={e => setDetails({...details, education: e.target.value})} style={S.input}>
-              <option value="">—</option>
-              {tx.eduOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
-
-          <SectionTitle>{tx.preferences}</SectionTitle>
-          <Field label={tx.gender}>
-            <select value={details.gender} onChange={e => setDetails({...details, gender: e.target.value})} style={S.input}>
-              <option value="">—</option>
-              {tx.genderOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
-          <Field label={tx.lookingFor}>
-            <select value={details.lookingFor} onChange={e => setDetails({...details, lookingFor: e.target.value})} style={S.input}>
-              <option value="">—</option>
-              {tx.lookingOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </Field>
-
-          <SectionTitle>✨ Lifestyle</SectionTitle>
-
-          <ChipSelect label="🎯 Hobbies" multi={true} value={lifestyle.hobbies}
-            onChange={v => setLifestyle(l => ({ ...l, hobbies: v }))}
-            options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']} />
-
-          <ChipSelect label="🌙 Sleep Schedule" value={lifestyle.sleepSchedule}
-            onChange={v => setLifestyle(l => ({ ...l, sleepSchedule: v }))}
-            options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']} />
-
-          <ChipSelect label="🍺 Drinking" value={lifestyle.drinking}
-            onChange={v => setLifestyle(l => ({ ...l, drinking: v }))}
-            options={['🚫 Never', '🥂 Social', '🍻 Regular']} />
-
-          <ChipSelect label="🚬 Smoking" value={lifestyle.smoking}
-            onChange={v => setLifestyle(l => ({ ...l, smoking: v }))}
-            options={['🚭 No', '🚬 Sometimes', '💨 Yes']} />
-
-          <ChipSelect label="💪 Exercise" value={lifestyle.exercise}
-            onChange={v => setLifestyle(l => ({ ...l, exercise: v }))}
-            options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']} />
-
-          <ChipSelect label="🧠 Personality" value={lifestyle.personality}
-            onChange={v => setLifestyle(l => ({ ...l, personality: v }))}
-            options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']} />
-
-          <div style={{ marginTop: '20px', padding: '15px', background: '#0f172a', borderRadius: '15px', border: '1px dashed #334155' }}>
-            <label style={S.label}>{tx.referralLabel}</label>
-            <input placeholder="TCN-XXXX" value={friendCode}
-              onChange={e => setFriendCode(e.target.value)} disabled={referralDisabled}
-              style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }} />
-            {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
-          </div>
-
-          <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
-
-          <div style={{ marginTop: '12px', position: 'relative' }}>
-            <button onClick={() => setShowLangPicker(v => !v)} style={S.langBtn}>
-              {selectedLang?.label || '🌐'} ▾
+          {capturedImage && !cameraOpen && (
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
+            </div>
+          )}
+          {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
+          {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
+          {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
+          {!cameraOpen && !capturedImage && (
+            <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+              📷 เปิดกล้องถ่ายรูป
             </button>
-            {showLangPicker && (
-              <div style={S.langPicker}>
-                {LANGUAGES.map(lang => (
-                  <button key={lang.code}
-                    onClick={() => { setPreferredLang(lang.code); setShowLangPicker(false); }}
-                    style={{ ...S.langOption, background: preferredLang === lang.code ? 'rgba(233, 30, 99, 0.15)' : 'transparent', color: preferredLang === lang.code ? '#e91e63' : '#cbd5e1', fontWeight: preferredLang === lang.code ? 'bold' : 'normal' }}>
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} style={S.logoutBtn}>
-            {tx.logoutBtn}
-          </button>
-
+          )}
+          {cameraOpen && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
+              <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
+            </div>
+          )}
+          {capturedImage && !cameraOpen && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
+                {verifying ? tx.verifyingBtn : tx.verifyBtn}
+              </button>
+              <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* About You */}
+      <SectionTitle>{tx.aboutYou}</SectionTitle>
+      <Field label={tx.username}><input value={username} onChange={e => setUsername(e.target.value)} style={S.input} /></Field>
+      <Field label={tx.bio}><textarea value={bio} onChange={e => setBio(e.target.value)} style={{ ...S.input, height: '80px', resize: 'none' }} /></Field>
+
+      {/* Body & Education */}
+      <SectionTitle>{tx.bodyEdu}</SectionTitle>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+        <Field label={tx.age}>
+          <input type="number" min="18" max="99" placeholder="25"
+            value={details.age} onChange={e => setDetails({...details, age: e.target.value})} style={S.input} />
+        </Field>
+        <Field label={tx.height}>
+          <input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} />
+        </Field>
+        <Field label={tx.weight}>
+          <input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} />
+        </Field>
+      </div>
+      <Field label={tx.education}>
+        <select value={details.education} onChange={e => setDetails({...details, education: e.target.value})} style={S.input}>
+          <option value="">—</option>
+          {tx.eduOptions.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </Field>
+
+      {/* Preferences */}
+      <SectionTitle>{tx.preferences}</SectionTitle>
+      <Field label={tx.gender}>
+        <select value={details.gender} onChange={e => setDetails({...details, gender: e.target.value})} style={S.input}>
+          <option value="">—</option>
+          {tx.genderOptions.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </Field>
+      <Field label={tx.lookingFor}>
+        <select value={details.lookingFor} onChange={e => setDetails({...details, lookingFor: e.target.value})} style={S.input}>
+          <option value="">—</option>
+          {tx.lookingOptions.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </Field>
+
+      {/* Lifestyle */}
+      <SectionTitle>✨ Lifestyle</SectionTitle>
+
+      <ChipSelect label="🎯 Hobbies" multi={true} value={lifestyle.hobbies}
+        onChange={v => setLifestyle(l => ({ ...l, hobbies: v }))}
+        options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']} />
+
+      <ChipSelect label="🌙 Sleep Schedule" value={lifestyle.sleepSchedule}
+        onChange={v => setLifestyle(l => ({ ...l, sleepSchedule: v }))}
+        options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']} />
+
+      <ChipSelect label="🍺 Drinking" value={lifestyle.drinking}
+        onChange={v => setLifestyle(l => ({ ...l, drinking: v }))}
+        options={['🚫 Never', '🥂 Social', '🍻 Regular']} />
+
+      <ChipSelect label="🚬 Smoking" value={lifestyle.smoking}
+        onChange={v => setLifestyle(l => ({ ...l, smoking: v }))}
+        options={['🚭 No', '🚬 Sometimes', '💨 Yes']} />
+
+      <ChipSelect label="💪 Exercise" value={lifestyle.exercise}
+        onChange={v => setLifestyle(l => ({ ...l, exercise: v }))}
+        options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']} />
+
+      <ChipSelect label="🧠 Personality" value={lifestyle.personality}
+        onChange={v => setLifestyle(l => ({ ...l, personality: v }))}
+        options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']} />
+
+      {/* TCN Referral */}
+      <div style={S.referralCard}>
+        <p style={{ margin: 0, fontSize: '12px', opacity: 0.9, fontWeight: 'bold', color: '#fff' }}>TCN REFERRAL SYSTEM</p>
+        <h2 style={{ margin: '5px 0', fontSize: '32px', fontWeight: '900', color: '#fff' }}>{myReferralCode}</h2>
+        <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '5px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', color: '#fff' }}>
+          My Earnings: €{balance}
+        </div>
+        <div style={{ marginTop: '10px' }}>
+          <button
+            onClick={() => { navigator.clipboard.writeText(myReferralCode); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+            style={{ background: copied ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: '20px', padding: '6px 18px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+            {copied ? tx.copiedBtn : tx.copyBtn}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '16px', padding: '15px', background: '#0f172a', borderRadius: '15px', border: '1px dashed #334155' }}>
+        <label style={S.label}>{tx.referralLabel}</label>
+        <input placeholder="TCN-XXXX" value={friendCode}
+          onChange={e => setFriendCode(e.target.value)} disabled={referralDisabled}
+          style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }} />
+        {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
+      </div>
+
+      <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
+
+      <div style={{ marginTop: '12px', position: 'relative' }}>
+        <button onClick={() => setShowLangPicker(v => !v)} style={S.langBtn}>
+          {selectedLang?.label || '🌐'} ▾
+        </button>
+        {showLangPicker && (
+          <div style={S.langPicker}>
+            {LANGUAGES.map(lang => (
+              <button key={lang.code}
+                onClick={() => { setPreferredLang(lang.code); setShowLangPicker(false); }}
+                style={{ ...S.langOption, background: preferredLang === lang.code ? 'rgba(233, 30, 99, 0.15)' : 'transparent', color: preferredLang === lang.code ? '#e91e63' : '#cbd5e1', fontWeight: preferredLang === lang.code ? 'bold' : 'normal' }}>
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} style={S.logoutBtn}>
+        {tx.logoutBtn}
+      </button>
+    </div>
+  );
+
+  // ──────────────────────────────────────────────
+  // RENDER
+  // ──────────────────────────────────────────────
+  return (
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: '90px' }}>
+      <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
+        {isDesktop ? (
+          <>
+            {Sidebar}
+            {MainContent}
+          </>
+        ) : (
+          <>
+            {/* Mobile: stacked layout, no separate sidebar */}
+            {MainContent}
+          </>
+        )}
       </div>
     </div>
   );
@@ -698,10 +807,39 @@ const SectionTitle = ({children}) => <h3 style={{ fontSize: '14px', fontWeight: 
 const Field = ({label, children}) => <div style={{ marginBottom: '15px' }}><label style={S.label}>{label}</label>{children}</div>;
 
 const S = {
+  // Layout
+  desktopWrap: { maxWidth: 1200, margin: '0 auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '320px 1fr', gap: 20, alignItems: 'flex-start' },
+  mobileWrap:  { maxWidth: 500, margin: '0 auto' },
+
+  // Sidebar
+  sidebar: { background: '#1e293b', border: '1px solid #334155', borderRadius: 16, padding: 20, position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 14 },
+  avatarWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: 16, overflow: 'hidden', background: '#0f172a', border: '1px solid #334155' },
+  avatarImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  avatarPlaceholder: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: '#475569' },
+  verifiedRibbon: { position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: '#e91e63', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' },
+  sidebarUsername: { textAlign: 'center', fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
+  sidebarCard: { background: '#0f172a', border: '1px solid #334155', borderRadius: 12, padding: 14 },
+  sidebarSection: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10 },
+  sidebarBio: { fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, fontWeight: 500 },
+  infoTable: { width: '100%', borderCollapse: 'collapse' },
+  infoKey: { fontSize: 11, color: '#64748b', fontWeight: 600, padding: '6px 0', textTransform: 'capitalize', whiteSpace: 'nowrap' },
+  infoVal: { fontSize: 13, color: '#f1f5f9', fontWeight: 600, padding: '6px 0', textAlign: 'right' },
+  sidebarChipRow: { display: 'flex', flexWrap: 'wrap', gap: 5 },
+  sidebarChip: { fontSize: 11, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '4px 9px', borderRadius: 99 },
+
+  // Main
+  main: { background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: 24, boxShadow: '0 4px 16px rgba(0,0,0,0.4)' },
+
+  // Form elements
   label:     { display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#94a3b8' },
   input:     { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
   delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.75)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '10px' },
+  mainBadge: { position: 'absolute', bottom: 5, left: 5, background: '#e91e63', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 6 },
   uploadBox: { aspectRatio: '1/1', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: '#64748b', background: '#0f172a' },
+
+  // TCN Referral card (now in MAIN, after lifestyle)
+  referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
+
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
   langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
   logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
