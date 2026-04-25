@@ -108,7 +108,7 @@ export default function AdminLayout({ children }) {
     return (
       <div style={S.loadingScreen}>
         <div style={S.spinner} />
-        <p style={{ color: '#64748b', marginTop: 12 }}>กำลังตรวจสอบสิทธิ์...</p>
+        <p style={{ color: '#64748b', marginTop: 12 }}>Verifying permissions...</p>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>🚫</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Access Denied</h2>
-        <p style={{ color: '#64748b' }}>บัญชีนี้ไม่มีสิทธิ์เข้า Admin Portal</p>
-        <button onClick={() => navigate('/discover')} style={S.backBtn}>กลับไปหน้าหลัก</button>
+        <p style={{ color: '#64748b' }}>This account does not have access to the Admin Portal</p>
+        <button onClick={() => navigate('/discover')} style={S.backBtn}>Back to home</button>
       </div>
     );
   }
@@ -131,7 +131,7 @@ export default function AdminLayout({ children }) {
       <div style={S.loadingScreen}>
         <div style={{ fontSize: 48 }}>⏸️</div>
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Account Suspended</h2>
-        <p style={{ color: '#64748b' }}>บัญชี Admin นี้ถูก suspend</p>
+        <p style={{ color: '#64748b' }}>This admin account has been suspended</p>
         <button onClick={handleSignOut} style={S.backBtn}>Sign Out</button>
       </div>
     );
