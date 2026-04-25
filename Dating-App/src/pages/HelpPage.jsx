@@ -222,7 +222,7 @@ const S = {
   searchInput: {
     width: '100%', padding: '14px 18px', borderRadius: 12,
     border: '1px solid #334155', background: '#1e293b',
-    colo '#f1f5f9', fontSize: 15, outline: 'none',
+    color: '#f1f5f9', fontSize: 15, outline: 'none',
     boxSizing: 'border-box', marginBottom: 24,
   },
 
