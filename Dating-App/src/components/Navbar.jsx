@@ -164,7 +164,6 @@ export default function Navbar() {
                 </div>
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ Edit Profile</MenuItem>
-              <MenuItem onClick={() => goTo('/profile-setup')}>🖼️ My Pictures</MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>⚙️ Account Settings</MenuItem>
               <MenuItem onClick={() => goTo('/help')}>❓ Help</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 Notifications</MenuItem>
