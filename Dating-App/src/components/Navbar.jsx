@@ -165,7 +165,7 @@ export default function Navbar() {
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ Edit Profile</MenuItem>
               <MenuItem onClick={() => goTo('/profile-setup')}>🖼️ My Pictures</MenuItem>
-              <MenuItem onClick={() => goTo('/profile-setup')}>⚙️ Account Settings</MenuItem>
+              <MenuItem onClick={() => goTo('/account-settings')}>⚙️ Account Settings</MenuItem>
               <MenuItem onClick={() => goTo('/subscription')}>⭐ Upgrade</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 Notifications</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />

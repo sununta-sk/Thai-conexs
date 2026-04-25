@@ -7,6 +7,7 @@ import { OnlineProvider } from './context/OnlineContext';
 import Login        from './pages/Login';
 import Register     from './pages/Register';
 import ProfileSetup from './pages/ProfileSetup';
+import AccountSettings from './pages/AccountSettings';
 import Discover     from './pages/Discover';
 import Messages     from './pages/Messages';
 import RoomChat     from './pages/RoomChat';
@@ -160,6 +161,7 @@ function AppContent() {
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/profile-setup"     element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+            <Route path="/account-settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
             <Route path="/room-chat/:chatId" element={<RoomChat />} />
             <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/profile/:userId"   element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
