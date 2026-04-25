@@ -9,6 +9,7 @@ import Register     from './pages/Register';
 import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
+import LoadingScreen from './components/LoadingScreen';
 import Discover     from './pages/Discover';
 import Messages     from './pages/Messages';
 import RoomChat     from './pages/RoomChat';
@@ -40,11 +41,7 @@ const TeamPage     = lazy(() => import('./pages/admin/TeamPage'));
 const AuditLogPage = lazy(() => import('./pages/admin/AuditLogPage'));
 const PlansPage    = lazy(() => import('./pages/admin/PlansPage'));
 
-const AdminFallback = () => (
-  <div style={{ background: '#0f172a', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', fontSize: 13 }}>
-    Loading…
-  </div>
-);
+const AdminFallback = () => <LoadingScreen />;
 
 const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
@@ -56,7 +53,7 @@ const ProtectedRoute = ({ children }) => {
     });
     return () => subscription.unsubscribe();
   }, []);
-  if (session === undefined) return <div style={{ background: '#0f172a', height: '100vh' }} />;
+  if (session === undefined) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
   return children;
 };
@@ -87,7 +84,7 @@ function AdminRoute({ children }) {
   }, [session]);
 
   if (session === undefined || adminOk === undefined)
-    return <div style={{ background: '#0f172a', height: '100vh' }} />;
+    return <LoadingScreen />;
   if (!session || !adminOk)
     return <Navigate to="/login" replace />;
   return children;
@@ -119,7 +116,7 @@ function SuperAdminRoute({ children }) {
   }, [session]);
 
   if (session === undefined || roleOk === undefined)
-    return <div style={{ background: '#0f172a', height: '100vh' }} />;
+    return <LoadingScreen />;
   if (!session || !roleOk)
     return <Navigate to="/admin/dashboard" replace />;
   return children;
