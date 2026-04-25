@@ -78,7 +78,7 @@ export default function NotificationsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#0f172a", paddingBottom: 80, paddingTop: 90 }}>
-      <div style={{ background: "#1e293b"padding: "16px 16px 0", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", position: "sticky", top: 90, zIndex: 100, borderBottom: "1px solid #334155" }}>
+      <div style={{ background: "#1e293b", padding: "16px 16px 0", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", position: "sticky", top: 90, zIndex: 100, borderBottom: "1px solid #334155" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
           <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#e91e63", marginRight: 10 }}>〈</button>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: "bold", flex: 1, color: "#f1f5f9" }}>
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        <div style={{ display: "flex", borderTo "1px solid #334155" }}>
+        <div style={{ display: "flex", borderTop: "1px solid #334155" }}>
           {[{ key: "all", label: "All" }, { key: "unread", label: "Unread" + (unreadCount > 0 ? " (" + unreadCount + ")" : "") }, { key: "settings", label: "Settings" }].map(t => (
             <button key={t.key} onClick={() => setTab(t.key)} style={{ flex: 1, padding: "12px 0", border: "none", background: "none", fontWeight: tab === t.key ? "bold" : "normal", color: tab === t.key ? "#e91e63" : "#94a3b8", borderBottom: tab === t.key ? "2px solid #e91e63" : "2px solid transparent", cursor: "pointer", fontSize: 14, transition: "all 0.2s" }}>{t.label}</button>
           ))}
@@ -124,7 +124,7 @@ export default function NotificationsPage() {
                   </div>
                   <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8", lineHeight: 1.4 }}>{notif.body}</p>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
-                    <span style={{ fontSize: 1 color: "#64748b" }}>{timeAgo(notif.created_at)}</span>
+                    <span style={{ fontSize: 11, color: "#64748b" }}>{timeAgo(notif.created_at)}</span>
                     <button onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: 16, padding: 0 }}>✕</button>
                   </div>
                 </div>
