@@ -10,6 +10,7 @@ import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
 import LoadingScreen from './components/LoadingScreen';
+import GlobalToast from './components/GlobalToast';
 import Discover     from './pages/Discover';
 import Messages     from './pages/Messages';
 import RoomChat     from './pages/RoomChat';
@@ -200,6 +201,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </div>
+      <GlobalToast />
       {!hideNavbar && <Navbar />}
     </div>
   );

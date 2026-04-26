@@ -170,6 +170,15 @@ export default function UserProfilePage() {
 
       const plan = me?.subscription_plan;
       setIsSubscriber(plan === 'gold' || plan === 'platinum');
+
+      // Track profile view (don't track if viewing own profile)
+      if (session.user.id !== userId) {
+        await supabase.from('profile_views').insert({
+          viewer_id: session.user.id,
+          viewed_id: userId,
+        });
+      }
+
       setLoading(false);
     };
     load();

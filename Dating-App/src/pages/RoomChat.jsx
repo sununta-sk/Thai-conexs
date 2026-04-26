@@ -374,7 +374,7 @@ export default function RoomChat() {
         (payload) => {
           setMessages((prev) => [...prev, payload.new]);
           if (payload.new.sender_id !== session.user.id) {
-            playSound('receive');
+            
             supabase.from("messages").update({ is_read: true }).eq("id", payload.new.id);
           }
         })
