@@ -1,6 +1,5 @@
 // src/pages/UserProfilePage.jsx
-// หน้าดูโปรไฟล์คนอื่น — route /profile/:userId
-// White/pink theme เหมือน Login | Accent #e91e63
+// Dark admin theme | Accent #e91e63
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -37,7 +36,6 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
   if (!photos || photos.length === 0) return null;
 
-  // เลื่อนได้เสมอ ไม่ว่าจะ locked หรือไม่
   const prev = () => setCurrent(i => (i - 1 + photos.length) % photos.length);
   const next = () => setCurrent(i => (i + 1) % photos.length);
 
@@ -81,7 +79,6 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           </div>
         )}
 
-        {/* Arrows — แสดงเสมอ */}
         {photos.length > 1 && (
           <>
             <button style={C.arrowLeft}  onClick={prev}>‹</button>
@@ -122,21 +119,21 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
 const C = {
   wrap: { position: 'relative', width: '100%', maxWidth: 480, margin: '0 auto' },
-  slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#fce4ec', touchAction: 'pan-y' },
+  slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none', WebkitUserDrag: 'none', transition: 'filter 0.3s, transform 0.3s' },
-  gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 100%)', pointerEvents: 'none' },
-  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
-  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.75)', border: 'none', borderRadius: '50%', color: '#333', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' },
+  gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)', pointerEvents: 'none' },
+  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
   dots: { position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, zIndex: 3 },
   dot: { height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s ease' },
-  counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3 },
-  freeBadge: { position: 'absolute', top: 12, left: 12, background: 'rgba(233,30,99,0.85)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3, border: '1px solid #334155' },
+  freeBadge: { position: 'absolute', top: 12, left: 12, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20, pointerEvents: 'none' },
   lockBoxWrap: { pointerEvents: 'auto' },
-  lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(4px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.2)', maxWidth: 280 },
+  lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(8px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.3)', maxWidth: 280, border: '1px solid #334155' },
   lockIcon: { fontSize: 36, marginBottom: 8 },
-  lockTitle: { fontSize: 16, fontWeight: 800, color: '#1a1a2e', marginBottom: 8 },
-  lockSub: { fontSize: 13, color: '#666', marginBottom: 16, lineHeight: 1.5 },
+  lockTitle: { fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
+  lockSub: { fontSize: 13, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 },
   lockBtn: { width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
 };
 
@@ -178,8 +175,8 @@ export default function UserProfilePage() {
     load();
   }, [userId, navigate]);
 
-  if (loading) return <div style={S.loadWrap}><div style={S.spinner} /></div>;
-  if (!profile) return <div style={S.loadWrap}><p style={{ color: '#999' }}>Profile not found</p></div>;
+  if (loading) return <div style={S.loadWrap}><div style={S.spinner} /><style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style></div>;
+  if (!profile) return <div style={S.loadWrap}><p style={{ color: '#94a3b8' }}>Profile not found</p></div>;
 
   const d          = profile.details || {};
   const age        = d.age        || '';
@@ -221,11 +218,11 @@ export default function UserProfilePage() {
 
         <div style={S.subRow}>
           <span style={isOnlineNow ? S.onlineDot : S.offlineDot} />
-          <span style={{ color: isOnlineNow ? '#4caf50' : '#aaa', fontSize: 13 }}>{lastSeenText}</span>
+          <span style={{ color: isOnlineNow ? '#4ade80' : '#94a3b8', fontSize: 13 }}>{lastSeenText}</span>
           {displayCity && (
             <>
-              <span style={{ color: '#ddd' }}>·</span>
-              <span style={{ fontSize: 13, color: '#888' }}>📍 {displayCity}</span>
+              <span style={{ color: '#475569' }}>·</span>
+              <span style={{ fontSize: 13, color: '#94a3b8' }}>📍 {displayCity}</span>
             </>
           )}
         </div>
@@ -242,17 +239,17 @@ export default function UserProfilePage() {
         )}
 
         {profile.lifestyle && Object.values(profile.lifestyle).some(v => v && (Array.isArray(v) ? v.length > 0 : true)) && (
-          <div style={{ padding: '16px 20px', borderTop: '1px solid #f0f0f0' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#e91e63', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>✨ Lifestyle</div>
+          <div style={{ padding: '16px 0', borderTop: '1px solid #334155', marginTop: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#e91e63', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1.2 }}>✨ Lifestyle</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {Array.isArray(profile.lifestyle.hobbies) && profile.lifestyle.hobbies.map(h => (
-                <span key={h} style={{ padding: '6px 14px', borderRadius: 999, background: '#fce4ec', color: '#e91e63', fontSize: 12, fontWeight: 600 }}>{h}</span>
+                <span key={h} style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(233, 30, 99, 0.15)', color: '#f9a8d4', fontSize: 12, fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.3)' }}>{h}</span>
               ))}
-              {profile.lifestyle.sleepSchedule && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#f3e8ff', color: '#7c3aed', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.sleepSchedule}</span>}
-              {profile.lifestyle.drinking && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#e0f2fe', color: '#0369a1', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.drinking}</span>}
-              {profile.lifestyle.smoking && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#fef9c3', color: '#854d0e', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.smoking}</span>}
-              {profile.lifestyle.exercise && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#dcfce7', color: '#166534', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.exercise}</span>}
-              {profile.lifestyle.personality && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#f1f5f9', color: '#475569', fontSize: 12, fontWeight: 600 }}>{profile.lifestyle.personality}</span>}
+              {profile.lifestyle.sleepSchedule && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(124, 58, 237, 0.15)', color: '#c4b5fd', fontSize: 12, fontWeight: 600, border: '1px solid rgba(124, 58, 237, 0.3)' }}>{profile.lifestyle.sleepSchedule}</span>}
+              {profile.lifestyle.drinking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(3, 105, 161, 0.15)', color: '#7dd3fc', fontSize: 12, fontWeight: 600, border: '1px solid rgba(3, 105, 161, 0.3)' }}>{profile.lifestyle.drinking}</span>}
+              {profile.lifestyle.smoking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(133, 77, 14, 0.2)', color: '#fde68a', fontSize: 12, fontWeight: 600, border: '1px solid rgba(133, 77, 14, 0.4)' }}>{profile.lifestyle.smoking}</span>}
+              {profile.lifestyle.exercise && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(22, 101, 52, 0.2)', color: '#86efac', fontSize: 12, fontWeight: 600, border: '1px solid rgba(22, 101, 52, 0.4)' }}>{profile.lifestyle.exercise}</span>}
+              {profile.lifestyle.personality && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#0f172a', color: '#cbd5e1', fontSize: 12, fontWeight: 600, border: '1px solid #334155' }}>{profile.lifestyle.personality}</span>}
             </div>
           </div>
         )}
@@ -279,28 +276,28 @@ function Chip({ icon, label }) {
   return (
     <div style={S.chip}>
       <span>{icon}</span>
-      <span style={{ color: '#555', fontSize: 13 }}>{label}</span>
+      <span style={{ color: '#cbd5e1', fontSize: 13 }}>{label}</span>
     </div>
   );
 }
 
 const S = {
-  page: { minHeight: '100vh', background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 40 },
-  loadWrap: { minHeight: '100vh', background: 'linear-gradient(145deg, #fce4ec, #fdf0f5)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  page: { minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 40 },
+  loadWrap: { minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: 32, height: 32, border: '3px solid rgba(233,30,99,0.2)', borderTopColor: '#e91e63', borderRadius: '50%', animation: 'spin 0.7s linear infinite' },
-  backBtn: { position: 'fixed', top: 14, left: 14, zIndex: 50, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.2)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(233,30,99,0.1)' },
-  card: { maxWidth: 480, margin: '0 auto', background: '#fff', borderRadius: '0 0 24px 24px', padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(233,30,99,0.08)' },
+  backBtn: { position: 'fixed', top: 14, left: 14, zIndex: 50, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.3)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  card: { maxWidth: 480, margin: '0 auto', background: '#1e293b', borderRadius: '0 0 24px 24px', padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #334155', borderTop: 'none' },
   nameRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  name: { fontSize: 24, fontWeight: 800, color: '#1a1a2e' },
-  ageBadge: { background: '#fce4ec', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#e91e63' },
+  name: { fontSize: 24, fontWeight: 800, color: '#f1f5f9' },
+  ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
   verifiedBadge: { background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
-  onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4caf50', flexShrink: 0 },
-  offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#ccc', flexShrink: 0 },
-  msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.3)' },
-  section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #fce4ec' },
+  onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
+  offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
+  msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
-  bioText: { margin: 0, fontSize: 14, color: '#555', lineHeight: 1.8 },
+  bioText: { margin: 0, fontSize: 14, color: '#cbd5e1', lineHeight: 1.8 },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  chip: { display: 'flex', alignItems: 'center', gap: 6, background: '#fdf0f5', border: '1px solid #f8bbd0', borderRadius: 999, padding: '6px 14px', fontSize: 13 },
+  chip: { display: 'flex', alignItems: 'center', gap: 6, background: '#0f172a', border: '1px solid #334155', borderRadius: 999, padding: '6px 14px', fontSize: 13 },
 };
