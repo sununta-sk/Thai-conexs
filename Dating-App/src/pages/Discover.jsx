@@ -10,10 +10,10 @@ function getChatId(uid1, uid2) {
 function BanScreen({ bannedUntil, banReason }) {
   const isPermanent = !bannedUntil;
   const until = bannedUntil ? new Date(bannedUntil) : null;
-  const now   = new Date();
-  const diffMs   = until ? until - now : null;
+  const now = new Date();
+  const diffMs = until ? until - now : null;
   const diffDays = diffMs ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : null;
-  const diffHrs  = diffMs ? Math.ceil(diffMs / (1000 * 60 * 60)) : null;
+  const diffHrs = diffMs ? Math.ceil(diffMs / (1000 * 60 * 60)) : null;
   let timeLabel = '';
   if (isPermanent) timeLabel = 'Permanent';
   else if (diffHrs <= 24) timeLabel = '~' + diffHrs + ' hours remaining';
@@ -22,7 +22,7 @@ function BanScreen({ bannedUntil, banReason }) {
     <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
       <div style={{ background: '#1e293b', border: '1px solid #ef444433', borderRadius: '20px', padding: '40px 32px', maxWidth: '420px', width: '100%', textAlign: 'center' }}>
         <div style={{ fontSize: '56px', marginBottom: '16px' }}>X</div>
-        <h2 style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 800, color: '#f87171' }}>Your account has been suspended</h2>
+        <h2 style={{ margin: '0 0 6px', fontSize: '22px', fontWeight: 800, color: '#f87171' }}>Account suspended</h2>
         <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginBottom: '12px', textAlign: 'left' }}>
           <div style={{ fontSize: '11px', color: '#475569', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>Reason</div>
           <div style={{ fontSize: '15px', color: '#f1f5f9' }}>{banReason || 'Violation of terms of service'}</div>
@@ -50,27 +50,65 @@ function timeAgo(dateStr) {
 
 const DEFAULT_FILTERS = {
   gender: 'all',
-  ageMin: '',
-  ageMax: '',
-  city: '',
-  heightMin: '',
-  heightMax: '',
-  weightMin: '',
-  weightMax: '',
-  education: '',
-  children: '',
+  ageRange: 'all',
+  country: 'all',
+  ignoreAgePref: false,
+  height: 'all',
+  weight: 'all',
+  education: 'all',
+  children: 'all',
   onlineOnly: false,
   hasPhoto: false,
   orderBy: 'last_seen',
 };
 
+const AGE_RANGES = [
+  { value: 'all', label: 'All ages' },
+  { value: '18-24', label: '18-24' },
+  { value: '25-34', label: '25-34' },
+  { value: '35-44', label: '35-44' },
+  { value: '45-54', label: '45-54' },
+  { value: '55+', label: '55+' },
+];
+
+const HEIGHT_RANGES = [
+  { value: 'all', label: 'Any height' },
+  { value: '<150', label: 'Under 150 cm' },
+  { value: '150-160', label: '150-160 cm' },
+  { value: '161-170', label: '161-170 cm' },
+  { value: '171-180', label: '171-180 cm' },
+  { value: '181+', label: 'Over 180 cm' },
+];
+
+const WEIGHT_RANGES = [
+  { value: 'all', label: 'Any weight' },
+  { value: '<50', label: 'Under 50 kg' },
+  { value: '50-60', label: '50-60 kg' },
+  { value: '61-70', label: '61-70 kg' },
+  { value: '71-80', label: '71-80 kg' },
+  { value: '81+', label: 'Over 80 kg' },
+];
+
+function inRange(value, range) {
+  if (range === 'all' || !value) return true;
+  const num = parseInt(value);
+  if (isNaN(num)) return false;
+  if (range.includes('-')) {
+    const [min, max] = range.split('-').map(Number);
+    return num >= min && num <= max;
+  }
+  if (range.startsWith('<')) return num < parseInt(range.slice(1));
+  if (range.endsWith('+')) return num >= parseInt(range);
+  return true;
+}
+
 export default function Discover() {
   const [profiles, setProfiles] = useState([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [banInfo, setBanInfo] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [showFilters, setShowFilters] = useState(false);
   const { onlineUsers } = useOnline();
   const navigate = useNavigate();
 
@@ -96,8 +134,9 @@ export default function Discover() {
       const user = session?.user;
       if (!user) { navigate('/login'); return; }
       setCurrentUserId(user.id);
-      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason').eq('id', user.id).maybeSingle();
+      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason, details').eq('id', user.id).maybeSingle();
       if (profile) {
+        setCurrentUserProfile(profile);
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
@@ -109,44 +148,45 @@ export default function Discover() {
   }, [navigate]);
 
   const filteredProfiles = useMemo(() => {
+    const myAge = parseInt(currentUserProfile?.details?.age) || 0;
+
     let result = profiles.filter(p => {
       const d = p.details || {};
       const isOnline = onlineUsers.has(p.id);
+
       if (filters.gender !== 'all' && d.gender !== filters.gender) return false;
-      const age = parseInt(d.age) || 0;
-      if (filters.ageMin && age < parseInt(filters.ageMin)) return false;
-      if (filters.ageMax && age > parseInt(filters.ageMax)) return false;
-      if (filters.city) {
-        const userCity = (p.city || d.city || '').toLowerCase();
-        if (!userCity.includes(filters.city.toLowerCase())) return false;
-      }
-      const height = parseInt(d.height) || 0;
-      if (filters.heightMin && height < parseInt(filters.heightMin)) return false;
-      if (filters.heightMax && height > parseInt(filters.heightMax)) return false;
-      const weight = parseInt(d.weight) || 0;
-      if (filters.weightMin && weight < parseInt(filters.weightMin)) return false;
-      if (filters.weightMax && weight > parseInt(filters.weightMax)) return false;
-      if (filters.education && d.education !== filters.education) return false;
-      if (filters.children && d.children !== filters.children) return false;
+      if (!inRange(d.age, filters.ageRange)) return false;
+      if (filters.country !== 'all' && (d.country || 'Thailand') !== filters.country) return false;
+      if (!inRange(d.height, filters.height)) return false;
+      if (!inRange(d.weight, filters.weight)) return false;
+      if (filters.education !== 'all' && d.education !== filters.education) return false;
+      if (filters.children !== 'all' && d.children !== filters.children) return false;
       if (filters.onlineOnly && !isOnline) return false;
       if (filters.hasPhoto && !p.avatar_url) return false;
+
+      // Ignore their age range (respect their preferred_age_min/max if set)
+      if (!filters.ignoreAgePref && myAge) {
+        const minPref = parseInt(d.preferred_age_min);
+        const maxPref = parseInt(d.preferred_age_max);
+        if (minPref && myAge < minPref) return false;
+        if (maxPref && myAge > maxPref) return false;
+      }
+
       return true;
     });
+
     if (filters.orderBy === 'last_seen') {
       result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
     }
     return result;
-  }, [profiles, filters, onlineUsers]);
+  }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (targetUserId) => {
-    if (window.innerWidth >= 900) {
-      navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
-    } else {
-      navigate('/profile/' + targetUserId);
-    }
+    if (window.innerWidth >= 900) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
+    else navigate('/profile/' + targetUserId);
   };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
@@ -156,84 +196,104 @@ export default function Discover() {
   };
 
   const updateFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
-  const resetFilters = () => setFilters(DEFAULT_FILTERS);
 
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
     <div style={S.page}>
+      {/* SEARCH BAR — ThaiFriendly compact 3-row layout */}
       <div style={S.searchBar}>
-        <div style={S.searchHeader}>
-          <h2 style={S.searchTitle}>Find your match</h2>
-          <button onClick={() => setShowFilters(!showFilters)} style={S.toggleBtn}>
-            {showFilters ? 'Hide filters' : 'Show filters'}
-          </button>
-        </div>
-
-        <div style={S.quickRow}>
+        {/* Row 1 */}
+        <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
-            <option value="all">All genders</option>
+            <option value="all">Guys & Girls</option>
             <option value="male">Guys</option>
             <option value="female">Girls</option>
             <option value="other">Other</option>
           </select>
-          <input type="number" placeholder="Min age" value={filters.ageMin} onChange={e => updateFilter('ageMin', e.target.value)} style={S.input} />
-          <input type="number" placeholder="Max age" value={filters.ageMax} onChange={e => updateFilter('ageMax', e.target.value)} style={S.input} />
-          <input type="text" placeholder="City (e.g. Bangkok)" value={filters.city} onChange={e => updateFilter('city', e.target.value)} style={S.input} />
+
+          <select value={filters.ageRange} onChange={e => updateFilter('ageRange', e.target.value)} style={S.input}>
+            {AGE_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+
+          <select value={filters.country} onChange={e => updateFilter('country', e.target.value)} style={S.input}>
+            <option value="all">All countries</option>
+            <option value="Thailand">Thailand</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <option value="Australia">Australia</option>
+            <option value="Canada">Canada</option>
+            <option value="Germany">Germany</option>
+            <option value="Japan">Japan</option>
+            <option value="Other">Other</option>
+          </select>
+
+          <select value={filters.ignoreAgePref ? 'ignore' : 'respect'} onChange={e => updateFilter('ignoreAgePref', e.target.value === 'ignore')} style={S.input}>
+            <option value="respect">Respect their age range</option>
+            <option value="ignore">Ignore their age range</option>
+          </select>
+
+          <button style={S.searchBtn} onClick={() => {}}>Search</button>
+        </div>
+
+        {/* Row 2 */}
+        <div style={S.row}>
+          <select value={filters.height} onChange={e => updateFilter('height', e.target.value)} style={S.input}>
+            {HEIGHT_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+
+          <select value={filters.weight} onChange={e => updateFilter('weight', e.target.value)} style={S.input}>
+            {WEIGHT_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+
+          <select value={filters.education} onChange={e => updateFilter('education', e.target.value)} style={S.input}>
+            <option value="all">Any education</option>
+            <option value="High School">High School</option>
+            <option value="Bachelor">Bachelor</option>
+            <option value="Master">Master</option>
+            <option value="PhD">PhD</option>
+          </select>
+
+          <select value={filters.children} onChange={e => updateFilter('children', e.target.value)} style={S.input}>
+            <option value="all">Any children</option>
+            <option value="No">No children</option>
+            <option value="Has children">Has children</option>
+            <option value="Want children">Want children</option>
+            <option value="Don't want">Don't want children</option>
+          </select>
+
+          <div style={S.checks}>
+            <label style={S.checkLabel}>
+              <input type="checkbox" checked={filters.onlineOnly} onChange={e => updateFilter('onlineOnly', e.target.checked)} style={S.checkbox} />
+              Online
+            </label>
+            <label style={S.checkLabel}>
+              <input type="checkbox" checked={filters.hasPhoto} onChange={e => updateFilter('hasPhoto', e.target.checked)} style={S.checkbox} />
+              Photo
+            </label>
+          </div>
+        </div>
+
+        {/* Row 3 */}
+        <div style={S.row}>
+          <div />
+          <div />
+          <div />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>
             <option value="last_seen">Order by Last Active</option>
             <option value="newest">Order by Newest</option>
           </select>
-        </div>
-
-        {showFilters && (
-          <>
-            <div style={S.advRow}>
-              <input type="number" placeholder="Min height (cm)" value={filters.heightMin} onChange={e => updateFilter('heightMin', e.target.value)} style={S.input} />
-              <input type="number" placeholder="Max height (cm)" value={filters.heightMax} onChange={e => updateFilter('heightMax', e.target.value)} style={S.input} />
-              <input type="number" placeholder="Min weight (kg)" value={filters.weightMin} onChange={e => updateFilter('weightMin', e.target.value)} style={S.input} />
-              <input type="number" placeholder="Max weight (kg)" value={filters.weightMax} onChange={e => updateFilter('weightMax', e.target.value)} style={S.input} />
-              <select value={filters.education} onChange={e => updateFilter('education', e.target.value)} style={S.input}>
-                <option value="">Any education</option>
-                <option value="High School">High School</option>
-                <option value="Bachelor">Bachelor</option>
-                <option value="Master">Master</option>
-                <option value="PhD">PhD</option>
-              </select>
-              <select value={filters.children} onChange={e => updateFilter('children', e.target.value)} style={S.input}>
-                <option value="">Any children</option>
-                <option value="No">No children</option>
-                <option value="Has children">Has children</option>
-                <option value="Want children">Want children</option>
-                <option value="Don't want">Don't want children</option>
-              </select>
-            </div>
-
-            <div style={S.checkRow}>
-              <label style={S.checkLabel}>
-                <input type="checkbox" checked={filters.onlineOnly} onChange={e => updateFilter('onlineOnly', e.target.checked)} style={S.checkbox} />
-                <span>Online only</span>
-              </label>
-              <label style={S.checkLabel}>
-                <input type="checkbox" checked={filters.hasPhoto} onChange={e => updateFilter('hasPhoto', e.target.checked)} style={S.checkbox} />
-                <span>Has photo</span>
-              </label>
-              <button onClick={resetFilters} style={S.resetBtn}>Reset all</button>
-            </div>
-          </>
-        )}
-
-        <div style={S.resultCount}>
-          Showing <strong style={{ color: '#e91e63' }}>{filteredProfiles.length}</strong> of {profiles.length} members
+          <div style={S.resultCount}>
+            <strong style={{ color: '#e91e63' }}>{filteredProfiles.length}</strong> of {profiles.length} members
+          </div>
         </div>
       </div>
 
+      {/* GRID */}
       {loading ? (
         <div style={S.emptyState}>Loading...</div>
       ) : filteredProfiles.length === 0 ? (
-        <div style={S.emptyState}>
-          {profiles.length === 0 ? 'No members found' : 'No matches for your filters. Try adjusting them.'}
-        </div>
+        <div style={S.emptyState}>{profiles.length === 0 ? 'No members found' : 'No matches. Try adjusting your filters.'}</div>
       ) : (
         <div style={S.grid}>
           {filteredProfiles.map((profile) => {
@@ -271,19 +331,79 @@ export default function Discover() {
 
 const S = {
   page: { background: '#0f172a', minHeight: '100vh', paddingBottom: 80, paddingTop: 90 },
-  searchBar: { maxWidth: '1400px', margin: '0 auto 8px', padding: '20px', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' },
-  searchHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  searchTitle: { color: '#f1f5f9', fontSize: 18, fontWeight: 800, margin: 0 },
-  toggleBtn: { background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' },
-  quickRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 10 },
-  advRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginTop: 10, paddingTop: 14, borderTop: '1px solid #334155' },
-  checkRow: { display: 'flex', gap: 20, alignItems: 'center', marginTop: 12, flexWrap: 'wrap' },
-  checkLabel: { display: 'flex', alignItems: 'center', gap: 6, color: '#cbd5e1', fontSize: 13, cursor: 'pointer' },
-  checkbox: { width: 16, height: 16, accentColor: '#e91e63', cursor: 'pointer' },
-  resetBtn: { background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', marginLeft: 'auto' },
-  input: { padding: '8px 12px', borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: 13, outline: 'none', boxSizing: 'border-box', width: '100%' },
-  resultCount: { marginTop: 14, fontSize: 12, color: '#94a3b8', textAlign: 'center', fontWeight: 600 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(6, 130px)', justifyContent: 'center', gap: '10px', padding: '15px', maxWidth: '1400px', margin: '0 auto' },
+
+  searchBar: {
+    maxWidth: '1100px',
+    margin: '0 auto 12px',
+    padding: '14px 18px',
+    background: '#1e293b',
+    borderRadius: '10px',
+    border: '1px solid #334155',
+  },
+  row: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(5, 1fr)',
+    gap: 10,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  input: {
+    padding: '8px 10px',
+    borderRadius: 6,
+    border: '1px solid #334155',
+    background: '#0f172a',
+    color: '#f1f5f9',
+    fontSize: 13,
+    outline: 'none',
+    boxSizing: 'border-box',
+    width: '100%',
+    cursor: 'pointer',
+  },
+  searchBtn: {
+    padding: '10px 24px',
+    borderRadius: 8,
+    border: 'none',
+    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: 'pointer',
+    boxShadow: '0 2px 8px rgba(233, 30, 99, 0.4)',
+  },
+  checks: {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingLeft: 4,
+  },
+  checkLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    color: '#cbd5e1',
+    fontSize: 13,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  checkbox: { width: 14, height: 14, accentColor: '#e91e63', cursor: 'pointer' },
+  resultCount: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: 600,
+    textAlign: 'right',
+    paddingRight: 4,
+  },
+
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(6, 130px)',
+    justifyContent: 'center',
+    gap: '10px',
+    padding: '15px',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
