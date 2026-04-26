@@ -569,6 +569,28 @@ export default function ProfileSetup() {
         </table>
       </div>
 
+      <Field label="Country">
+        <select value={details.country || 'Thailand'} onChange={e => setDetails({...details, country: e.target.value})} style={S.input}>
+          <option value="Thailand">Thailand</option>
+          <option value="USA">USA</option>
+          <option value="UK">UK</option>
+          <option value="Australia">Australia</option>
+          <option value="Canada">Canada</option>
+          <option value="Germany">Germany</option>
+          <option value="France">France</option>
+          <option value="Japan">Japan</option>
+          <option value="Korea">Korea</option>
+          <option value="China">China</option>
+          <option value="Singapore">Singapore</option>
+          <option value="Other">Other</option>
+        </select>
+      </Field>
+      <Field label="Preferred age range">
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input type="number" placeholder="Min age" value={details.preferred_age_min || ''} onChange={e => setDetails({...details, preferred_age_min: e.target.value})} style={S.input} />
+          <input type="number" placeholder="Max age" value={details.preferred_age_max || ''} onChange={e => setDetails({...details, preferred_age_max: e.target.value})} style={S.input} />
+        </div>
+      </Field>
       {/* Lifestyle */}
       {(lifestyle.hobbies?.length > 0 || lifestyle.sleepSchedule || lifestyle.drinking || lifestyle.smoking || lifestyle.exercise || lifestyle.personality) && (
         <div style={S.sidebarCard}>
