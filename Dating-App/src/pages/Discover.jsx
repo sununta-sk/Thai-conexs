@@ -207,9 +207,9 @@ export default function Discover() {
         <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
             <option value="all">Guys & Girls</option>
-            <option value="male">Guys</option>
-            <option value="female">Girls</option>
-            <option value="other">Other</option>
+            <option value="Male">Guys</option>
+            <option value="Female">Girls</option>
+            <option value="Transgender">Transgender</option>
           </select>
 
           <select value={filters.ageRange} onChange={e => updateFilter('ageRange', e.target.value)} style={S.input}>
