@@ -185,8 +185,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (targetUserId) => {
-    if (window.innerWidth >= 900) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
-    else navigate('/profile/' + targetUserId);
+    navigate('/profile/' + targetUserId);
   };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
