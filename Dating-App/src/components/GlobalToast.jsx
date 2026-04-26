@@ -9,7 +9,11 @@ function getAudioCtx() {
   return _audioCtx;
 }
 if (typeof window !== 'undefined') {
-  const unlock = () => { getAudioCtx(); document.removeEventListener('click', unlock); document.removeEventListener('touchstart', unlock); };
+  const unlock = () => {
+    getAudioCtx();
+    document.removeEventListener('click', unlock);
+    document.removeEventListener('touchstart', unlock);
+  };
   document.addEventListener('click', unlock);
   document.addEventListener('touchstart', unlock);
 }
@@ -64,7 +68,6 @@ export default function GlobalToast() {
 
     console.log('[Toast] Subscribing for userId:', userId);
 
-    // ── Listen to new messages ────────────────────────────
     const msgChannel = supabase
       .channel('global-msg-' + userId)
       .on('postgres_changes',
@@ -76,20 +79,22 @@ export default function GlobalToast() {
           if (!m.chat_id || !m.chat_id.includes(userIdRef.current)) return;
           if (window.location.pathname.includes('/room-chat/' + m.chat_id)) return;
 
-          const { data: sender } = await supabase.from('profiles')
+          const senderResult = await supabase.from('profiles')
             .select('username, avatar_url')
-            .eq('id', m.sender_id).maybeSingle();
+            .eq('id', m.sender_id)
+            .maybeSingle();
+          const sender = senderResult.data;
 
           addToast({
             type: 'message',
-            avatar: sender?.avatar_url,
-            name: sender?.usern0, 60),
+            avatar: sender ? sender.avatar_url : null,
+            name: sender ? (sender.username || 'Someone') : 'Someone',
+            text: (m.content || '').slice(0, 60),
             onClick: () => navigate('/room-chat/' + m.chat_id),
           });
         })
       .subscribe((status) => console.log('[Toast] Message channel:', status));
 
-    // ── Listen to profile views ───────────────────────────
     const viewChannel = supabase
       .channel('global-view-' + userId)
       .on('postgres_changes',
@@ -99,18 +104,22 @@ export default function GlobalToast() {
           console.log('[Toast] New profile_view event:', v);
           if (!v || v.viewer_id === userIdRef.current) return;
 
-          // If user is currently in chat with this viewer, skip toast (they're already chatting)
           const chatId = getChatId(userIdRef.current, v.viewer_id);
           if (window.location.pathname.includes('/room-chat/' + chatId)) {
             console.log('[Toast] Suppressed (already in chat with viewer)');
-            ait supabase.from('profiles')
+            return;
+          }
+
+          const viewerResult = await supabase.from('profiles')
             .select('username, avatar_url')
-            .eq('id', v.viewer_id).maybeSingle();
+            .eq('id', v.viewer_id)
+            .maybeSingle();
+          const viewer = viewerResult.data;
 
           addToast({
             type: 'view',
-            avatar: viewer?.avatar_url,
-            name: viewer?.username || 'Someone',
+            avatar: viewer ? viewer.avatar_url : null,
+            name: viewer ? (viewer.username || 'Someone') : 'Someone',
             text: 'is looking at your profile!',
             onClick: () => navigate('/room-chat/' + chatId),
           });
@@ -137,8 +146,9 @@ export default function GlobalToast() {
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); setToasts(prev => prev.filter(x => x.id !== t.id)); }}
-            style={S.closeBtn}
-          >×</button>
+            style={S.closeBtn}>
+            X
+          </button>
         </div>
       ))}
     </div>
@@ -147,25 +157,50 @@ export default function GlobalToast() {
 
 const S = {
   wrap: {
-    position: 'fixed', bottom: 20, left: 20, zIndex: 9999,
-    display: 'flex', flexDirection: 'column', gap: 10, pointerEvents: 'none',
+    position: 'fixed',
+    bottom: 20,
+    left: 20,
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    pointerEvents: 'none',
   },
   toast: {
     pointerEvents: 'auto',
-    background: '#1e293b', border: '1px solid #334155', borderRadius: 12,
-    padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12,
-    minWidth: 280, maxWidth: 340, cursor: 'pointer',
+    background: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: 12,
+    padding: '10px 14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    minWidth: 280,
+    maxWidth: 340,
+    cursor: 'pointer',
     boxShadow: '0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(233, 30, 99, 0.2)',
     animation: 'slideInLeft 0.3s ease-out',
   },
   avatar: {
-    width: 44, height: 44, borderRadius: '50%', objectFit: 'cover',
-    flexShrink: 0, border: '2px solid #e91e63',
+    width: 44,
+    height: 44,
+    borderRadius: '50%',
+    objectFit: 'cover',
+    flexShrink: 0,
+    border: '2px solid #e91e63',
   },
   body: { flex: 1, minWidth: 0 },
-  name: { fontSize: 14, fontWeight: 800, clor: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  name: { fontSize: 14, fontWeight: 800, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   text: { fontSize: 12, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 },
-  closeBtn: { background: 'none', border: 'none', color: '#64748b', fontSize: 22, cursor: 'pointer', padding: '0 4px', lineHeight: 1 },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#64748b',
+    fontSize: 22,
+    cursor: 'pointer',
+    padding: '0 4px',
+    lineHeight: 1,
+  },
 };
 
 if (typeof document !== 'undefined') {
