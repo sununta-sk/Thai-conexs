@@ -704,6 +704,15 @@ export default function ProfileSetup() {
           {tx.lookingOptions.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       </Field>
+      <Field label="Children">
+        <select value={details.children || ''} onChange={e => setDetails({...details, children: e.target.value})} style={S.input}>
+          <option value="">--</option>
+          <option value="No">No</option>
+          <option value="Has children">Has children</option>
+          <option value="Want children">Want children</option>
+          <option value="Don't want">Don't want</option>
+        </select>
+      </Field>
 
       {/* Lifestyle */}
       <SectionTitle>✨ Lifestyle</SectionTitle>
