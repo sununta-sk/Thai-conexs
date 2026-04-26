@@ -6,6 +6,9 @@ import { OnlineProvider } from './context/OnlineContext';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
+import CheckEmail   from './pages/CheckEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword  from './pages/ResetPassword';
 import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
@@ -156,6 +159,9 @@ function AppContent() {
           <Routes>
             <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/check-email" element={<CheckEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />

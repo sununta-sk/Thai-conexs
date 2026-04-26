@@ -27,11 +27,18 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirm) { alert('Passwords do not match'); return; }
+    if (password.length < 6) { alert('Password must be at least 6 characters'); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin + '/login?verified=1',
+      },
+    });
     setLoading(false);
-    if (error) alert(error.message);
-    else { alert('Registration successful! Please check your email.'); navigate('/login'); }
+    if (error) { alert(error.message); return; }
+    navigate('/check-email?email=' + encodeURIComponent(email));
   };
 
   const getPhoto = (offset) => SLIDES[(current + offset) % SLIDES.length];
@@ -48,8 +55,8 @@ export default function Register() {
           <form onSubmit={handleRegister} style={S.form}>
             <input type="email" placeholder="Email" value={email}
               onChange={e => setEmail(e.target.value)} style={S.input} required />
-            <input type="password" placeholder="Password" value={password}
-              onChange={e => setPassword(e.target.value)} style={S.input} required />
+            <input type="password" placeholder="Password (min 6 chars)" value={password}
+              onChange={e => setPassword(e.target.value)} style={S.input} required minLength={6} />
             <input type="password" placeholder="Confirm Password" value={confirm}
               onChange={e => setConfirm(e.target.value)} style={S.input} required />
             <button type="submit" disabled={loading} style={{ ...S.btnPink, opacity: loading ? 0.7 : 1 }}>

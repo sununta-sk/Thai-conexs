@@ -193,6 +193,7 @@ export default function Login() {
               <input type="password" placeholder="Password" value={password}
                 onChange={e => setPassword(e.target.value)} style={S.input} required />
               <button type="submit" style={S.btnPink}>Log In</button>
+              <Link to="/forgot-password" style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600, textDecoration: 'none', textAlign: 'center', marginTop: -4 }}>Forgot password?</Link>
               <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
               <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
                 <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
