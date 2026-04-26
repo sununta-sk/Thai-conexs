@@ -119,28 +119,26 @@ export default function Navbar() {
             <span style={{ fontSize: '11px' }}>Admin</span>
           </button>
         )}
-
-        {!isPremium && (
-          <button
-            onClick={() => goTo('/subscription')}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 800,
-              boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)',
-              whiteSpace: 'nowrap',
-              marginRight: 4,
-            }}>
-            Upgrade Account
-          </button>
-        )}
-                {/* Avatar dropdown */}
-        <div style={{ position: 'relative' }} ref={menuRef}>
+        {/* Avatar dropdown */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
+          {!isPremium && (
+            <button
+              onClick={() => goTo('/subscription')}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 6,
+                background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 800,
+                boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)',
+                whiteSpace: 'nowrap',
+              }}>
+              Upgrade Account
+            </button>
+          )}
           <button
             onClick={() => setShowProfileMenu(v => !v)}
             style={{
