@@ -147,10 +147,21 @@ export default function UserProfilePage() {
   const [isSubscriber, setIsSubscriber] = useState(false);
   const [loading, setLoading]           = useState(true);
 
+  // Desktop redirect to chat (this page is mobile-only)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 900) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) navigate('/room-chat/' + getChatId(session.user.id, userId), { replace: true });
+        else navigate('/login', { replace: true });
+      });
+    }
+  }, [userId, navigate]);
+
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/login'); return; }
+      if (window.innerWidth >= 900) return; // Desktop redirects, skip load
       setCurrentUserId(session.user.id);
 
       const { data, error } = await supabase
