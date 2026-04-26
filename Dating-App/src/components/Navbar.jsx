@@ -9,6 +9,7 @@ export default function Navbar() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
   const [myUsername, setMyUsername] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -31,7 +32,7 @@ export default function Navbar() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('avatar_url, username')
+        .select('avatar_url, username, subscription_plan')
         .eq('id', session.user.id)
         .maybeSingle();
       if (profileData) {
@@ -39,6 +40,7 @@ export default function Navbar() {
         const url = typeof raw === 'string' ? raw : raw?.url;
         setMyAvatar(url || null);
         setMyUsername(profileData.username || '');
+        setIsPremium(profileData.subscription_plan === 'gold' || profileData.subscription_plan === 'platinum');
       }
     });
   }, []);
@@ -110,6 +112,21 @@ export default function Navbar() {
           <span style={{ fontSize: '11px' }}>Messages</span>
         </button>
 
+                {!isPremium && (
+          <button
+            onClick={() => goTo('/subscription')}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              padding: '8px 14px', borderRadius: 8,
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              border: 'none', cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.4)',
+              marginRight: 8,
+            }}>
+            <span style={{ fontSize: 11, color: '#bbf7d0', fontWeight: 600, marginBottom: 2 }}>{myUsername || ''}</span>
+            <span style={{ fontSize: 13, color: '#fff', fontWeight: 800 }}>Upgrade Account</span>
+          </button>
+        )}
         {isAdmin && (
           <button
             onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin-secret-portal')}
