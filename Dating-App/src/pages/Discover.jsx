@@ -206,7 +206,7 @@ export default function Discover() {
         {/* Row 1 */}
         <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
-            <option value="all">Guys & Girls</option>
+            <option value="all">All genders</option>
             <option value="Male">Guys</option>
             <option value="Female">Girls</option>
             <option value="Transgender">Transgender</option>
