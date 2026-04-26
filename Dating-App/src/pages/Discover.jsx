@@ -291,9 +291,9 @@ export default function Discover() {
           <select value={filters.education} onChange={e => updateFilter('education', e.target.value)} style={S.input}>
             <option value="all">Any education</option>
             <option value="High School">High School</option>
-            <option value="Bachelor">Bachelor</option>
-            <option value="Master">Master</option>
-            <option value="PhD">PhD</option>
+            <option value="Bachelor Degree">Bachelor Degree</option>
+            <option value="Master Degree">Master Degree</option>
+            <option value="Doctorate Degree">Doctorate Degree</option>
           </select>
 
           <select value={filters.children} onChange={e => updateFilter('children', e.target.value)} style={S.input}>
