@@ -43,6 +43,8 @@ export default function GlobalToast() {
   const navigate = useNavigate();
   const toastIdRef = useRef(0);
   const userIdRef = useRef(null);
+  const navigateRef = useRef(navigate);
+  navigateRef.current = navigate;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -90,7 +92,7 @@ export default function GlobalToast() {
             avatar: sender ? sender.avatar_url : null,
             name: sender ? (sender.username || 'Someone') : 'Someone',
             text: (m.content || '').slice(0, 60),
-            onClick: () => navigate('/room-chat/' + m.chat_id),
+            onClick: () => navigateRef.current('/room-chat/' + m.chat_id),
           });
         })
       .subscribe((status) => console.log('[Toast] Message channel:', status));
@@ -121,7 +123,7 @@ export default function GlobalToast() {
             avatar: viewer ? viewer.avatar_url : null,
             name: viewer ? (viewer.username || 'Someone') : 'Someone',
             text: 'is looking at your profile!',
-            onClick: () => navigate('/room-chat/' + chatId),
+            onClick: () => navigateRef.current('/room-chat/' + chatId),
           });
         })
       .subscribe((status) => console.log('[Toast] View channel:', status));
@@ -131,7 +133,7 @@ export default function GlobalToast() {
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(viewChannel);
     };
-  }, [userId, navigate]);
+  }, [userId]);
 
   if (toasts.length === 0) return null;
 
