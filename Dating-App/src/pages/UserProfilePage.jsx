@@ -173,10 +173,15 @@ export default function UserProfilePage() {
 
       // Track profile view (don't track if viewing own profile)
       if (session.user.id !== userId) {
-        await supabase.from('profile_views').insert({
+        console.log('[ProfileView] Inserting view:', session.user.id, '->', userId);
+        const { error: viewError } = await supabase.from('profile_views').insert({
           viewer_id: session.user.id,
           viewed_id: userId,
         });
+        if (viewError) console.error('[ProfileView] ERROR:', viewError);
+        else console.log('[ProfileView] OK');
+      } else {
+        console.log('[ProfileView] Skipped (own profile)');
       }
 
       setLoading(false);
