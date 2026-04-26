@@ -111,22 +111,6 @@ export default function Navbar() {
           <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
           <span style={{ fontSize: '11px' }}>Messages</span>
         </button>
-
-                {!isPremium && (
-          <button
-            onClick={() => goTo('/subscription')}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              padding: '8px 14px', borderRadius: 8,
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              border: 'none', cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.4)',
-              marginRight: 8,
-            }}>
-            <span style={{ fontSize: 11, color: '#bbf7d0', fontWeight: 600, marginBottom: 2 }}>{myUsername || ''}</span>
-            <span style={{ fontSize: 13, color: '#fff', fontWeight: 800 }}>Upgrade Account</span>
-          </button>
-        )}
         {isAdmin && (
           <button
             onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin-secret-portal')}
@@ -136,7 +120,26 @@ export default function Navbar() {
           </button>
         )}
 
-        {/* Avatar dropdown */}
+        {!isPremium && (
+          <button
+            onClick={() => goTo('/subscription')}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 800,
+              boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)',
+              whiteSpace: 'nowrap',
+              marginRight: 4,
+            }}>
+            Upgrade Account
+          </button>
+        )}
+                {/* Avatar dropdown */}
         <div style={{ position: 'relative' }} ref={menuRef}>
           <button
             onClick={() => setShowProfileMenu(v => !v)}
