@@ -119,10 +119,10 @@ export default function PaymentPage() {
 const styles = {
   page: {
     minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-    background: "#0d0d12", fontFamily: "'DM Sans', sans-serif",
+    background: "#0f172a", fontFamily: "'DM Sans', sans-serif",
   },
   card: {
-    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+    background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: 24, padding: 48, maxWidth: 400, width: "90%", textAlign: "center",
   },
   center: { display: "flex", flexDirection: "column", alignItems: "center", gap: 16 },
@@ -131,30 +131,30 @@ const styles = {
     borderTop: "3px solid #f59e0b", borderRadius: "50%",
     animation: "spin 1s linear infinite",
   },
-  loadingText: { color: "#9ca3af", fontSize: 16 },
+  loadingText: { color: "#94a3b8", fontSize: 16 },
   successIcon: { fontSize: 64 },
   successTitle: { color: "#fff", fontSize: 28, fontWeight: 800, margin: 0 },
-  successText: { color: "#9ca3af", fontSize: 15, margin: 0 },
+  successText: { color: "#94a3b8", fontSize: 15, margin: 0 },
   progressBar: {
-    width: "100%", height: 4, background: "rgba(255,255,255,0.1)",
+    width: "100%", height: 4, background: "#334155",
     borderRadius: 50, overflow: "hidden", marginTop: 8,
   },
   progressFill: {
-    height: "100%", background: "linear-gradient(90deg, #f59e0b, #8b5cf6)",
+    height: "100%", background: "linear-gradient(90deg, #e91e63, #c2185b)",
     borderRadius: 50, animation: "progress 3s linear forwards",
     "@keyframes progress": { from: { width: "0%" }, to: { width: "100%" } },
   },
   failIcon: { fontSize: 56 },
   failTitle: { color: "#fff", fontSize: 24, fontWeight: 800, margin: 0 },
-  failText: { color: "#9ca3af", fontSize: 15, margin: 0 },
+  failText: { color: "#94a3b8", fontSize: 15, margin: 0 },
   btnRow: { display: "flex", gap: 12, marginTop: 8 },
   retryBtn: {
-    padding: "12px 24px", background: "linear-gradient(135deg, #f59e0b, #d97706)",
+    padding: "12px 24px", background: "linear-gradient(135deg, #e91e63, #c2185b)",
     border: "none", borderRadius: 12, color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 15,
   },
   skipBtn: {
-    padding: "12px 24px", background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#9ca3af",
+    padding: "12px 24px", background: "#334155",
+    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#94a3b8",
     fontWeight: 600, cursor: "pointer", fontSize: 15,
   },
 };
