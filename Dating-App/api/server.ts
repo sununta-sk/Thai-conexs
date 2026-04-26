@@ -134,7 +134,7 @@ app.use('/api/subscription', subscriptionRoutes);;
 app.use("/api/notifications", notificationRoutes); // ✅ ก่อน listen
 
 // ── Start ─────────────────────────
-app.listen(4000, () => {
+app.listen(Number(process.env.PORT) || 4000, () => {
   console.log("API running on http://localhost:4000");
 });
 
