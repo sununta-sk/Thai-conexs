@@ -347,10 +347,17 @@ export default function RoomChat() {
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
 
   useEffect(() => {
-    if (!otherUserId) return;
+    if (!otherUserId || !session) return;
     supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio").eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
-  }, [otherUserId]);
+    // Track profile view when opening chat (so the other user gets a toast notification)
+    supabase.from('profile_views').insert({
+      viewer_id: session.user.id,
+      viewed_id: otherUserId,
+    }).then(({ error }) => {
+      if (error) console.error('[ProfileView from chat] ERROR:', error);
+    });
+  }, [otherUserId, session]);
 
   useEffect(() => {
     if (!session || !otherUserId) return;
