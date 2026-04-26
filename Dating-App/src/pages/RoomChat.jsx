@@ -5,6 +5,37 @@ import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
+// ── Sound notifications ──
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'send') {
+      // "whoosh" - low-pitch quick tone
+      osc.frequency.setValueAtTime(420, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } else if (type === 'receive') {
+      // "ding" - Facebook-like double-tone
+      osc.frequencueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch {}
+}
+
+
+
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 const FREE_LIMIT = 3;
 
@@ -321,7 +352,10 @@ export default function RoomChat() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
         (payload) => {
           setMessages((prev) => [...prev, payload.new]);
-          if (payload.new.sender_id !== session.user.id) supabase.from("messages").update({ is_read: true }).eq("id", payload.new.id);
+          if (payload.new.sender_id !== session.user.id) {
+            playSound('receive');
+            supabase.from("messages").update({ is_read: true }).eq("id", payload.new.id);
+          }
         })
       .subscribe();
     const poll = setInterval(async () => {
@@ -341,6 +375,7 @@ export default function RoomChat() {
     setMessages(prev => [...prev, tempMsg]);
     if (!content_override) setNewMessage("");
     const { error } = await supabase.from("messages").insert({ chat_id: chatId, room_id: chatId, sender_id: session.user.id, content });
+    if (!error) playSound('send');
     if (error) { console.error("Send error:", error); if (!content_override) setNewMessage(content); }
     setSending(false);
     inputRef.current?.focus();
