@@ -16,7 +16,8 @@ const CONTENT = {
       "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
       "Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
-    cta: "Join Lotus ConeXs — It's Free",
+    cta: "Join now — it's Free",
+    ctaPrize: "And enter monthly prize for 2,000 THB",
   },
   th: {
     title: 'หาคู่คนไทย',
@@ -27,7 +28,8 @@ const CONTENT = {
       'แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ',
       'Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน',
     ],
-    cta: 'เข้าร่วม Lotus ConeXs — ฟรี!',
+    cta: 'สมัครเลย — ฟรี!',
+    ctaPrize: 'ลุ้นรางวัลประจำเดือน 2,000 บาท',
   },
 };
 
@@ -215,6 +217,9 @@ export default function Login() {
             <Link to="/register" style={S.joinBtn}>
               {c.cta}
             </Link>
+            <p style={S.prizeText}>
+              🎁 {c.ctaPrize}
+            </p>
             <p style={S.joinSubtext}>
               {lang === 'en' ? 'No credit card required • Free to join' : 'ไม่ต้องใช้บัตรเครดิต • สมัครฟรี'}
             </p>
@@ -243,7 +248,7 @@ export default function Login() {
             <a href="#" style={S.footerLink}>Community Guidelines</a>
             <a href="#" style={S.footerLink}>Contact Us</a>
           </div>
-          <p style={S.copyright}>© 2025 Lotus ConeXs. All rights reserved.</p>
+          <p style={S.copyright}>© 2026 Lotus ConeXs. All rights reserved.</p>
         </div>
       </div>
 
@@ -288,6 +293,18 @@ const S = {
     letterSpacing: '0.5px',
     textAlign: 'center',
     transition: 'transform 0.15s, box-shadow 0.15s',
+  },
+  prizeText: {
+    color: '#fbbf24',
+    fontSize: 14,
+    fontWeight: 700,
+    margin: '4px 0 0',
+    textAlign: 'center',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.3)',
+    padding: '6px 14px',
+    borderRadius: 20,
+    letterSpacing: '0.3px',
   },
   joinSubtext: { color: '#94a3b8', fontSize: 13, fontWeight: 600, margin: 0, textAlign: 'center' },
 
