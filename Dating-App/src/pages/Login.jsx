@@ -9,11 +9,11 @@ const CONTENT = {
   en: {
     title: 'Thai Dating',
     paragraphs: [
-      "Lotus ConeXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
-      "Unlike many dating apps, Lotus ConeXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
+      "Lotus ConneXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
+      "Unlike many dating apps, Lotus ConneXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
       "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.",
       "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
-      "Lotus ConeXs is all about creating a relaxed, open environment where meeting new people feels natural.",
+      "Lotus ConneXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
     cta: "Join now — it's Free",
     ctaPrize: "And enter monthly prize for 2,000 THB",
@@ -21,11 +21,11 @@ const CONTENT = {
   th: {
     title: 'หาคู่คนไทย',
     paragraphs: [
-      'Lotus ConeXs คือแพลตฟอร์มหาคู่สมัยใหม่ที่เชื่อมต่อผู้คนจากทั่วโลกกับคนไทยที่สนใจมิตรภาพ ความรัก และความสัมพันธ์ที่แท้จริง มีสมาชิกใหม่เข้าร่วมทุกสัปดาห์ เปิดโอกาสให้คุณค้นพบคนใหม่ในชุมชนที่เต็มไปด้วยความอบอุ่นแบบไทย',
-      'ต่างจากแอปหาคู่ทั่วไป Lotus ConeXs ให้คุณเริ่มบทสนทนาได้ทันที ไม่ต้องรอการจับคู่ ใช้งานได้ฟรี หรืออัปเกรดเพื่อปลดล็อกฟีเจอร์เพิ่มเติมที่ช่วยเพิ่มการมองเห็นโปรไฟล์ของคุณ',
+      'Lotus ConneXs คือแพลตฟอร์มหาคู่สมัยใหม่ที่เชื่อมต่อผู้คนจากทั่วโลกกับคนไทยที่สนใจมิตรภาพ ความรัก และความสัมพันธ์ที่แท้จริง มีสมาชิกใหม่เข้าร่วมทุกสัปดาห์ เปิดโอกาสให้คุณค้นพบคนใหม่ในชุมชนที่เต็มไปด้วยความอบอุ่นแบบไทย',
+      'ต่างจากแอปหาคู่ทั่วไป Lotus ConneXs ให้คุณเริ่มบทสนทนาได้ทันที ไม่ต้องรอการจับคู่ ใช้งานได้ฟรี หรืออัปเกรดเพื่อปลดล็อกฟีเจอร์เพิ่มเติมที่ช่วยเพิ่มการมองเห็นโปรไฟล์ของคุณ',
       'เราไม่ได้ดำเนินการแบบเอเจนซี่แบบดั้งเดิม แต่มุ่งเน้นให้คุณเข้าถึงเครือข่ายที่กว้างและมีความหลากหลายมากกว่าบริการแนะนำรูปแบบจำกัด',
       'แพลตฟอร์มรองรับภาษาไทย ทำให้สมาชิกในประเทศ แม้ผู้ที่ใช้ภาษาอังกฤษได้น้อย สามารถเข้าร่วมและเชื่อมต่อได้อย่างสบายใจ',
-      'Lotus ConeXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน',
+      'Lotus ConneXs มุ่งสร้างสภาพแวดล้อมที่ผ่อนคลายและเปิดกว้าง ที่ซึ่งการพบเจอผู้คนใหม่ๆ เป็นเรื่องธรรมชาติและเป็นไปอย่างสนุกสนาน',
     ],
     cta: 'สมัครเลย — ฟรี!',
     ctaPrize: 'ลุ้นรางวัลประจำเดือน 2,000 บาท',
@@ -185,7 +185,7 @@ export default function Login() {
         {/* Form side */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
-            <h1 style={S.heading}>Lotus ConeXs</h1>
+            <h1 style={S.heading}>Lotus ConneXs</h1>
             <p style={S.subheading}>Find your spark ✨</p>
             <form onSubmit={handleLogin} style={S.form}>
               <input type="email" placeholder="Email" value={email}
@@ -213,11 +213,9 @@ export default function Login() {
           {/* ⭐ BIG Join Button — moved here from bottom */}
           <div style={S.joinWrap}>
             <Link to="/register" style={S.joinBtn}>
-              {c.cta}
+              <span style={S.joinBtnMain}>{c.cta}</span>
+              <span style={S.joinBtnPrize}>🎁 {c.ctaPrize}</span>
             </Link>
-            <p style={S.prizeText}>
-              🎁 {c.ctaPrize}
-            </p>
             <p style={S.joinSubtext}>
               {lang === 'en' ? 'No credit card required • Free to join' : 'ไม่ต้องใช้บัตรเครดิต • สมัครฟรี'}
             </p>
@@ -246,7 +244,7 @@ export default function Login() {
             <a href="#" style={S.footerLink}>Community Guidelines</a>
             <a href="#" style={S.footerLink}>Contact Us</a>
           </div>
-          <p style={S.copyright}>© 2026 Lotus ConeXs. All rights reserved.</p>
+          <p style={S.copyright}>© 2026 Lotus ConneXs. All rights reserved.</p>
         </div>
       </div>
 
@@ -288,31 +286,31 @@ const S = {
   // ⭐ Big Join CTA under photo grid
   joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   joinBtn: {
-    display: 'inline-block',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 6,
     width: '100%',
     maxWidth: 380,
-    padding: '22px 32px',
+    padding: '18px 24px',
     background: 'linear-gradient(135deg, #e91e63, #c2185b)',
     color: '#fff',
-    fontWeight: 800,
-    fontSize: '20px',
-    borderRadius: '50px',
+    borderRadius: '32px',
     textDecoration: 'none',
     boxShadow: '0 10px 32px rgba(233,30,99,0.5), 0 0 0 1px rgba(233,30,99,0.3)',
-    letterSpacing: '0.5px',
     textAlign: 'center',
     transition: 'transform 0.15s, box-shadow 0.15s',
   },
-  prizeText: {
-    color: '#fbbf24',
-    fontSize: 14,
+  joinBtnMain: {
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: '20px',
+    letterSpacing: '0.5px',
+  },
+  joinBtnPrize: {
+    color: '#fde68a',
     fontWeight: 700,
-    margin: '4px 0 0',
-    textAlign: 'center',
-    background: 'rgba(251, 191, 36, 0.1)',
-    border: '1px solid rgba(251, 191, 36, 0.3)',
-    padding: '6px 14px',
-    borderRadius: 20,
+    fontSize: '13px',
     letterSpacing: '0.3px',
   },
   joinSubtext: { color: '#94a3b8', fontSize: 13, fontWeight: 600, margin: 0, textAlign: 'center' },
