@@ -7,11 +7,12 @@ import AdminLayout from '../../components/AdminLayout';
 const TABS = ['Profile', 'Subscription', 'Moderation History'];
 
 const ACTION_CONFIG = {
-  warn:    { label: 'Warn',    icon: '⚠️', color: '#f59e0b', desc: 'ส่ง warning ให้ user ทราบ (account ยังใช้งานได้)' },
-  suspend: { label: 'Suspend', icon: '⏸️', color: '#f97316', desc: 'ระงับบัญชีชั่วคราว (กำหนดวันหมดได้)' },
-  ban:     { label: 'Ban',     icon: '🚫', color: '#ef4444', desc: 'แบนบัญชีถาวร (user เข้าไม่ได้)' },
-  restore: { label: 'Restore', icon: '✅', color: '#10b981', desc: 'คืนสถานะ account ให้เป็นปกติ' },
-  note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'เพิ่ม internal note (ไม่แจ้ง user)' },
+  warn:    { label: 'Warn',    icon: '⚠️', color: '#f59e0b', desc: 'Send a warning to the user (account remains active)' },
+  suspend: { label: 'Suspend', icon: '⏸️', color: '#f97316', desc: 'Temporarily suspend the account (set duration)' },
+  ban:     { label: 'Ban',     icon: '🚫', color: '#ef4444', desc: 'Permanently ban the account (user cannot log in)' },
+  restore: { label: 'Restore', icon: '✅', color: '#10b981', desc: 'Restore account to active status' },
+  note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
+  verify:  { label: 'Verify',  icon: '✓',  color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
 };
 
 export default function UserDetailPage() {
@@ -24,8 +25,7 @@ export default function UserDetailPage() {
   const [modHistory, setModHistory] = useState([]);
   const [loading, setLoading]     = useState(true);
 
-  // Modal state
-  const [modal, setModal]         = useState(null); // { action: 'warn'|'suspend'|'ban'|'restore'|'note' }
+  const [modal, setModal]         = useState(null);
   const [reason, setReason]       = useState('');
   const [msgToUser, setMsgToUser] = useState('');
   const [suspendDays, setSuspendDays] = useState(7);
@@ -76,13 +76,22 @@ export default function UserDetailPage() {
   }
 
   async function submitAction() {
-    if (!reason.trim() && modal.action !== 'restore') return;
+    if (!reason.trim() && modal.action !== 'restore' && modal.action !== 'verify') return;
     setSubmitting(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 1. Insert moderation action log
+      // ── Verify action ──
+      if (modal.action === 'verify') {
+        const { error } = await supabase.from('profiles').update({ is_verified: true }).eq('id', userId);
+        if (error) throw error;
+        showToast('✅ Verified successfully', 'success');
+        closeModal();
+        fetchAll();
+        return;
+      }
+
       const expiresAt = modal.action === 'suspend'
         ? new Date(Date.now() + suspendDays * 86400000).toISOString()
         : null;
@@ -98,7 +107,6 @@ export default function UserDetailPage() {
 
       if (logErr) throw logErr;
 
-      // 2. Update profile status
       if (modal.action !== 'note') {
         const statusMap = { warn: 'active', suspend: 'suspended', ban: 'banned', restore: 'active' };
         const { error: profileErr } = await supabase
@@ -108,11 +116,11 @@ export default function UserDetailPage() {
         if (profileErr) throw profileErr;
       }
 
-      showToast(`✅ ${ACTION_CONFIG[modal.action].label} สำเร็จ`, 'success');
+      showToast(`✅ ${ACTION_CONFIG[modal.action].label} successful`, 'success');
       closeModal();
       fetchAll();
     } catch (err) {
-      showToast(`❌ An error occurred: ${err.message}`, 'error');
+      showToast(`❌ Error: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +132,7 @@ export default function UserDetailPage() {
   }
 
   const accountStatus = profile?.account_status || 'active';
-  const actionColor = { warn: '#f59e0b', suspend: '#f97316', ban: '#ef4444', restore: '#10b981', note: '#3b82f6' };
+  const actionColor = { warn: '#f59e0b', suspend: '#f97316', ban: '#ef4444', restore: '#10b981', note: '#3b82f6', verify: '#4fc3f7' };
 
   if (loading) return <AdminLayout><div style={S.loading}>Loading...</div></AdminLayout>;
   if (!profile) return <AdminLayout><div style={S.loading}>User not found</div></AdminLayout>;
@@ -133,17 +141,14 @@ export default function UserDetailPage() {
     <AdminLayout>
       <div style={S.page}>
 
-        {/* Toast */}
         {toast && (
           <div style={{ ...S.toast, background: toast.type === 'success' ? '#10b98122' : '#ef444422', borderColor: toast.type === 'success' ? '#10b981' : '#ef4444', color: toast.type === 'success' ? '#10b981' : '#ef4444' }}>
             {toast.msg}
           </div>
         )}
 
-        {/* Back */}
         <button onClick={() => navigate('/admin/users')} style={S.backBtn}>← Back to Users</button>
 
-        {/* User Header */}
         <div style={S.userHeader}>
           <img src={profile.avatar_url || 'https://via.placeholder.com/72'} style={S.avatar} alt="avatar" />
           <div style={{ flex: 1 }}>
@@ -157,7 +162,6 @@ export default function UserDetailPage() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div style={S.actionGroup}>
             {accountStatus !== 'banned' && (
               <>
@@ -169,11 +173,13 @@ export default function UserDetailPage() {
             {(accountStatus === 'suspended' || accountStatus === 'banned') && (
               <ActionBtn cfg={ACTION_CONFIG.restore} onClick={() => openModal('restore')} />
             )}
+            {!profile.is_verified && (
+              <ActionBtn cfg={ACTION_CONFIG.verify} onClick={() => openModal('verify')} />
+            )}
             <ActionBtn cfg={ACTION_CONFIG.note} onClick={() => openModal('note')} />
           </div>
         </div>
 
-        {/* Tabs */}
         <div style={S.tabBar}>
           {TABS.map(t => (
             <button key={t} onClick={() => setTab(t)} style={{ ...S.tabBtn, ...(tab === t ? S.tabBtnActive : {}) }}>
@@ -185,12 +191,12 @@ export default function UserDetailPage() {
           ))}
         </div>
 
-        {/* Tab Content */}
         <div style={S.tabContent}>
 
           {tab === 'Profile' && (
             <div style={S.card}>
               <Row label="Username"  value={profile.username} />
+              <Row label="Email"     value={profile.email} />
               <Row label="Gender"    value={profile.gender} />
               <Row label="Age"       value={profile.age} />
               <Row label="Height"    value={profile.height ? `${profile.height} cm` : null} />
@@ -255,11 +261,9 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      {/* ── Action Modal ── */}
       {modal && (
         <div style={S.overlay} onClick={closeModal}>
           <div style={S.modalBox} onClick={e => e.stopPropagation()}>
-            {/* Header */}
             <div style={{ ...S.modalHeader, borderBottom: `2px solid ${ACTION_CONFIG[modal.action].color}22` }}>
               <span style={{ fontSize: 22 }}>{ACTION_CONFIG[modal.action].icon}</span>
               <div>
@@ -273,7 +277,6 @@ export default function UserDetailPage() {
               <button onClick={closeModal} style={S.closeBtn}>✕</button>
             </div>
 
-            {/* Target user info */}
             <div style={S.modalTarget}>
               <img src={profile.avatar_url || 'https://via.placeholder.com/36'} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} alt="" />
               <div>
@@ -282,10 +285,16 @@ export default function UserDetailPage() {
               </div>
             </div>
 
-            {/* Suspend duration */}
+            {/* Verify info */}
+            {modal.action === 'verify' && (
+              <div style={{ background: '#4fc3f711', border: '1px solid #4fc3f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#4fc3f7', margin: '0 20px 16px' }}>
+                Verify <strong>{profile.username}</strong> — they will receive a ✓ badge next to their name
+              </div>
+            )}
+
             {modal.action === 'suspend' && (
               <div style={S.formGroup}>
-                <label style={S.label}>Suspend for how many days</label>
+                <label style={S.label}>Suspend duration (days)</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[1, 3, 7, 14, 30].map(d => (
                     <button key={d} onClick={() => setSuspendDays(d)}
@@ -299,50 +308,45 @@ export default function UserDetailPage() {
               </div>
             )}
 
-            {/* Reason */}
-            {modal.action !== 'restore' && (
+            {modal.action !== 'restore' && modal.action !== 'verify' && (
               <div style={S.formGroup}>
                 <label style={S.label}>
                   Reason (internal) {modal.action !== 'note' && <span style={{ color: '#ef4444' }}>*</span>}
                 </label>
                 <textarea value={reason} onChange={e => setReason(e.target.value)} rows={3}
-                  placeholder={modal.action === 'note' ? 'บันทึกภายใน...' : 'ระบุเหตุผล...'}
+                  placeholder={modal.action === 'note' ? 'Internal note...' : 'Enter reason...'}
                   style={S.textarea} />
               </div>
             )}
 
-            {/* Message to user */}
             {(modal.action === 'warn' || modal.action === 'ban' || modal.action === 'suspend') && (
               <div style={S.formGroup}>
                 <label style={S.label}>Message to user (optional)</label>
                 <textarea value={msgToUser} onChange={e => setMsgToUser(e.target.value)} rows={2}
-                  placeholder="Message user will see..."
+                  placeholder="Message the user will see..."
                   style={S.textarea} />
               </div>
             )}
 
-            {/* Confirm warning for ban */}
             {modal.action === 'ban' && (
               <div style={{ background: '#ef444411', border: '1px solid #ef444433', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#ef4444', marginBottom: 16 }}>
-                ⚠️ การ Ban เป็นการถาวร — user จะไม่สามารถเข้าระบบได้จนกว่าจะ Restore
+                ⚠️ Banning is permanent — the user cannot log in until restored
               </div>
             )}
 
-            {/* Restore info */}
             {modal.action === 'restore' && (
               <div style={{ background: '#10b98111', border: '1px solid #10b98133', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#10b981', marginBottom: 16 }}>
-                คืนสถานะ account ของ <strong>{profile.username}</strong> กลับเป็น active
+                Restore <strong>{profile.username}</strong> account back to active
               </div>
             )}
 
-            {/* Buttons */}
             <div style={S.modalFooter}>
               <button onClick={closeModal} style={S.cancelBtn} disabled={submitting}>Cancel</button>
               <button
                 onClick={submitAction}
-                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note')}
-                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note')) ? 0.5 : 1 }}>
-                {submitting ? 'Processing...' : `ยืนยัน ${ACTION_CONFIG[modal.action].label}`}
+                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify')}
+                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify')) ? 0.5 : 1 }}>
+                {submitting ? 'Processing...' : `Confirm ${ACTION_CONFIG[modal.action].label}`}
               </button>
             </div>
           </div>
@@ -406,7 +410,6 @@ const S = {
   modRow:      { padding: '12px 0', borderBottom: '1px solid #0f172a' },
   statusBadge: { padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   empty:       { padding: 40, textAlign: 'center', color: '#475569', fontSize: 14 },
-  // Modal
   overlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 },
   modalBox:    { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', alignItems: 'flex-start', gap: 12, padding: '20px 20px 16px' },

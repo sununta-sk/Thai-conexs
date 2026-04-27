@@ -26,11 +26,14 @@ export default function UserListPage() {
     try {
       let query = supabase
         .from('profiles')
-        .select('id, username, avatar_url, subscription_plan, subscription_expiry, created_at, is_verified', { count: 'exact' })
+        .select('id, username, email, avatar_url, subscription_plan, subscription_expiry, created_at, is_verified', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-      if (search.trim()) query = query.ilike('username', `%${search.trim()}%`);
+      if (search.trim()) {
+        const term = search.trim();
+        query = query.or(`username.ilike.%${term}%,email.ilike.%${term}%`);
+      }
       if (planFilter !== 'all') query = query.eq('subscription_plan', planFilter);
 
       const { data, error } = await query;
@@ -56,7 +59,7 @@ export default function UserListPage() {
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(0); }}
-            placeholder="🔍  Search username..."
+            placeholder="🔍  Search username or email..."
             style={S.searchInput}
           />
           <div style={S.filterBtns}>
@@ -83,7 +86,7 @@ export default function UserListPage() {
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['User', 'Plan', 'Verified', 'Joined', 'Expiry', 'Actions'].map(h => (
+                    {['User', 'Email', 'Plan', 'Verified', 'Joined', 'Expiry', 'Actions'].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -108,6 +111,11 @@ export default function UserListPage() {
                           </div>
                         </td>
 
+                        {/* Email */}
+                        <td style={{ ...S.td, color: '#cbd5e1', fontSize: 12 }}>
+                          {u.email || <span style={{ color: '#475569' }}>—</span>}
+                        </td>
+
                         {/* Plan */}
                         <td style={S.td}>
                           <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: pc.bg, color: pc.color, textTransform: 'uppercase' }}>
@@ -122,13 +130,13 @@ export default function UserListPage() {
 
                         {/* Joined */}
                         <td style={{ ...S.td, color: '#64748b', fontSize: 12 }}>
-                          {new Date(u.created_at).toLocaleDateString('th-TH')}
+                          {new Date(u.created_at).toLocaleDateString('en-GB')}
                         </td>
 
                         {/* Expiry */}
                         <td style={{ ...S.td, color: '#64748b', fontSize: 12 }}>
                           {u.subscription_expiry
-                            ? new Date(u.subscription_expiry).toLocaleDateString('th-TH')
+                            ? new Date(u.subscription_expiry).toLocaleDateString('en-GB')
                             : '—'}
                         </td>
 
