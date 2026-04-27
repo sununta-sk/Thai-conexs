@@ -14,7 +14,6 @@ import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
 import LoadingScreen from './components/LoadingScreen';
 import GlobalToast from './components/GlobalToast';
-import Watermark from './components/Watermark';
 import Discover     from './pages/Discover';
 import Messages     from './pages/Messages';
 import RoomChat     from './pages/RoomChat';
@@ -153,12 +152,8 @@ function AppContent() {
     location.pathname === '/login' ||
     location.pathname === '/register';
 
-  // Watermark visible everywhere EXCEPT admin portal
-  const showWatermark = !location.pathname.startsWith('/admin');
-
   return (
     <div style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f5f5f5', overflowX: 'hidden' }}>
-      {showWatermark && <Watermark />}
       <div style={{ flex: 1 }}>
         <Suspense fallback={<AdminFallback />}>
           <Routes>
