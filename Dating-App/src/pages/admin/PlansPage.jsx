@@ -37,7 +37,7 @@ export default function PlansPage() {
       .eq('id', editing.id);
     setSaving(false);
     if (error) { showT('Error: ' + error.message, 'error'); return; }
-    showT('บันทึกสำเร็จ ✓');
+    showT('Saved successfully ✓');
     setEditing(null);
     fetchPlans();
   }
@@ -87,8 +87,8 @@ export default function PlansPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-                    <Row label="Monthly Price" value={plan.price_monthly ? `฿${plan.price_monthly}` : 'ฟรี'} color={color} />
-                    <Row label="Yearly Price"    value={plan.price_yearly  ? `฿${plan.price_yearly}`  : 'ฟรี'} color={color} />
+                    <Row label="Monthly Price" value={plan.price_monthly ? `THB ${plan.price_monthly}` : 'Free'} color={color} />
+                    <Row label="Yearly Price"  value={plan.price_yearly  ? `THB ${plan.price_yearly}`  : 'Free'} color={color} />
                     {plan.trial_days > 0 && <Row label="Trial" value={`${plan.trial_days} days`} color={color} />}
                     <Row label="Status" value={plan.is_active ? '✅ Active' : '❌ Inactive'} color={color} />
                     {plan.description && (
@@ -125,11 +125,11 @@ export default function PlansPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div>
-                  <label style={S.label}>Monthly Price (฿)</label>
+                  <label style={S.label}>Monthly Price (THB)</label>
                   <input type="number" step="0.01" value={editing.price_monthly || 0} onChange={e => setEditing({ ...editing, price_monthly: e.target.value })} style={S.input} />
                 </div>
                 <div>
-                  <label style={S.label}>Yearly Price (฿)</label>
+                  <label style={S.label}>Yearly Price (THB)</label>
                   <input type="number" step="0.01" value={editing.price_yearly || 0} onChange={e => setEditing({ ...editing, price_yearly: e.target.value })} style={S.input} />
                 </div>
               </div>
