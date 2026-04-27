@@ -152,7 +152,6 @@ const G = {
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [lang, setLang]         = useState('en');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -170,16 +169,10 @@ export default function Login() {
     if (error) alert(error.message);
   };
 
-  const c = CONTENT[lang];
+  const c = CONTENT.en;
 
   return (
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
-
-      {/* Language Toggle */}
-      <div style={S.langToggle}>
-        <button onClick={() => setLang('en')} style={{ ...S.flagBtn, opacity: lang === 'en' ? 1 : 0.35 }}>🇬🇧</button>
-        <button onClick={() => setLang('th')} style={{ ...S.flagBtn, opacity: lang === 'th' ? 1 : 0.35 }}>🇹🇭</button>
-      </div>
 
       {/* Hero */}
       <div style={S.page}>
@@ -187,7 +180,6 @@ export default function Login() {
         <div style={S.formWrap}>
           <div style={S.formInner}>
             <img src={comingSoonLogo} alt="Lotus ConneXs" style={S.logoBig} />
-            <h1 style={S.heading}>Lotus ConneXs</h1>
             <p style={S.subheading}>Find your spark ✨</p>
             <form onSubmit={handleLogin} style={S.form}>
               <input type="email" placeholder="Email" value={email}
@@ -219,7 +211,7 @@ export default function Login() {
               <span style={S.joinBtnPrize}>🎁 {c.ctaPrize}</span>
             </Link>
             <p style={S.joinSubtext}>
-              {lang === 'en' ? 'No credit card required • Free to join' : 'ไม่ต้องใช้บัตรเครดิต • สมัครฟรี'}
+              No credit card required • Free to join
             </p>
           </div>
         </div>
@@ -255,22 +247,21 @@ export default function Login() {
 }
 
 const S = {
-  langToggle: { position: 'fixed', top: '16px', right: '16px', display: 'flex', gap: '6px', zIndex: 100 },
-  flagBtn: { background: 'none', border: 'none', fontSize: '26px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     width: '100%',
-    maxWidth: '460px',
-    height: 'auto',
-    objectFit: 'contain',
-    marginBottom: '24px',
-    borderRadius: '20px',
-    boxShadow: '0 8px 32px rgba(233,30,99,0.35)',
+    maxWidth: '240px',
+    height: '80px',
+    objectFit: 'cover',
+    objectPosition: 'center 30%',
+    marginBottom: '20px',
+    borderRadius: '12px',
+    boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
   },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
-  subheading: { margin: '0 0 32px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
+  subheading: { margin: '0 0 28px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
