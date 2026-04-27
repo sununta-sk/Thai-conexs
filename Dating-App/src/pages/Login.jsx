@@ -253,9 +253,9 @@ const S = {
   logoBig: {
     width: '100%',
     maxWidth: '100%',
-    height: '150px',
-    objectFit: 'cover',
-    objectPosition: 'center 30%',
+    maxHeight: '200px',
+    height: 'auto',
+    objectFit: 'contain',
     marginBottom: '20px',
     borderRadius: '14px',
     boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
