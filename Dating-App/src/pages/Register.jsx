@@ -254,7 +254,7 @@ const S = {
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     display: 'block',
-    height: '150px',
+    height: '240px',
     width: 'auto',
     maxWidth: '100%',
     objectFit: 'contain',
