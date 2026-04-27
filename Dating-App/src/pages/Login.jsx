@@ -195,7 +195,7 @@ export default function Login() {
               <input type="password" placeholder="Password" value={password}
                 onChange={e => setPassword(e.target.value)} style={S.input} required />
               <button type="submit" style={S.btnPink}>Log In</button>
-              <Link to="/forgot-password" style={{ color: '#94a3b8', fontSize: 13, fontWeight: 600, textDecoration: 'none', textAlign: 'center', marginTop: -4 }}>Forgot password?</Link>
+              <Link to="/forgot-password" style={S.forgotLink}>Forgot password?</Link>
               <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
               <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
                 <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
@@ -274,6 +274,18 @@ const S = {
   btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
   signupText: { marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   signupLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
+  forgotLink: {
+    color: '#e91e63',
+    fontSize: 15,
+    fontWeight: 700,
+    textDecoration: 'underline',
+    textDecorationThickness: '2px',
+    textUnderlineOffset: '4px',
+    textAlign: 'center',
+    marginTop: 2,
+    padding: '8px 0',
+    letterSpacing: '0.3px',
+  },
   cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' },
 
   // ⭐ Big Join CTA under photo grid
