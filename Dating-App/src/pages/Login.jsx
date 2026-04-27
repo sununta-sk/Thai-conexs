@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
+import comingSoonLogo from '../lib/LotusConnexs-coming soon.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
@@ -185,6 +186,7 @@ export default function Login() {
         {/* Form side */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
+            <img src={comingSoonLogo} alt="Lotus ConneXs" style={S.logoBig} />
             <h1 style={S.heading}>Lotus ConneXs</h1>
             <p style={S.subheading}>Find your spark ✨</p>
             <form onSubmit={handleLogin} style={S.form}>
@@ -257,7 +259,16 @@ const S = {
   flagBtn: { background: 'none', border: 'none', fontSize: '26px', cursor: 'pointer', padding: '4px', borderRadius: '6px', transition: 'opacity 0.2s' },
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
-  formInner: { width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  logoBig: {
+    width: '100%',
+    maxWidth: '460px',
+    height: 'auto',
+    objectFit: 'contain',
+    marginBottom: '24px',
+    borderRadius: '20px',
+    boxShadow: '0 8px 32px rgba(233,30,99,0.35)',
+  },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
   subheading: { margin: '0 0 32px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
