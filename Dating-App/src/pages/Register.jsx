@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import comingSoonLogo from '../lib/LotusConnexs-coming soon.jpeg';
+import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
@@ -183,8 +183,7 @@ export default function Register() {
         {/* Form side */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
-            <img src={comingSoonLogo} alt="Lotus ConneXs" style={S.logoBig} />
-            <p style={S.subheading}>Find your spark ✨</p>
+            <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
             <form onSubmit={handleRegister} style={S.form}>
               <input type="email" placeholder="Email" value={email}
                 onChange={e => setEmail(e.target.value)} style={S.input} required />
@@ -254,11 +253,10 @@ const S = {
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     display: 'block',
+    width: '100%',
     height: '240px',
-    width: 'auto',
-    maxWidth: '100%',
     objectFit: 'contain',
-    margin: '0 auto 20px',
+    margin: '0 auto 24px',
     borderRadius: '14px',
     boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
   },
