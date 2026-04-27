@@ -252,7 +252,7 @@ const S = {
   logoBig: {
     display: 'block',
     width: '100%',
-    height: '240px',
+    height: 'auto',
     objectFit: 'contain',
     margin: '0 auto 24px',
     borderRadius: '14px',
