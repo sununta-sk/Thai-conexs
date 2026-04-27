@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
-import logoImg from '../lib/LotusConnexs.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
@@ -186,9 +185,8 @@ export default function Login() {
         {/* Form side */}
         <div style={S.formWrap}>
           <div style={S.formInner}>
-            <img src={logoImg} alt="logo" style={S.logo} />
-            <h1 style={S.heading}>Thai Conexns</h1>
-            <p style={S.subheading}>Find your perfect match ✨</p>
+            <h1 style={S.heading}>Lotus ConeXs</h1>
+            <p style={S.subheading}>Find your spark ✨</p>
             <form onSubmit={handleLogin} style={S.form}>
               <input type="email" placeholder="Email" value={email}
                 onChange={e => setEmail(e.target.value)} style={S.input} required />
@@ -262,7 +260,6 @@ const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '420px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  logo: { width: '130px', height: '130px', borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.4)', marginBottom: '20px' },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
   subheading: { margin: '0 0 32px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
   form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
