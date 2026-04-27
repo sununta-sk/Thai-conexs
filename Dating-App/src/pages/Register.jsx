@@ -262,7 +262,7 @@ const S = {
   },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
   subheading: { margin: '0 0 28px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' },
+  form: { display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
   loginText: { marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
