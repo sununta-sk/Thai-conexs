@@ -193,9 +193,10 @@ export default function Login() {
                 Continue with Google
               </button>
             </form>
-            <p style={S.signupText}>
-              Don't have an account? <Link to="/register" style={S.signupLink}>Sign Up</Link>
-            </p>
+            <div style={S.signupRow}>
+              <p style={S.signupText}>Don't have an account?</p>
+              <Link to="/register" style={S.signupBtn}>Sign Up</Link>
+            </div>
           </div>
         </div>
 
@@ -247,7 +248,7 @@ export default function Login() {
 
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
-  formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
+  formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     display: 'block',
@@ -267,8 +268,24 @@ const S = {
   hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
   orText: { padding: '0 14px', color: '#64748b', fontSize: '14px' },
   btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-  signupText: { marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
-  signupLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
+  signupRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' },
+  signupText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
+  signupBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '15px',
+    borderRadius: '30px',
+    border: '2px solid #e91e63',
+    background: 'transparent',
+    color: '#e91e63',
+    fontWeight: 800,
+    fontSize: '16px',
+    textDecoration: 'none',
+    textAlign: 'center',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    transition: 'all 0.15s',
+  },
   forgotLink: {
     color: '#e91e63',
     fontSize: 15,
@@ -281,7 +298,7 @@ const S = {
     padding: '8px 0',
     letterSpacing: '0.3px',
   },
-  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' },
+  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '40px 0' },
 
   // ⭐ Big Join CTA under photo grid
   joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },

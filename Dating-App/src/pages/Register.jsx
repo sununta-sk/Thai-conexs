@@ -195,9 +195,10 @@ export default function Register() {
                 {loading ? 'Creating account…' : 'Sign Up'}
               </button>
             </form>
-            <p style={S.loginText}>
-              Already have an account? <Link to="/login" style={S.loginLink}>Log In</Link>
-            </p>
+            <div style={S.loginRow}>
+              <p style={S.loginText}>Already have an account?</p>
+              <Link to="/login" style={S.loginBtn}>Log In</Link>
+            </div>
           </div>
         </div>
 
@@ -249,7 +250,7 @@ export default function Register() {
 
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
-  formWrap: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
+  formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     display: 'block',
@@ -265,10 +266,26 @@ const S = {
   form: { display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
-  loginText: { marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
-  loginLink: { color: '#e91e63', fontWeight: 700, textDecoration: 'none' },
+  loginRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' },
+  loginText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
+  loginBtn: {
+    display: 'block',
+    width: '100%',
+    padding: '15px',
+    borderRadius: '30px',
+    border: '2px solid #e91e63',
+    background: 'transparent',
+    color: '#e91e63',
+    fontWeight: 800,
+    fontSize: '16px',
+    textDecoration: 'none',
+    textAlign: 'center',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    transition: 'all 0.15s',
+  },
 
-  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 0' },
+  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '40px 0' },
 
   joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   joinBtn: {
