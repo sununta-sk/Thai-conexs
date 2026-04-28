@@ -250,7 +250,7 @@ export default function Register() {
 
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
-  formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 48px', background: '#0f172a' },
+  formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a' },
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   logoBig: {
     display: 'block',
@@ -285,7 +285,7 @@ const S = {
     transition: 'all 0.15s',
   },
 
-  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '40px 0' },
+  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '90px 0 40px' },
 
   joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   joinBtn: {
