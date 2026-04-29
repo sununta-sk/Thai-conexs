@@ -359,7 +359,7 @@ export default function ProfileSetup() {
       streamRef.current = stream;
       setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream; }, 100);
     } catch (err) {
-      setCameraError('ไม่สามารถเปิดกล้องได้: ' + err.message);
+      setCameraError('Could not open camera: ' + err.message);
     }
   };
 
