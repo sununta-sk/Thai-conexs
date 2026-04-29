@@ -40,9 +40,9 @@ const T = {
     sidebarAbout:'เกี่ยวกับฉัน', sidebarInfo:'ข้อมูลส่วนตัว', sidebarLifestyle:'ไลฟ์สไตล์',
   },
   en: {
-    profilePhotos:'Profile Photos (max 6)', faceVerify:'Identity Verification',
+    profilePhotos:'Profile Photos (max 6)', faceVerify:'Get Your Verified Badge',
     verifiedTitle:'Identity Verified', verifiedSub:'You can now send messages',
-    notVerifiedTitle:'Not Yet Verified', notVerifiedSub:'Verify your identity to send messages',
+    notVerifiedTitle:'Not Yet Verified', notVerifiedSub:'Your profile is almost complete! Verify your identity with AI to unlock your Verified Badge and stand out to other members.',
     verifyBtn:'🤖 Verify with AI', verifyingBtn:'🔍 AI is checking...',
     aboutYou:'About You', username:'Username', bio:'Bio',
     bodyEdu:'Body & Education', age:'Age', height:'Height (cm)', weight:'Weight (kg)',
