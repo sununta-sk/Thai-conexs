@@ -685,8 +685,8 @@ export default function ProfileSetup() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
             <span style={{ fontSize: '24px' }}>⚠️</span>
             <div>
-              <div style={{ fontWeight: 'bold', color: '#fbbf24', fontSize: '14px' }}>{tx.notVerifiedTitle}</div>
-              <div style={{ fontSize: '12px', color: '#fcd34d' }}>{tx.notVerifiedSub}</div>
+              <div style={{ fontWeight: 800, color: '#f1f5f9', fontSize: '15px', marginBottom: 6 }}>{tx.notVerifiedTitle}</div>
+              <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>{tx.notVerifiedSub}</div>
             </div>
           </div>
           {cameraOpen && (
