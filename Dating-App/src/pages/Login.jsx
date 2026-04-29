@@ -196,10 +196,7 @@ export default function Login() {
           </form>
           <div style={M.signupRow}>
             <p style={M.signupText}>Don't have an account?</p>
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, border: '2px solid #e91e63', borderRadius: 30, padding: '14px 16px', boxSizing: 'border-box' }}>
-              <Link to="/register" style={{ ...M.signupBtn, border: 'none', padding: '4px 0' }}>Sign Up Free</Link>
-              <span style={{ color: '#d97706', fontSize: 13, fontWeight: 700 }}>No credit card required</span>
-            </div>
+            <Link to="/register" style={M.signupBtn}>Sign Up Free</Link>
           </div>
         </div>
 
