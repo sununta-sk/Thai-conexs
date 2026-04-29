@@ -45,16 +45,15 @@ export default function CheckEmail() {
         <div style={S.overlay}>
           <div style={S.popup}>
             <div style={S.popupLogo}>🌸</div>
-            <h2 style={S.popupTitle}>ยินดีต้อนรับสู่</h2>
+            <h2 style={S.popupTitle}>Welcome to</h2>
             <div style={S.popupBrand}>Lotus ConneXs</div>
             <p style={S.popupSub}>Where Connections Bloom</p>
             <div style={S.popupDivider} />
             <p style={S.popupMsg}>
-              สมัครสมาชิกสำเร็จแล้ว! 🎉<br />
-              กรุณายืนยันอีเมลก่อนเข้าใช้งาน
+              You have successfully registered! 🎉<br />Please verify your email before getting started.
             </p>
             <button style={S.popupBtn} onClick={() => setShowWelcome(false)}>
-              ตกลง รับทราบแล้ว
+              Got it!
             </button>
           </div>
         </div>
