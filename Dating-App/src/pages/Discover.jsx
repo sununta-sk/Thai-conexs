@@ -451,7 +451,7 @@ const S = {
   resultCount: { fontSize: 12, color: '#94a3b8', fontWeight: 600, textAlign: 'right' },
 
   // Desktop grid
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', padding: '15px', maxWidth: '1400px', margin: '0 auto' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', padding: '15px', maxWidth: '900px', margin: '0 auto' },
 
   // Mobile grid — 3 columns
   mobileGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', padding: '8px' },
