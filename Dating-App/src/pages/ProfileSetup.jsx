@@ -706,7 +706,7 @@ export default function ProfileSetup() {
           {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
           {!cameraOpen && !capturedImage && (
             <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
-              📷 เปิดกล้องถ่ายรูป
+              📷 Open Camera
             </button>
           )}
           {cameraOpen && (
