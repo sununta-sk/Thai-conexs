@@ -673,7 +673,8 @@ export default function ProfileSetup() {
           <div style={{ ...S.uploadBox, cursor: 'default', flexDirection: 'column', gap: 6, padding: 10, textAlign: 'center' }}>
             <div style={{ fontSize: 20 }}>📸</div>
             <div style={{ fontSize: 10, color: '#e91e63', fontWeight: 700, lineHeight: 1.4 }}>Upload photos to message people</div>
-            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}>🎁 4+ ph/div>
+            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}>🎁 4+ photos = prize draw entry!</div>
+          </div>
         )}
         {photos.length > 0 && photos.length < 4 && (
           <div style={{ ...S.uploadBox, cursor: 'default', flexDirection: 'column', gap: 6, padding: 10, textAlign: 'center' }}>
