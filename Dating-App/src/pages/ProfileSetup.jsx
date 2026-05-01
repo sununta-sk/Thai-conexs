@@ -25,7 +25,7 @@ const LANGUAGES = [
 
 const T = {
   th: {
-    profilePhotos:'รูปโปรไฟล์ (สูงสุด 6 รูป)', faceVerify:'ยืนยันตัวตน (Face Verification)',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'ยืนยันตัวตน (Face Verification)',
     verifiedTitle:'ยืนยันตัวตนแล้ว', verifiedSub:'คุณสามารถส่งข้อความได้แล้ว',
     notVerifiedTitle:'ยังไม่ได้ยืนยันตัวตน', notVerifiedSub:'คุณจะส่งข้อความไม่ได้จนกว่าจะยืนยัน',
     verifyBtn:'🤖 ยืนยันด้วย AI', verifyingBtn:'🔍 AI กำลังตรวจสอบ...',
@@ -40,7 +40,7 @@ const T = {
     sidebarAbout:'เกี่ยวกับฉัน', sidebarInfo:'ข้อมูลส่วนตัว', sidebarLifestyle:'ไลฟ์สไตล์',
   },
   en: {
-    profilePhotos:'Profile Photos (max 6)', faceVerify:'Get Your Verified Badge',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Get Your Verified Badge',
     verifiedTitle:'Identity Verified', verifiedSub:'You can now send messages',
     notVerifiedTitle:'Not Yet Verified', notVerifiedSub:'Your profile is almost complete! Verify your identity with AI to unlock your Verified Badge and stand out to other members.',
     verifyBtn:'🤖 Verify with AI', verifyingBtn:'🔍 AI is checking...',
@@ -55,7 +55,7 @@ const T = {
     sidebarAbout:'About Me', sidebarInfo:'Personal Info', sidebarLifestyle:'Lifestyle',
   },
   zh: {
-    profilePhotos:'个人照片（最多6张）', faceVerify:'身份验证',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'身份验证',
     verifiedTitle:'已完成身份验证', verifiedSub:'您现在可以发送消息',
     notVerifiedTitle:'尚未验证', notVerifiedSub:'验证后才能发送消息',
     verifyBtn:'🤖 AI验证', verifyingBtn:'🔍 AI检测中...',
@@ -70,7 +70,7 @@ const T = {
     sidebarAbout:'关于我', sidebarInfo:'个人信息', sidebarLifestyle:'生活方式',
   },
   ja: {
-    profilePhotos:'プロフィール写真（最大6枚）', faceVerify:'本人確認（顔認証）',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'本人確認（顔認証）',
     verifiedTitle:'本人確認済み', verifiedSub:'メッセージを送信できます',
     notVerifiedTitle:'未確認', notVerifiedSub:'確認完了後にメッセージを送信できます',
     verifyBtn:'🤖 AIで確認', verifyingBtn:'🔍 AI確認中...',
@@ -85,7 +85,7 @@ const T = {
     sidebarAbout:'私について', sidebarInfo:'個人情報', sidebarLifestyle:'ライフスタイル',
   },
   ko: {
-    profilePhotos:'프로필 사진 (최대 6장)', faceVerify:'본인 인증',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'본인 인증',
     verifiedTitle:'인증 완료', verifiedSub:'이제 메시지를 보낼 수 있습니다',
     notVerifiedTitle:'미인증', notVerifiedSub:'인증 후 메시지를 보낼 수 있습니다',
     verifyBtn:'🤖 AI로 인증', verifyingBtn:'🔍 AI 확인 중...',
@@ -100,7 +100,7 @@ const T = {
     sidebarAbout:'나에 대해', sidebarInfo:'개인 정보', sidebarLifestyle:'라이프스타일',
   },
   fr: {
-    profilePhotos:'Photos de profil (max 6)', faceVerify:"Vérification d'identité",
+    profilePhotos:'Profile Photos (max 10)', faceVerify:"Vérification d'identité",
     verifiedTitle:'Identité vérifiée', verifiedSub:'Vous pouvez maintenant envoyer des messages',
     notVerifiedTitle:'Non vérifié', notVerifiedSub:'Vérifiez votre identité pour envoyer des messages',
     verifyBtn:'🤖 Vérifier avec IA', verifyingBtn:'🔍 IA en cours...',
@@ -115,7 +115,7 @@ const T = {
     sidebarAbout:'À propos', sidebarInfo:'Infos perso', sidebarLifestyle:'Style de vie',
   },
   de: {
-    profilePhotos:'Profilfotos (max. 6)', faceVerify:'Identitätsverifizierung',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Identitätsverifizierung',
     verifiedTitle:'Identität bestätigt', verifiedSub:'Sie können jetzt Nachrichten senden',
     notVerifiedTitle:'Nicht verifiziert', notVerifiedSub:'Bitte verifizieren Sie sich um Nachrichten zu senden',
     verifyBtn:'🤖 Mit KI verifizieren', verifyingBtn:'🔍 KI prüft...',
@@ -130,7 +130,7 @@ const T = {
     sidebarAbout:'Über mich', sidebarInfo:'Persönliche Daten', sidebarLifestyle:'Lebensstil',
   },
   es: {
-    profilePhotos:'Fotos de perfil (máx. 6)', faceVerify:'Verificación de identidad',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verificación de identidad',
     verifiedTitle:'Identidad verificada', verifiedSub:'Ya puedes enviar mensajes',
     notVerifiedTitle:'No verificado', notVerifiedSub:'Verifica tu identidad para enviar mensajes',
     verifyBtn:'🤖 Verificar con IA', verifyingBtn:'🔍 IA verificando...',
@@ -145,7 +145,7 @@ const T = {
     sidebarAbout:'Sobre mí', sidebarInfo:'Info personal', sidebarLifestyle:'Estilo de vida',
   },
   it: {
-    profilePhotos:'Foto profilo (max 6)', faceVerify:'Verifica identità',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verifica identità',
     verifiedTitle:'Identità verificata', verifiedSub:'Ora puoi inviare messaggi',
     notVerifiedTitle:'Non verificato', notVerifiedSub:"Verifica la tua identità per inviare messaggi",
     verifyBtn:'🤖 Verifica con IA', verifyingBtn:'🔍 IA in verifica...',
@@ -160,7 +160,7 @@ const T = {
     sidebarAbout:'Su di me', sidebarInfo:'Info personali', sidebarLifestyle:'Stile di vita',
   },
   pt: {
-    profilePhotos:'Fotos do perfil (máx. 6)', faceVerify:'Verificação de identidade',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verificação de identidade',
     verifiedTitle:'Identidade verificada', verifiedSub:'Agora você pode enviar mensagens',
     notVerifiedTitle:'Não verificado', notVerifiedSub:'Verifique sua identidade para enviar mensagens',
     verifyBtn:'🤖 Verificar com IA', verifyingBtn:'🔍 IA verificando...',
@@ -175,7 +175,7 @@ const T = {
     sidebarAbout:'Sobre mim', sidebarInfo:'Info pessoal', sidebarLifestyle:'Estilo de vida',
   },
   ru: {
-    profilePhotos:'Фото профиля (макс. 6)', faceVerify:'Верификация личности',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Верификация личности',
     verifiedTitle:'Личность подтверждена', verifiedSub:'Теперь вы можете отправлять сообщения',
     notVerifiedTitle:'Не верифицирован', notVerifiedSub:'Пройдите верификацию для отправки сообщений',
     verifyBtn:'🤖 Верифицировать с ИИ', verifyingBtn:'🔍 ИИ проверяет...',
@@ -190,7 +190,7 @@ const T = {
     sidebarAbout:'Обо мне', sidebarInfo:'Личные данные', sidebarLifestyle:'Образ жизни',
   },
   ar: {
-    profilePhotos:'صور الملف الشخصي (حتى 6)', faceVerify:'التحقق من الهوية',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'التحقق من الهوية',
     verifiedTitle:'تم التحقق من الهوية', verifiedSub:'يمكنك الآن إرسال الرسائل',
     notVerifiedTitle:'غير موثق', notVerifiedSub:'تحقق من هويتك لإرسال الرسائل',
     verifyBtn:'🤖 التحقق بالذكاء الاصطناعي', verifyingBtn:'🔍 جارٍ التحقق...',
@@ -205,7 +205,7 @@ const T = {
     sidebarAbout:'عني', sidebarInfo:'معلومات شخصية', sidebarLifestyle:'نمط الحياة',
   },
   hi: {
-    profilePhotos:'प्रोफ़ाइल फ़ोटो (अधिकतम 6)', faceVerify:'पहचान सत्यापन',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'पहचान सत्यापन',
     verifiedTitle:'पहचान सत्यापित', verifiedSub:'अब आप संदेश भेज सकते हैं',
     notVerifiedTitle:'सत्यापित नहीं', notVerifiedSub:'संदेश भेजने के लिए सत्यापन करें',
     verifyBtn:'🤖 AI से सत्यापित करें', verifyingBtn:'🔍 AI जाँच रहा है...',
@@ -220,7 +220,7 @@ const T = {
     sidebarAbout:'मेरे बारे में', sidebarInfo:'व्यक्तिगत जानकारी', sidebarLifestyle:'जीवन शैली',
   },
   vi: {
-    profilePhotos:'Ảnh hồ sơ (tối đa 6)', faceVerify:'Xác minh danh tính',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Xác minh danh tính',
     verifiedTitle:'Đã xác minh', verifiedSub:'Bạn có thể gửi tin nhắn ngay bây giờ',
     notVerifiedTitle:'Chưa xác minh', notVerifiedSub:'Xác minh danh tính để gửi tin nhắn',
     verifyBtn:'🤖 Xác minh bằng AI', verifyingBtn:'🔍 AI đang kiểm tra...',
@@ -235,7 +235,7 @@ const T = {
     sidebarAbout:'Về tôi', sidebarInfo:'Thông tin cá nhân', sidebarLifestyle:'Phong cách sống',
   },
   id: {
-    profilePhotos:'Foto Profil (maks. 6)', faceVerify:'Verifikasi Identitas',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verifikasi Identitas',
     verifiedTitle:'Identitas Terverifikasi', verifiedSub:'Anda sekarang dapat mengirim pesan',
     notVerifiedTitle:'Belum Terverifikasi', notVerifiedSub:'Verifikasi diri untuk mengirim pesan',
     verifyBtn:'🤖 Verifikasi dengan AI', verifyingBtn:'🔍 AI sedang memeriksa...',
@@ -250,7 +250,7 @@ const T = {
     sidebarAbout:'Tentang Saya', sidebarInfo:'Info Pribadi', sidebarLifestyle:'Gaya Hidup',
   },
   ms: {
-    profilePhotos:'Foto Profil (maks. 6)', faceVerify:'Pengesahan Identiti',
+    profilePhotos:'Profile Photos (max 10)', faceVerify:'Pengesahan Identiti',
     verifiedTitle:'Identiti Disahkan', verifiedSub:'Anda boleh menghantar mesej sekarang',
     notVerifiedTitle:'Belum Disahkan', notVerifiedSub:'Sahkan identiti untuk menghantar mesej',
     verifyBtn:'🤖 Sahkan dengan AI', verifyingBtn:'🔍 AI sedang memeriksa...',
