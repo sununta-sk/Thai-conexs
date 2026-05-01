@@ -663,11 +663,31 @@ export default function ProfileSetup() {
             {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>
         ))}
-        {photos.length < 6 && (
-          <label style={S.uploadBox}>
-            <input type="file" hidden onChange={handleUpload} accept="image/*" />{uploading ? '...' : '+'}
-          </label>
-        )}
+        {photos.length < 6 && Array.from({ length: 6 - photos.length }).map((_, i) => (
+          i === 0 ? (
+            <label key={i} style={S.uploadBox}>
+              <input type="file" hidden onChange={handleUpload} accept="image/*" />
+              {uploading ? '...' : '+'}
+            </label>
+          ) : (
+            <div key={i} style={{ ...S.uploadBox, cursor: 'default', flexDirection: 'column', gap: 8, padding: 12, textAlign: 'center' }}>
+              {i === 1 && photos.length === 0 ? (
+                <>
+                  <div style={{ fontSize: 22 }}>📸</div>
+                  <div style={{ fontSize: 11, color: '#e91e63', ntWeight: 700, lineHeight: 1.4 }}>You must upload photos before you can message people</div>
+                  <div style={{ fontSize: 10, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4, marginTop: 4 }}>🎁 Upload 4+ photos to enter our monthly prize draw!</div>
+                </>
+              ) : i === 1 && photos.length < 4 ? (
+                <>
+                  <div style={{ fontSize: 18 }}>🎁</div>
+                  <div style={{ fontSize: 10, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}>Upload {4 - photos.length} more photo{4 - photos.length > 1 ? 's' : ''} to enter our monthly prize draw!</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 20, color: '#334155' }}>+</div>
+              )}
+            </div>
+          )
+        ))}
       </div>
 
       {/* Identity Verification */}
