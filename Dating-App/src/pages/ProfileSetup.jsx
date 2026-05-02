@@ -737,7 +737,6 @@ export default function ProfileSetup() {
                <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
              </div>
            )
-      </>}}
          </div>
        )}
 
