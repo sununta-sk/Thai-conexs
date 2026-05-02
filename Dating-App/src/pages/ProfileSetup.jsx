@@ -684,63 +684,64 @@ export default function ProfileSetup() {
         )}
       </div>
 
-      {/* Face verify - hidden per boss request */}
-      {false && <><SectionTitle>{tx.faceVerify}</SectionTitle>
-       {isVerified ? (
-         <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1.5px solid #22c55e', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-           <span style={{ fontSize: '28px' }}>✅</span>
-           <div>
-             <div style={{ fontWeight: 'bold', color: '#4ade80', fontSize: '15px' }}>{tx.verifiedTitle}</div>
-             <div style={{ fontSize: '13px', color: '#86efac' }}>{tx.verifiedSub}</div>
-           </div>
-         </div>
-       ) : (
-         <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1.5px solid #eab308', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-             <span style={{ fontSize: '24px' }}>⚠️</span>
-             <div>
-               <div style={{ fontWeight: 800, color: '#f1f5f9', fontSize: '15px', marginBottom: 6 }}>{tx.notVerifiedTitle}</div>
-               <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>{tx.notVerifiedSub}</div>
-             </div>
-           </div>
-           {cameraOpen && (
-             <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#000' }}>
-               <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', borderRadius: '12px' }} />
-               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', height: '160px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.8)', pointerEvents: 'none' }} />
-               <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center', color: '#fff', fontSize: '12px', opacity: 0.8 }}>วางใบหน้าให้อยู่ในวงกลม</div>
-             </div>
-           )}
-           {capturedImage && !cameraOpen && (
-             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-               <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
-             </div>
-           )}
-           {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
-           {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
-           {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
-           {!cameraOpen && !capturedImage && (
-             <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
-               📷 Open Camera
-             </button>
-           )}
-           {cameraOpen && (
-             <div style={{ display: 'flex', gap: '10px' }}>
-               <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
-               <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-             </div>
-           )}
-           {capturedImage && !cameraOpen && (
-             <div style={{ display: 'flex', gap: '10px' }}>
-               <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
-                 {verifying ? tx.verifyingBtn : tx.verifyBtn}
-               </button>
-               <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
-             </div>
-           )
-         </div>
-       )}
-      </> }
+      {/* Identity Verification - hidden */}
+      <div style={{ display: "none" }}>
+      <SectionTitle>{tx.faceVerify}</SectionTitle>
+      {isVerified ? (
+        <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1.5px solid #22c55e', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <span style={{ fontSize: '28px' }}>✅</span>
+          <div>
+            <div style={{ fontWeight: 'bold', color: '#4ade80', fontSize: '15px' }}>{tx.verifiedTitle}</div>
+            <div style={{ fontSize: '13px', color: '#86efac' }}>{tx.verifiedSub}</div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: 'rgba(234, 179, 8, 0.1)', border: '1.5px solid #eab308', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '24px' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 800, color: '#f1f5f9', fontSize: '15px', marginBottom: 6 }}>{tx.notVerifiedTitle}</div>
+              <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>{tx.notVerifiedSub}</div>
+            </div>
+          </div>
+          {cameraOpen && (
+            <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#000' }}>
+              <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', borderRadius: '12px' }} />
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', height: '160px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.8)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center', color: '#fff', fontSize: '12px', opacity: 0.8 }}>วางใบหน้าให้อยู่ในวงกลม</div>
+            </div>
+          )}
+          {capturedImage && !cameraOpen && (
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+              <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
+            </div>
+          )}
+          {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
+          {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
+          {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
+          {!cameraOpen && !capturedImage && (
+            <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+              📷 Open Camera
+            </button>
+          )}
+          {cameraOpen && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
+              <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
+            </div>
+          )}
+          {capturedImage && !cameraOpen && (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
+                {verifying ? tx.verifyingBtn : tx.verifyBtn}
+              </button>
+              <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
+            </div>
+          )}
+        </div>
+      )}
 
+      </div>
       {/* About You */}
       <SectionTitle>{tx.aboutYou}</SectionTitle>
       <Field label={tx.username}><input value={username} onChange={e => setUsername(e.target.value)} style={S.input} /></Field>
