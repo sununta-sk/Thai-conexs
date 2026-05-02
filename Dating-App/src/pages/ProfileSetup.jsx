@@ -739,8 +739,7 @@ export default function ProfileSetup() {
            )
          </div>
        )}
-      </>
-      }
+      </> }
 
       {/* About You */}
       <SectionTitle>{tx.aboutYou}</SectionTitle>
