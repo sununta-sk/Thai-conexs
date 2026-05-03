@@ -21,6 +21,10 @@ export default function ResetPassword() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setReady(true);
     });
+    // Fallback: if token in URL, force ready after 2s
+    if (window.location.hash.includes('access_token') || window.location.search.includes('token')) {
+      setTimeout(() => setReady(true), 1500);
+    }
     return () => sub.subscription.unsubscribe();
   }, []);
 
