@@ -81,12 +81,10 @@ function inRange(value, range) {
 }
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth < 1024 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-  });
+  const check = () => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  const [isMobile, setIsMobile] = useState(check);
   useEffect(() => {
-    const h = () => setIsMobile(window.innerWidth < 1024 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
+    const h = () => setIsMobile(check());
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
@@ -252,7 +250,8 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (profile) => {
-    setSelectedProfile(profile); // always show bio modal first
+    if (isMobile) setSelectedProfile(profile);
+    else navigate('/profile/' + profile.id);
   };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
