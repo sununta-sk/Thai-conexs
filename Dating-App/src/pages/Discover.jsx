@@ -81,7 +81,12 @@ function inRange(value, range) {
 }
 
 function useIsMobile() {
-  const check = () => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  const check = () => {
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const smallScreen = window.innerWidth <= 1024;
+    const mobileUA = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    return hasTouch || smallScreen || mobileUA;
+  };
   const [isMobile, setIsMobile] = useState(check);
   useEffect(() => {
     const h = () => setIsMobile(check());
