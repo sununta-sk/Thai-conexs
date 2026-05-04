@@ -81,9 +81,12 @@ function inRange(value, range) {
 }
 
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 900);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 1024 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  });
   useEffect(() => {
-    const h = () => setIsMobile(window.innerWidth < 900);
+    const h = () => setIsMobile(window.innerWidth < 1024 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
