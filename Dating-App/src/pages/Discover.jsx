@@ -252,8 +252,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (profile) => {
-    if (isMobile) setSelectedProfile(profile); // mobile → show bio modal
-    else navigate('/profile/' + profile.id);   // desktop → go to profile page
+    setSelectedProfile(profile); // always show bio modal first
   };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
