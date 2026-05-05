@@ -186,8 +186,7 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [banInfo, setBanInfo] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [selectedProfile, setSelectedProfile] = useState(null); // mobile bio modal
-  const { onlineUsers } = useOnline();
+    const { onlineUsers } = useOnline();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -254,7 +253,7 @@ export default function Discover() {
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
-  const handleCardClick = (profile) => { setSelectedProfile(profile); };
+  const handleCardClick = (profile) => { navigate('/profile/' + profile.id); };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
     if (!raw) return 'https://placehold.co/150x150/1e293b/94a3b8?text=No+Photo';
@@ -269,16 +268,7 @@ export default function Discover() {
     <div style={S.page}>
 
       {/* Bio Modal (mobile only) */}
-      {selectedProfile && (
-        <BioModal
-          profile={selectedProfile}
-          isOnline={onlineUsers.has(selectedProfile.id)}
-          currentUserId={currentUserId}
-          onClose={() => setSelectedProfile(null)}
-          onChat={() => { setSelectedProfile(null); handleStartChat(selectedProfile.id); }}
-          onViewProfile={() => { setSelectedProfile(null); navigate('/profile/' + selectedProfile.id); }}
-        />
-      )}
+      
 
       {/* SEARCH BAR */}
       <div style={S.searchBar}>
