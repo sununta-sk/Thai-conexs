@@ -184,7 +184,12 @@ export default function Login() {
       <div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
         {/* 1. Login Form */}
-        <div style={M.section}>
+  
+      {/* Announcement Banner */}
+      <div style={{ background: 'linear-gradient(135deg, #e91e63, #c2185b)', padding: '10px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>
+        🎉 Free for the first 500 Thai women to join! Upload 4+ photos to enter our <strong>5,000 THB prize draw</strong> in June. First 500 get <strong>lifetime free access</strong> + Founders Badge!
+      </div>
+      <div style={M.section}>
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
           <form onSubmit={handleLogin} style={M.form}>
             <input type="email" placeholder="Email" value={email}
@@ -241,6 +246,11 @@ export default function Login() {
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
 
       {/* Hero */}
+
+      {/* Announcement Banner */}
+      <div style={{ background: 'linear-gradient(135deg, #e91e63, #c2185b)', padding: '10px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>
+        🎉 Free for the first 500 Thai women to join! Upload 4+ photos to enter our <strong>5,000 THB prize draw</strong> in June. First 500 get <strong>lifetime free access</strong> + Founders Badge!
+      </div>
       <div style={S.page}>
         {/* Form side */}
         <div style={S.formWrap}>
