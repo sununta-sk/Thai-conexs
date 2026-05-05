@@ -101,7 +101,7 @@ export default function UserListPage() {
                         <td style={S.td}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <img
-                              src={u.avatar_url || 'https://via.placeholder.com/36'}
+                              src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>')}
                               style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1e293b' }}
                             />
                             <div>
