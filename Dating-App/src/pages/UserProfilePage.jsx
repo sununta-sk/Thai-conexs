@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
+import { optimizeImage } from '../lib/imageUtils';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -57,7 +58,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
         <img
           key={current}
-          src={photos[current]}
+          src={optimizeImage(photos[current], { width: 1000, quality: 80 })}
           alt={`photo-${current}`}
           style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
         />
