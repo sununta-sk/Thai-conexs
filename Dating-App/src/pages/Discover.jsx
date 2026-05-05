@@ -255,8 +255,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (profile) => {
-    if (window.innerWidth <= 1024) setSelectedProfile(profile);
-    else navigate('/profile/' + profile.id);
+    setSelectedProfile(profile);
   };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
