@@ -255,9 +255,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (profile) => {
-    // Show bio modal on touch devices, navigate on desktop mouse
-    const isTouch = window.matchMedia('(hover: none)').matches;
-    if (isTouch) setSelectedProfile(profile);
+    if (window.innerWidth <= 1024) setSelectedProfile(profile);
     else navigate('/profile/' + profile.id);
   };
   const getMainPhoto = (profile) => {
