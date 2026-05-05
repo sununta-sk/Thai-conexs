@@ -239,7 +239,7 @@ const S = {
   langBtn: {
     display: 'flex', alignItems: 'center', gap: 6,
     background: '#1e293b', border: '1px solid #334155', borderRadius: 8,
-    padding: '5px 10px', cursor: 'pointer', gap: 6,
+    padding: '5px 10px', cursor: 'pointer',
   },
   langDropdown: {
     position: 'absolute', top: '110%', right: 0,
