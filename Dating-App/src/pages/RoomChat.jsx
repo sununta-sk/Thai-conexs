@@ -647,7 +647,7 @@ export default function RoomChat() {
 }
 
 const S = {
-  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  page: { display: "flex", flexDirection: "column", height: "100dvh", maxHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", width: "100%", top: 0, left: 0 },
   loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#0f172a" },
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
   header: { display: "flex", alignItems: "center", gap: 8, padding: "8px 8px 8px 4px", background: "#1e293b", borderBottom: "1px solid #334155", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", minHeight: 60, position: "relative", zIndex: 10 },

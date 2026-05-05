@@ -254,9 +254,7 @@ export default function Discover() {
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
-  const handleCardClick = (profile) => {
-    setSelectedProfile(profile);
-  };
+  const handleCardClick = (profile) => { setSelectedProfile(profile); };
   const getMainPhoto = (profile) => {
     const raw = profile.avatar_url;
     if (!raw) return 'https://placehold.co/150x150/1e293b/94a3b8?text=No+Photo';
