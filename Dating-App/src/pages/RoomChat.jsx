@@ -37,7 +37,7 @@ function playSound(type) {
 
     if (type === 'send') {
       // "whoosh" - low-pitch quick tone
-      osc.frequency.setValueAtTime(420, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);  // ✅
       osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.12);
       gain.gain.setValueAtTime(0.18, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
@@ -449,8 +449,7 @@ export default function RoomChat() {
   const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const avatarUrl = (() => { const a = otherProfile?.avatar_url; if (!a) return null; if (typeof a === 'string') { try { return JSON.parse(a)?.url || a; } catch { return a; } } return a?.url || null; })();
-  const allPhotos = [...(avatarUrl ? [avatarUrl] : []), ...photoUrls.filter(u => u !== avatarUrl)];
+  const allPhotos = [...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []), ...photoUrls.filter(u => u !== otherProfile?.avatar_url)];
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
@@ -648,10 +647,10 @@ export default function RoomChat() {
 }
 
 const S = {
-  page: { display: "flex", flexDirection: "column", height: "100dvh", maxHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", width: "100%", top: 0, left: 0 },
+  page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
   loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#0f172a" },
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
-  header: { display: "flex", alignItems: "center", gap: 8, padding: "8px 8px 8px 4px", background: "#1e293b", borderBottom: "1px solid #334155", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", minHeight: 60, position: "relative", zIndex: 10 },
+  header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#1e293b", borderBottom: "1px solid #334155", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", minHeight: 72, position: "relative", zIndex: 10 },
   backBtnBig: { display: 'flex', alignItems: 'center', gap: 6, background: '#0f172a', border: '2px solid #e91e63', cursor: 'pointer', color: '#e91e63', padding: '8px 16px', borderRadius: 24, flexShrink: 0, transition: 'background 0.15s', boxShadow: '0 2px 6px rgba(233,30,99,0.2)' },
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0, marginLeft: 30 },
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
