@@ -239,6 +239,7 @@ export default function Login() {
   // ── DESKTOP LAYOUT (เหมือนเดิมทุกอย่าง) ─────────────────
   return (
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
+      <div style={{ background: 'linear-gradient(135deg, #e91e63, #c2185b)', padding: '10px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>🎉 Free for the first 500 Thai women to join! Upload 4+ photos to enter our 5,000 THB prize draw in June. First 500 get lifetime free access + Founders Badge!</div>
 
       {/* Hero */}
       <div style={S.page}>
