@@ -449,7 +449,8 @@ export default function RoomChat() {
   const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const allPhotos = [...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []), ...photoUrls.filter(u => u !== otherProfile?.avatar_url)];
+  const avatarUrl = (() => { const a = otherProfile?.avatar_url; if (!a) return null; if (typeof a === 'string') { try { return JSON.parse(a)?.url || a; } catch { return a; } } return a?.url || null; })();
+  const allPhotos = [...(avatarUrl ? [avatarUrl] : []), ...photoUrls.filter(u => u !== avatarUrl)];
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
