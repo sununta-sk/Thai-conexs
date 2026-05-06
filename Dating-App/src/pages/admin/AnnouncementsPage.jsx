@@ -21,7 +21,7 @@ export default function AnnouncementsPage() {
     try {
       const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
       setList(data || [])
-    } catch {}
+    } catch (err) { console.error('[Publish error]', err);}
     setLoad(false)
   }
 
@@ -64,7 +64,7 @@ export default function AnnouncementsPage() {
       setF({ title: '', body: '', type: 'info', active: true })
       setForm(false)
       showT('✓ Published')
-    } catch {
+    } catch (err) { console.error('[Publish error]', err);
       showT('Error', 'error')
     }
     setSaving(false)
@@ -82,7 +82,7 @@ export default function AnnouncementsPage() {
         target_id:   item.id,
         metadata:    { title: item.title, action: item.active ? 'deactivate' : 'activate' },
       }).catch(console.error)
-    } catch {}
+    } catch (err) { console.error('[Publish error]', err);}
   }
 
   async function del(id) {
@@ -90,7 +90,7 @@ export default function AnnouncementsPage() {
     try {
       await supabase.from('announcements').delete().eq('id', id)
       setList(prev => prev.filter(a => a.id !== id))
-    } catch {}
+    } catch (err) { console.error('[Publish error]', err);}
   }
 
   function showT(msg, type = 'success') { setToast({ msg, type }); setTimeout(() => setToast(null), 2500) }
