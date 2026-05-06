@@ -31,7 +31,7 @@ export default function AnnouncementsPage() {
     try {
       const { data, error } = await supabase
         .from('announcements')
-        .insert({ ...form, created_at: new Date().toISOString() })
+        .insert({ title: form.title, body: form.body, announcement_type: form.type || 'banner', target_audience: 'all', status: form.active ? 'active' : 'draft', created_by: (await supabase.auth.getUser()).data.user.id })
         .select('id')
         .single()
 
