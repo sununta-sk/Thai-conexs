@@ -31,7 +31,11 @@ export default function AnnouncementsPage() {
     try {
       const { data, error } = await supabase
         .from('announcements')
-        .insert({ title: form.title, body: form.body, announcement_type: form.type || 'banner', target_audience: 'all', status: form.active ? 'active' : 'draft', created_by: (await supabase.auth.getUser()).data.user.id })
+        .insert({ title: form.title, body: form.body, announcement_type: form.type || 'banner', target_audience: 'all', status: form.active ? 'active' : 'draft', created_by: await (async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            const { data: adminRow } = await supabase.from('admin_users').select('id').eq('auth_user_id', user.id).single()
+            return adminRow?.id
+          })() })
         .select('id')
         .single()
 
