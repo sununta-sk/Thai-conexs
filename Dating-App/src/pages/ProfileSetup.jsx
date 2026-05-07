@@ -1,27 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-
-const LANGUAGES = [
-  { code: 'th', label: '🇹🇭 ภาษาไทย' },
-  { code: 'en', label: '🇬🇧 English' },
-  { code: 'zh', label: '🇨🇳 中文 (Chinese)' },
-  { code: 'ja', label: '🇯🇵 日本語 (Japanese)' },
-  { code: 'ko', label: '🇰🇷 한국어 (Korean)' },
-  { code: 'fr', label: '🇫🇷 Français (French)' },
-  { code: 'de', label: '🇩🇪 Deutsch (German)' },
-  { code: 'es', label: '🇪🇸 Español (Spanish)' },
-  { code: 'it', label: '🇮🇹 Italiano (Italian)' },
-  { code: 'pt', label: '🇧🇷 Português (Portuguese)' },
-  { code: 'ru', label: '🇷🇺 Русский (Russian)' },
-  { code: 'ar', label: '🇸🇦 العربية (Arabic)' },
-  { code: 'hi', label: '🇮🇳 हिन्दी (Hindi)' },
-  { code: 'vi', label: '🇻🇳 Tiếng Việt (Vietnamese)' },
-  { code: 'id', label: '🇮🇩 Bahasa Indonesia' },
-  { code: 'ms', label: '🇲🇾 Bahasa Melayu' },
-];
 
 const T = {
   th: {
@@ -53,216 +35,6 @@ const T = {
     genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
     copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
     sidebarAbout:'About Me', sidebarInfo:'Personal Info', sidebarLifestyle:'Lifestyle',
-  },
-  zh: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'身份验证',
-    verifiedTitle:'已完成身份验证', verifiedSub:'您现在可以发送消息',
-    notVerifiedTitle:'尚未验证', notVerifiedSub:'验证后才能发送消息',
-    verifyBtn:'🤖 AI验证', verifyingBtn:'🔍 AI检测中...',
-    aboutYou:'关于你', username:'用户名', bio:'个人简介',
-    bodyEdu:'体型与教育', age:'年龄', height:'身高 (厘米)', weight:'体重 (千克)',
-    education:'学历', preferences:'偏好', gender:'性别', lookingFor:'寻找',
-    referralLabel:'输入好友码获得€30奖励',
-    saveBtn:'保存资料', logoutBtn:'退出登录',
-    eduOptions:['高中','学士学位','硕士学位','博士学位'],
-    genderOptions:['男','女','其他'], lookingOptions:['男性','女性','所有人'],
-    copyBtn:'📋 复制代码', copiedBtn:'✅ 已复制！',
-    sidebarAbout:'关于我', sidebarInfo:'个人信息', sidebarLifestyle:'生活方式',
-  },
-  ja: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'本人確認（顔認証）',
-    verifiedTitle:'本人確認済み', verifiedSub:'メッセージを送信できます',
-    notVerifiedTitle:'未確認', notVerifiedSub:'確認完了後にメッセージを送信できます',
-    verifyBtn:'🤖 AIで確認', verifyingBtn:'🔍 AI確認中...',
-    aboutYou:'自己紹介', username:'ユーザー名', bio:'自己PR',
-    bodyEdu:'体型・学歴', age:'年齢', height:'身長 (cm)', weight:'体重 (kg)',
-    education:'学歴', preferences:'希望条件', gender:'性別', lookingFor:'探している相手',
-    referralLabel:'友達コードを入力して€30ボーナスを獲得',
-    saveBtn:'プロフィールを保存', logoutBtn:'ログアウト',
-    eduOptions:['高校','学士号','修士号','博士号'],
-    genderOptions:['男性','女性','その他'], lookingOptions:['男性','女性','全員'],
-    copyBtn:'📋 コードをコピー', copiedBtn:'✅ コピーしました！',
-    sidebarAbout:'私について', sidebarInfo:'個人情報', sidebarLifestyle:'ライフスタイル',
-  },
-  ko: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'본인 인증',
-    verifiedTitle:'인증 완료', verifiedSub:'이제 메시지를 보낼 수 있습니다',
-    notVerifiedTitle:'미인증', notVerifiedSub:'인증 후 메시지를 보낼 수 있습니다',
-    verifyBtn:'🤖 AI로 인증', verifyingBtn:'🔍 AI 확인 중...',
-    aboutYou:'나에 대해', username:'사용자 이름', bio:'자기소개',
-    bodyEdu:'체형 및 학력', age:'나이', height:'키 (cm)', weight:'몸무게 (kg)',
-    education:'학력', preferences:'선호도', gender:'성별', lookingFor:'찾는 상대',
-    referralLabel:'친구 코드 입력으로 €30 보너스 받기',
-    saveBtn:'프로필 저장', logoutBtn:'로그아웃',
-    eduOptions:['고등학교','학사','석사','박사'],
-    genderOptions:['남성','여성','기타'], lookingOptions:['남성','여성','모두'],
-    copyBtn:'📋 코드 복사', copiedBtn:'✅ 복사됨!',
-    sidebarAbout:'나에 대해', sidebarInfo:'개인 정보', sidebarLifestyle:'라이프스타일',
-  },
-  fr: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:"Vérification d'identité",
-    verifiedTitle:'Identité vérifiée', verifiedSub:'Vous pouvez maintenant envoyer des messages',
-    notVerifiedTitle:'Non vérifié', notVerifiedSub:'Vérifiez votre identité pour envoyer des messages',
-    verifyBtn:'🤖 Vérifier avec IA', verifyingBtn:'🔍 IA en cours...',
-    aboutYou:'À propos de vous', username:"Nom d'utilisateur", bio:'Bio',
-    bodyEdu:'Corps et éducation', age:'Âge', height:'Taille (cm)', weight:'Poids (kg)',
-    education:'Éducation', preferences:'Préférences', gender:'Genre', lookingFor:'Recherche',
-    referralLabel:"Entrez le code d'un ami pour €30 de bonus",
-    saveBtn:'Enregistrer le profil', logoutBtn:'Déconnexion',
-    eduOptions:['Lycée','Licence','Master','Doctorat'],
-    genderOptions:['Homme','Femme','Autre'], lookingOptions:['Hommes','Femmes','Tout le monde'],
-    copyBtn:'📋 Copier le code', copiedBtn:'✅ Copié !',
-    sidebarAbout:'À propos', sidebarInfo:'Infos perso', sidebarLifestyle:'Style de vie',
-  },
-  de: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Identitätsverifizierung',
-    verifiedTitle:'Identität bestätigt', verifiedSub:'Sie können jetzt Nachrichten senden',
-    notVerifiedTitle:'Nicht verifiziert', notVerifiedSub:'Bitte verifizieren Sie sich um Nachrichten zu senden',
-    verifyBtn:'🤖 Mit KI verifizieren', verifyingBtn:'🔍 KI prüft...',
-    aboutYou:'Über Sie', username:'Benutzername', bio:'Biografie',
-    bodyEdu:'Körper & Bildung', age:'Alter', height:'Größe (cm)', weight:'Gewicht (kg)',
-    education:'Bildung', preferences:'Präferenzen', gender:'Geschlecht', lookingFor:'Suche nach',
-    referralLabel:'Freundescode eingeben für €30 Bonus',
-    saveBtn:'Profil speichern', logoutBtn:'Abmelden',
-    eduOptions:['Gymnasium','Bachelor','Master','Doktor'],
-    genderOptions:['Männlich','Weiblich','Andere'], lookingOptions:['Männer','Frauen','Alle'],
-    copyBtn:'📋 Code kopieren', copiedBtn:'✅ Kopiert!',
-    sidebarAbout:'Über mich', sidebarInfo:'Persönliche Daten', sidebarLifestyle:'Lebensstil',
-  },
-  es: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verificación de identidad',
-    verifiedTitle:'Identidad verificada', verifiedSub:'Ya puedes enviar mensajes',
-    notVerifiedTitle:'No verificado', notVerifiedSub:'Verifica tu identidad para enviar mensajes',
-    verifyBtn:'🤖 Verificar con IA', verifyingBtn:'🔍 IA verificando...',
-    aboutYou:'Sobre ti', username:'Nombre de usuario', bio:'Biografía',
-    bodyEdu:'Cuerpo y educación', age:'Edad', height:'Altura (cm)', weight:'Peso (kg)',
-    education:'Educación', preferences:'Preferencias', gender:'Género', lookingFor:'Buscando',
-    referralLabel:'Ingresa el código de un amigo para €30 de bono',
-    saveBtn:'Guardar perfil', logoutBtn:'Cerrar sesión',
-    eduOptions:['Bachillerato','Licenciatura','Maestría','Doctorado'],
-    genderOptions:['Hombre','Mujer','Otro'], lookingOptions:['Hombres','Mujeres','Todos'],
-    copyBtn:'📋 Copiar código', copiedBtn:'✅ ¡Copiado!',
-    sidebarAbout:'Sobre mí', sidebarInfo:'Info personal', sidebarLifestyle:'Estilo de vida',
-  },
-  it: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verifica identità',
-    verifiedTitle:'Identità verificata', verifiedSub:'Ora puoi inviare messaggi',
-    notVerifiedTitle:'Non verificato', notVerifiedSub:"Verifica la tua identità per inviare messaggi",
-    verifyBtn:'🤖 Verifica con IA', verifyingBtn:'🔍 IA in verifica...',
-    aboutYou:'Su di te', username:'Nome utente', bio:'Bio',
-    bodyEdu:'Corpo e istruzione', age:'Età', height:'Altezza (cm)', weight:'Peso (kg)',
-    education:'Istruzione', preferences:'Preferenze', gender:'Genere', lookingFor:'Cerco',
-    referralLabel:"Inserisci il codice di un amico per €30 di bonus",
-    saveBtn:'Salva profilo', logoutBtn:'Esci',
-    eduOptions:['Liceo','Laurea triennale','Laurea magistrale','Dottorato'],
-    genderOptions:['Uomo','Donna','Altro'], lookingOptions:['Uomini','Donne','Tutti'],
-    copyBtn:'📋 Copia codice', copiedBtn:'✅ Copiato!',
-    sidebarAbout:'Su di me', sidebarInfo:'Info personali', sidebarLifestyle:'Stile di vita',
-  },
-  pt: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verificação de identidade',
-    verifiedTitle:'Identidade verificada', verifiedSub:'Agora você pode enviar mensagens',
-    notVerifiedTitle:'Não verificado', notVerifiedSub:'Verifique sua identidade para enviar mensagens',
-    verifyBtn:'🤖 Verificar com IA', verifyingBtn:'🔍 IA verificando...',
-    aboutYou:'Sobre você', username:'Nome de usuário', bio:'Bio',
-    bodyEdu:'Corpo e educação', age:'Idade', height:'Altura (cm)', weight:'Peso (kg)',
-    education:'Educação', preferences:'Preferências', gender:'Gênero', lookingFor:'Procurando',
-    referralLabel:'Insira o código de um amigo para €30 de bônus',
-    saveBtn:'Salvar perfil', logoutBtn:'Sair',
-    eduOptions:['Ensino Médio','Bacharelado','Mestrado','Doutorado'],
-    genderOptions:['Masculino','Feminino','Outro'], lookingOptions:['Homens','Mulheres','Todos'],
-    copyBtn:'📋 Copiar código', copiedBtn:'✅ Copiado!',
-    sidebarAbout:'Sobre mim', sidebarInfo:'Info pessoal', sidebarLifestyle:'Estilo de vida',
-  },
-  ru: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Верификация личности',
-    verifiedTitle:'Личность подтверждена', verifiedSub:'Теперь вы можете отправлять сообщения',
-    notVerifiedTitle:'Не верифицирован', notVerifiedSub:'Пройдите верификацию для отправки сообщений',
-    verifyBtn:'🤖 Верифицировать с ИИ', verifyingBtn:'🔍 ИИ проверяет...',
-    aboutYou:'О вас', username:'Имя пользователя', bio:'О себе',
-    bodyEdu:'Внешность и образование', age:'Возраст', height:'Рост (см)', weight:'Вес (кг)',
-    education:'Образование', preferences:'Предпочтения', gender:'Пол', lookingFor:'Ищу',
-    referralLabel:'Введите код друга и получите €30 бонус',
-    saveBtn:'Сохранить профиль', logoutBtn:'Выйти',
-    eduOptions:['Школа','Бакалавр','Магистр','Доктор'],
-    genderOptions:['Мужской','Женский','Другой'], lookingOptions:['Мужчин','Женщин','Всех'],
-    copyBtn:'📋 Копировать код', copiedBtn:'✅ Скопировано!',
-    sidebarAbout:'Обо мне', sidebarInfo:'Личные данные', sidebarLifestyle:'Образ жизни',
-  },
-  ar: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'التحقق من الهوية',
-    verifiedTitle:'تم التحقق من الهوية', verifiedSub:'يمكنك الآن إرسال الرسائل',
-    notVerifiedTitle:'غير موثق', notVerifiedSub:'تحقق من هويتك لإرسال الرسائل',
-    verifyBtn:'🤖 التحقق بالذكاء الاصطناعي', verifyingBtn:'🔍 جارٍ التحقق...',
-    aboutYou:'نبذة عنك', username:'اسم المستخدم', bio:'نبذة شخصية',
-    bodyEdu:'الجسم والتعليم', age:'العمر', height:'الطول (سم)', weight:'الوزن (كج)',
-    education:'التعليم', preferences:'التفضيلات', gender:'الجنس', lookingFor:'أبحث عن',
-    referralLabel:'أدخل كود صديق للحصول على €30 مكافأة',
-    saveBtn:'حفظ الملف الشخصي', logoutBtn:'تسجيل الخروج',
-    eduOptions:['ثانوية','بكالوريوس','ماجستير','دكتوراه'],
-    genderOptions:['ذكر','أنثى','آخر'], lookingOptions:['رجال','نساء','الجميع'],
-    copyBtn:'📋 نسخ الكود', copiedBtn:'✅ تم النسخ!',
-    sidebarAbout:'عني', sidebarInfo:'معلومات شخصية', sidebarLifestyle:'نمط الحياة',
-  },
-  hi: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'पहचान सत्यापन',
-    verifiedTitle:'पहचान सत्यापित', verifiedSub:'अब आप संदेश भेज सकते हैं',
-    notVerifiedTitle:'सत्यापित नहीं', notVerifiedSub:'संदेश भेजने के लिए सत्यापन करें',
-    verifyBtn:'🤖 AI से सत्यापित करें', verifyingBtn:'🔍 AI जाँच रहा है...',
-    aboutYou:'आपके बारे में', username:'उपयोगकर्ता नाम', bio:'परिचय',
-    bodyEdu:'शरीर और शिक्षा', age:'आयु', height:'ऊंचाई (सेमी)', weight:'वजन (किग्रा)',
-    education:'शिक्षा', preferences:'प्राथमिकताएं', gender:'लिंग', lookingFor:'खोज रहे हैं',
-    referralLabel:'मित्र कोड दर्ज करें और €30 बोनस पाएं',
-    saveBtn:'प्रोफ़ाइल सहेजें', logoutBtn:'लॉग आउट',
-    eduOptions:['हाई स्कूल','स्नातक','स्नातकोत्तर','पीएचडी'],
-    genderOptions:['पुरुष','महिला','अन्य'], lookingOptions:['पुरुष','महिला','सभी'],
-    copyBtn:'📋 कोड कॉपी करें', copiedBtn:'✅ कॉपी हो गया!',
-    sidebarAbout:'मेरे बारे में', sidebarInfo:'व्यक्तिगत जानकारी', sidebarLifestyle:'जीवन शैली',
-  },
-  vi: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Xác minh danh tính',
-    verifiedTitle:'Đã xác minh', verifiedSub:'Bạn có thể gửi tin nhắn ngay bây giờ',
-    notVerifiedTitle:'Chưa xác minh', notVerifiedSub:'Xác minh danh tính để gửi tin nhắn',
-    verifyBtn:'🤖 Xác minh bằng AI', verifyingBtn:'🔍 AI đang kiểm tra...',
-    aboutYou:'Về bạn', username:'Tên người dùng', bio:'Giới thiệu',
-    bodyEdu:'Vóc dáng & Học vấn', age:'Tuổi', height:'Chiều cao (cm)', weight:'Cân nặng (kg)',
-    education:'Học vấn', preferences:'Sở thích', gender:'Giới tính', lookingFor:'Tìm kiếm',
-    referralLabel:'Nhập mã giới thiệu để nhận €30 thưởng',
-    saveBtn:'Lưu hồ sơ', logoutBtn:'Đăng xuất',
-    eduOptions:['THPT','Đại học','Thạc sĩ','Tiến sĩ'],
-    genderOptions:['Nam','Nữ','Khác'], lookingOptions:['Nam','Nữ','Tất cả'],
-    copyBtn:'📋 Sao chép mã', copiedBtn:'✅ Đã sao chép!',
-    sidebarAbout:'Về tôi', sidebarInfo:'Thông tin cá nhân', sidebarLifestyle:'Phong cách sống',
-  },
-  id: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Verifikasi Identitas',
-    verifiedTitle:'Identitas Terverifikasi', verifiedSub:'Anda sekarang dapat mengirim pesan',
-    notVerifiedTitle:'Belum Terverifikasi', notVerifiedSub:'Verifikasi diri untuk mengirim pesan',
-    verifyBtn:'🤖 Verifikasi dengan AI', verifyingBtn:'🔍 AI sedang memeriksa...',
-    aboutYou:'Tentang Anda', username:'Nama Pengguna', bio:'Bio',
-    bodyEdu:'Tubuh & Pendidikan', age:'Usia', height:'Tinggi (cm)', weight:'Berat (kg)',
-    education:'Pendidikan', preferences:'Preferensi', gender:'Jenis Kelamin', lookingFor:'Mencari',
-    referralLabel:'Masukkan kode teman untuk bonus €30',
-    saveBtn:'Simpan Profil', logoutBtn:'Keluar',
-    eduOptions:['SMA','Sarjana','Magister','Doktor'],
-    genderOptions:['Laki-laki','Perempuan','Lainnya'], lookingOptions:['Laki-laki','Perempuan','Semua'],
-    copyBtn:'📋 Salin kode', copiedBtn:'✅ Tersalin!',
-    sidebarAbout:'Tentang Saya', sidebarInfo:'Info Pribadi', sidebarLifestyle:'Gaya Hidup',
-  },
-  ms: {
-    profilePhotos:'Profile Photos (max 10)', faceVerify:'Pengesahan Identiti',
-    verifiedTitle:'Identiti Disahkan', verifiedSub:'Anda boleh menghantar mesej sekarang',
-    notVerifiedTitle:'Belum Disahkan', notVerifiedSub:'Sahkan identiti untuk menghantar mesej',
-    verifyBtn:'🤖 Sahkan dengan AI', verifyingBtn:'🔍 AI sedang memeriksa...',
-    aboutYou:'Tentang Anda', username:'Nama Pengguna', bio:'Bio',
-    bodyEdu:'Badan & Pendidikan', age:'Umur', height:'Tinggi (cm)', weight:'Berat (kg)',
-    education:'Pendidikan', preferences:'Keutamaan', gender:'Jantina', lookingFor:'Mencari',
-    referralLabel:'Masukkan kod rakan untuk bonus €30',
-    saveBtn:'Simpan Profil', logoutBtn:'Log Keluar',
-    eduOptions:['Sekolah Menengah','Sarjana Muda','Sarjana','Doktor'],
-    genderOptions:['Lelaki','Perempuan','Lain-lain'], lookingOptions:['Lelaki','Perempuan','Semua'],
-    copyBtn:'📋 Salin kod', copiedBtn:'✅ Disalin!',
-    sidebarAbout:'Tentang Saya', sidebarInfo:'Maklumat Peribadi', sidebarLifestyle:'Gaya Hidup',
   },
 };
 
@@ -347,8 +119,7 @@ export default function ProfileSetup() {
   const [cameraOpen, setCameraOpen]         = useState(false);
   const [capturedImage, setCapturedImage]   = useState(null);
   const [cameraError, setCameraError]       = useState('');
-  const [preferredLang, setPreferredLang]   = useState('en');
-  const [showLangPicker, setShowLangPicker] = useState(false);
+  // preferredLang removed - controlled by Navbar toggle
   const [copied, setCopied]                 = useState(false);
 
   const openCamera = async () => {
@@ -378,7 +149,8 @@ export default function ProfileSetup() {
     closeCamera();
   };
 
-  const tx = T[preferredLang] || T['en'];
+  const { lang } = useTranslation(['common']);
+  const tx = T[lang] || T['en'];
 
   useEffect(() => {
     async function fetchProfile() {
@@ -391,7 +163,6 @@ export default function ProfileSetup() {
         setBalance(data.commission_balance || 0);
         setMainPhoto(data.avatar_url || '');
         setIsVerified(data.is_verified || false);
-        setPreferredLang(data.preferred_lang || 'en');
         setFriendCode(data.referred_by || '');
         if (data.details) setDetails(prev => ({ ...prev, ...data.details }));
         if (data.lifestyle) setLifestyle(prev => ({ ...prev, ...data.lifestyle }));
@@ -515,7 +286,7 @@ export default function ProfileSetup() {
       id: user.id, username, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
       lifestyle,
-      preferred_lang: preferredLang, updated_at: new Date(),
+      updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
     }, { onConflict: 'id' });
     if (!error) {
@@ -526,7 +297,6 @@ export default function ProfileSetup() {
     }
   };
 
-  const selectedLang = LANGUAGES.find(l => l.code === preferredLang);
   const referralDisabled = isVerified && !!friendCode;
 
   // ──────────────────────────────────────────────
@@ -845,22 +615,6 @@ export default function ProfileSetup() {
 
       <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
 
-      <div style={{ marginTop: '12px', position: 'relative' }}>
-        <button onClick={() => setShowLangPicker(v => !v)} style={S.langBtn}>
-          {selectedLang?.label || '🌐'} ▾
-        </button>
-        {showLangPicker && (
-          <div style={S.langPicker}>
-            {LANGUAGES.map(lang => (
-              <button key={lang.code}
-                onClick={() => { setPreferredLang(lang.code); setShowLangPicker(false); }}
-                style={{ ...S.langOption, background: preferredLang === lang.code ? 'rgba(233, 30, 99, 0.15)' : 'transparent', color: preferredLang === lang.code ? '#e91e63' : '#cbd5e1', fontWeight: preferredLang === lang.code ? 'bold' : 'normal' }}>
-                {lang.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} style={S.logoutBtn}>
         {tx.logoutBtn}
