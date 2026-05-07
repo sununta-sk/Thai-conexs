@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import { useTranslation } from '../hooks/useTranslation';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -18,6 +19,7 @@ function useIsMobile() {
 export default function Navbar() {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const { lang, setLang } = useTranslation(['common']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -189,6 +191,10 @@ export default function Navbar() {
           </button>
         )}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
+          <div style={{ display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden', marginRight: 4 }}>
+            <button onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+            <button onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+          </div>
           {!isPremium && (
             <button onClick={() => goTo('/subscription')} style={{ padding: '8px 14px', borderRadius: 6, background: 'linear-gradient(135deg,#22c55e,#16a34a)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 12, fontWeight: 800, boxShadow: '0 2px 6px rgba(34,197,94,0.3)', whiteSpace: 'nowrap' }}>
               Upgrade Account
