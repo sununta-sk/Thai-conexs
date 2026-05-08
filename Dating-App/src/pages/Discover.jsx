@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { PROVINCES } from '../data/thaiLocations';
 import { useNavigate } from 'react-router-dom';
 import { useOnline } from '../context/OnlineContext';
 
@@ -51,7 +52,7 @@ function timeAgo(dateStr) {
 const DEFAULT_FILTERS = {
   gender: 'all',
   ageRange: 'all',
-  country: 'all',
+  province: 'all',
   ignoreAgePref: false,
   height: 'all',
   weight: 'all',
@@ -120,8 +121,8 @@ export default function Discover() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + latitude + '&lon=' + longitude + '&format=json');
         const data = await res.json();
-        const city = data.address?.city || data.address?.state_district || data.address?.state || '';
-        if (city) await supabase.from('profiles').update({ city, last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
+        // City now manually selected via Province dropdown — only update last_seen_at
+        await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
       } catch {}
     }, () => {
       supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
@@ -140,7 +141,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, city, last_seen_at, is_verified').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified').neq('id', user.id);
       if (!error && data) setProfiles(data);
       setLoading(false);
     }
@@ -156,7 +157,7 @@ export default function Discover() {
 
       if (filters.gender !== 'all' && d.gender !== filters.gender) return false;
       if (!inRange(d.age, filters.ageRange)) return false;
-      if (filters.country !== 'all' && (d.country || 'Thailand') !== filters.country) return false;
+      if (filters.province !== 'all' && p.province !== filters.province) return false;
       if (!inRange(d.height, filters.height)) return false;
       if (!inRange(d.weight, filters.weight)) return false;
       if (filters.education !== 'all' && d.education !== filters.education) return false;
@@ -216,16 +217,11 @@ export default function Discover() {
             {AGE_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
 
-          <select value={filters.country} onChange={e => updateFilter('country', e.target.value)} style={S.input}>
-            <option value="all">All countries</option>
-            <option value="Thailand">Thailand</option>
-            <option value="USA">USA</option>
-            <option value="UK">UK</option>
-            <option value="Australia">Australia</option>
-            <option value="Canada">Canada</option>
-            <option value="Germany">Germany</option>
-            <option value="Japan">Japan</option>
-            <option value="Other">Other</option>
+          <select value={filters.province} onChange={e => updateFilter('province', e.target.value)} style={S.input}>
+            <option value="all">All provinces</option>
+            {PROVINCES.map(p => (
+              <option key={p.id} value={p.id}>{p.name.en}</option>
+            ))}
           </select>
 
           <select value={filters.ignoreAgePref ? 'ignore' : 'respect'} onChange={e => updateFilter('ignoreAgePref', e.target.value === 'ignore')} style={S.input}>
