@@ -211,7 +211,7 @@ export default function Navbar() {
           <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
           <span style={{ fontSize: '11px' }}>Messages</span>
           {unreadMsgs > 0 && (
-            <span yle={{ position: 'absolute', top: -2, right: -8, background: '#e91e63', color: '#fff', borderRadius: '50%', minWidth: 20, height: 20, padding: '0 6px', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ position: 'absolute', top: -2, right: -8, background: '#e91e63', color: '#fff', borderRadius: '50%', minWidth: 20, height: 20, padding: '0 6px', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {unreadMsgs > 9 ? '9+' : unreadMsgs}
             </span>
           )}
