@@ -1,53 +1,48 @@
+// src/hooks/useTranslation.js
+// ── Global language hook — ใช้ทุกหน้า ──
+// Usage:
+//   const { tx, lang, setLang } = useTranslation(['common', 'discover'])
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { getTMany, SUPPORTED_LANGS } from '../lib/I18';
-
-const LANG_EVENT = 'app:lang-changed';
+import { getTMany, SUPPORTED_LANGS } from '../lib/i18';
 
 export function useTranslation(pages = ['common']) {
-  const [lang, setLangState] = useState(() => {
-    return localStorage.getItem('app_lang') || 'en';
-  });
-  const [tx, setTx] = useState(getTMany(pages, lang));
-  const [ready, setReady] = useState(false);
+  const [lang, setLangState] = useState('en');
+  const [tx, setTx]         = useState(getTMany(pages, 'en'));
+  const [ready, setReady]   = useState(false);
 
   useEffect(() => {
+    // ── โหลดภาษาจาก Supabase profiles ──
     async function loadLang() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setReady(true); return; }
+
         const { data } = await supabase
           .from('profiles')
           .select('preferred_lang')
           .eq('id', user.id)
           .maybeSingle();
-        const userLang = data?.preferred_lang || localStorage.getItem('app_lang') || 'en';
+
+        const userLang = data?.preferred_lang || 'en';
         setLangState(userLang);
-        localStorage.setItem('app_lang', userLang);
         setTx(getTMany(pages, userLang));
-      } catch {}
-      finally { setReady(true); }
+      } catch {
+        // fallback to 'en'
+      } finally {
+        setReady(true);
+      }
     }
+
     loadLang();
   }, []);
 
-  // Listen for global lang changes from other components
-  useEffect(() => {
-    const handler = (e) => {
-      const newLang = e.detail;
-      setLangState(newLang);
-      setTx(getTMany(pages, newLang));
-    };
-    window.addEventListener(LANG_EVENT, handler);
-    return () => window.removeEventListener(LANG_EVENT, handler);
-  }, [pages.join(',')]);
-
+  // ── เปลี่ยนภาษา + save to Supabase ──
   const setLang = async (newLang) => {
     setLangState(newLang);
     setTx(getTMany(pages, newLang));
-    localStorage.setItem('app_lang', newLang);
-    // Broadcast to all useTranslation instances
-    window.dispatchEvent(new CustomEvent(LANG_EVENT, { detail: newLang }));
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {

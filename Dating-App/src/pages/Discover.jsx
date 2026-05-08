@@ -157,7 +157,7 @@ export default function Discover() {
 
       if (filters.gender !== 'all' && d.gender !== filters.gender) return false;
       if (!inRange(d.age, filters.ageRange)) return false;
-      if (filters.province !== 'all' && p.province !== filters.province) return false;
+      if (filters.province !== 'all' && (p.details?.province || '') !== filters.province) return false;
       if (!inRange(d.height, filters.height)) return false;
       if (!inRange(d.weight, filters.weight)) return false;
       if (filters.education !== 'all' && d.education !== filters.education) return false;
