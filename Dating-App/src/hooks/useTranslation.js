@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { getTMany, SUPPORTED_LANGS } from '../lib/i18';
+import { getTMany, SUPPORTED_LANGS } from '../lib/I18';
 
 export function useTranslation(pages = ['common']) {
   const [lang, setLangState] = useState('en');
