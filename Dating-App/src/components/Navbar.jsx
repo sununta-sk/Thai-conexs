@@ -19,6 +19,35 @@ function useIsMobile() {
 export default function Navbar() {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const [unreadMsgs, setUnreadMsgs] = useState(0);
+  const [myUserId, setMyUserId] = useState(null);
+
+  useEffect(() => {
+    let channel;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const uid = session.user.id;
+      setMyUserId(uid);
+      const lastSeen = localStorage.getItem('last_msg_seen_' + uid) || '1970-01-01';
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .neq('sender_id', uid)
+        .gt('created_at', lastSeen)
+        .or('chat_id.ilike.%' + uid + '%,room_id.ilike.%' + uid + '%');
+      setUnreadMsgs(count || 0);
+      channel = supabase.channel('navbar-msg-count')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          const m = payload.new;
+          if (m.sender_id === uid) return;
+          const rid = m.chat_id || m.room_id || '';
+          if (rid.includes(uid)) setUnreadMsgs(prev => prev + 1);
+        })
+        .subscribe();
+    })();
+    return () => { if (channel) supabase.removeChannel(channel); };
+  }, []);
   const { lang, setLang } = useTranslation(['common']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -178,9 +207,14 @@ export default function Navbar() {
           <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
           <span style={{ fontSize: '11px' }}>Discover</span>
         </button>
-        <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
+        <button onClick={() => { if (myUserId) localStorage.setItem('last_msg_seen_' + myUserId, new Date().toISOString()); setUnreadMsgs(0); goTo('/messages'); }} style={{ ...navBtnStyle(isActive('/messages')), position: 'relative' }}>
           <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
           <span style={{ fontSize: '11px' }}>Messages</span>
+          {unreadMsgs > 0 && (
+            <span yle={{ position: 'absolute', top: -2, right: -8, background: '#e91e63', color: '#fff', borderRadius: '50%', minWidth: 20, height: 20, padding: '0 6px', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {unreadMsgs > 9 ? '9+' : unreadMsgs}
+            </span>
+          )}
         </button>
         {isAdmin && (
           <button
