@@ -6,8 +6,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useMobilePreview } from '../hooks/useMobilePreview';
 import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import { useIsMobile } from '../hooks/useIsMobile';
+import MobileNavbar from './MobileNavbar';
 
-export default function Navbar() {
+function NavbarDesktop() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { tx } = useTranslation(['common', 'discover', 'messages']);
@@ -243,3 +245,10 @@ const navBtnStyle = (active) => ({
   padding: '4px 14px',
   fontWeight: 600,
 });
+
+// --- Mobile responsive wrapper (added by mobile_responsive_v4.py) ---
+export default function Navbar() {
+  const isMobile = useIsMobile();
+  if (isMobile) return <MobileNavbar />;
+  return <NavbarDesktop />;
+}

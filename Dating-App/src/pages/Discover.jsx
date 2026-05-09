@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
 import { useNavigate } from 'react-router-dom';
 import { useOnline } from '../context/OnlineContext';
+import { useIsMobile } from '../hooks/useIsMobile';
+import MobileDiscoverFilters from '../components/MobileDiscoverFilters';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -196,12 +198,15 @@ export default function Discover() {
     return raw.url;
   };
 
+  const isMobile = useIsMobile();
+
   const updateFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
 
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
     <div style={S.page}>
+      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} />}
       {/* SEARCH BAR — ThaiFriendly compact 3-row layout */}
       <div style={S.searchBar}>
         {/* Row 1 */}
