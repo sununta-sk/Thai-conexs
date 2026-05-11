@@ -80,7 +80,7 @@ export default function MobilePreviewFrame({ children }) {
           {/* Screen - transform creates containing block for position:fixed children */}
           <div style={{
             width: '100%', height: '100%',
-            borderRadius: 32, overflow: 'auto',
+            borderRadius: 32, overflow: 'hidden',
             background: '#f5f5f5',
             position: 'relative',
             transform: 'translateZ(0)',
