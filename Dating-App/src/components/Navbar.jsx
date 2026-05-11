@@ -8,6 +8,7 @@ import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileNavbar from './MobileNavbar';
+import { useUnreadCount } from '../hooks/useUnreadCount';
 
 function NavbarDesktop() {
   const navigate  = useNavigate();
@@ -20,6 +21,7 @@ function NavbarDesktop() {
   const [myUsername, setMyUsername] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { onlineCount } = useOnline();
+  const unreadCount = useUnreadCount();
   const menuRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
@@ -114,7 +116,21 @@ function NavbarDesktop() {
         </button>
 
         <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
-          <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
+          <span style={{ position: 'relative', display: 'inline-block', lineHeight: 1 }}>
+            <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -10,
+                minWidth: 18, height: 18, padding: '0 5px',
+                borderRadius: 999, background: '#ef4444', color: '#fff',
+                fontSize: 11, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.4)', border: '2px solid #1e293b',
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </span>
           <span style={{ fontSize: '11px' }}>{tx.messagesNav || 'Messages'}</span>
         </button>
         {isAdmin && (

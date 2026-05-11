@@ -8,6 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
 import { useMobilePreview } from '../hooks/useMobilePreview';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import { useUnreadCount } from '../hooks/useUnreadCount';
 
 const TOP_H = 56;
 const BOTTOM_H = 64;
@@ -39,6 +40,7 @@ export default function MobileNavbar() {
   const [showMenu, setShowMenu] = useState(false);
   const [mobilePreview, setMobilePreview] = useMobilePreview();
   const menuRef = useRef(null);
+  const unreadCount = useUnreadCount();
 
   // Body padding so content doesn't hide behind fixed bars
   useEffect(() => {
@@ -151,7 +153,21 @@ export default function MobileNavbar() {
           <span>{tx.discoverNav || 'Discover'}</span>
         </button>
         <button onClick={() => goTo('/messages')} style={navBtn(isActive('/messages'))}>
-          <span style={{ fontSize: 22 }}>💬</span>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
+            <span style={{ fontSize: 22 }}>💬</span>
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -8,
+                minWidth: 16, height: 16, padding: '0 4px',
+                borderRadius: 999, background: '#ef4444', color: '#fff',
+                fontSize: 10, fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.4)', border: '1.5px solid #0f172a',
+              }}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </div>
           <span>{tx.messagesNav || 'Messages'}</span>
         </button>
         {isAdmin && (
