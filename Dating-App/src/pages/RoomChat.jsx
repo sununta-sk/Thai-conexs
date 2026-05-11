@@ -4,8 +4,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { useIsMobile } from "../hooks/useIsMobile";
+import MobileRoomChat from "../components/MobileRoomChat";
 
-import { optimizeImage } from '../lib/imageUtils';
 // ── Sound notifications ──
 let _audioCtx = null;
 function getAudioCtx() {
@@ -33,6 +34,7 @@ function playSound(type) {
     const ctx = getAudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    
     osc.connect(gain);
     gain.connect(ctx.destination);
 
@@ -107,7 +109,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
     <div style={SC.wrap}>
       <img
         key={current}
-        src={optimizeImage(photos[current], { width: 800, quality: 75 })}
+        src={photos[current]}
         alt={`photo-${current}`}
         style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
       />
@@ -273,7 +275,7 @@ const GP = {
   poweredBy: { textAlign: "center", fontSize: 10, color: "#64748b", padding: "4px 0 8px", fontWeight: 700, letterSpacing: 0.5 },
 };
 
-export default function RoomChat() {
+function RoomChatDesktop() {
   const { chatId } = useParams();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop(900);
@@ -497,7 +499,7 @@ export default function RoomChat() {
         {!isDesktop && (
           <div style={S.photoStrip} ref={photoScrollRef}>
             {allPhotos.length > 0 ? allPhotos.map((url, i) => (
-              <img key={i} src={optimizeImage(url, { width: 120, quality: 70 })} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
+              <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
             )) : (
               <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="#64748b"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
@@ -553,7 +555,7 @@ export default function RoomChat() {
             <div key={msg.id}>
               {showSeparator && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
-                {!isMine && <img src={optimizeImage(otherProfile?.avatar_url ?? "", { width: 60, quality: 70 })} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = "none"; }} />}
+                {!isMine && <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = "none"; }} />}
                 <div className="msg-bubble" style={{ ...S.bubble, ...(isMine ? S.bubbleMine : S.bubbleTheirs), ...(isGif ? { background: 'transparent', boxShadow: 'none', padding: 0, border: 'none' } : {}) }}>
                   {isGif ? (
                     <img src={msg.content} alt="gif" style={{ maxWidth: 200, borderRadius: 12, display: 'block' }} />
@@ -687,3 +689,10 @@ const S = {
   sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
   sendText: { fontSize: 15, fontWeight: 800, color: "#e91e63" },
 };
+
+// --- Mobile responsive wrapper (v5b-2) ---
+export default function RoomChat() {
+  const isMobile = useIsMobile();
+  if (isMobile) return <MobileRoomChat />;
+  return <RoomChatDesktop />;
+}
