@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { useMobilePreview } from "../hooks/useMobilePreview";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
@@ -132,6 +133,7 @@ const menuItemStyle = (variant) => ({
 export default function MobileRoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const [mobilePreview] = useMobilePreview();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -310,7 +312,7 @@ export default function MobileRoomChat() {
 
   if (loading) {
     return (
-      <div style={S.loadingWrap}>
+      <div style={{ ...S.loadingWrap, height: mobilePreview ? "100%" : "100dvh" }}>
         <div style={S.dot} />
         <div style={{ ...S.dot, animationDelay: "0.15s" }} />
         <div style={{ ...S.dot, animationDelay: "0.3s" }} />
@@ -320,7 +322,7 @@ export default function MobileRoomChat() {
   }
 
   return (
-    <div style={S.root}>
+    <div style={{ ...S.root, height: mobilePreview ? "100%" : "100dvh" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }

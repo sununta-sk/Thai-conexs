@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
-import { useMobilePreview } from '../hooks/useMobilePreview';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
@@ -38,7 +37,6 @@ export default function MobileNavbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
-  const [mobilePreview, setMobilePreview] = useMobilePreview();
   const menuRef = useRef(null);
   const unreadCount = useUnreadCount();
 
@@ -218,9 +216,6 @@ export default function MobileNavbar() {
               </MenuItem>
               <MenuItem onClick={() => goTo('/subscription')}>
                 💎 {tx.upgradeAccount || 'Upgrade Account'}
-              </MenuItem>
-              <MenuItem onClick={() => { setMobilePreview(); setShowMenu(false); }}>
-                📱 {tx.mobilePreview || 'Mobile Preview'}{mobilePreview ? ' ✓' : ''}
               </MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
               <MenuItem onClick={handleLogout} color="#e91e63">

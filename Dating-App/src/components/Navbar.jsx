@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
-import { useMobilePreview } from '../hooks/useMobilePreview';
 import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -14,7 +13,6 @@ function NavbarDesktop() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { tx } = useTranslation(['common', 'discover', 'messages']);
-  const [mobilePreview, setMobilePreview] = useMobilePreview();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -207,7 +205,6 @@ function NavbarDesktop() {
               <MenuItem onClick={() => goTo('/account-settings')}>⚙️ {tx.accountSettings || 'Account Settings'}</MenuItem>
               <MenuItem onClick={() => goTo('/help')}>❓ {tx.help || 'Help'}</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 {tx.notifications || 'Notifications'}</MenuItem>
-              <MenuItem onClick={() => { setMobilePreview(); setShowProfileMenu(false); }}>📱 {tx.mobilePreview || 'Mobile Preview'}{mobilePreview ? ' ✓' : ''}</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
               <MenuItem onClick={handleLogout} color="#e91e63">🚪 {tx.logout || 'Logout'}</MenuItem>
             </div>
