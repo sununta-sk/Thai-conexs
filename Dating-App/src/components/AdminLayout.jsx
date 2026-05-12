@@ -58,7 +58,7 @@ export default function AdminLayout({ children }) {
   const { session, adminUser, role, loading, can } = useAdminAuth();
 
   // ── Language state ──
-  const [lang, setLang]           = useState('th')
+  const [lang, setLang]           = useState('en')
   const [showLangMenu, setShowLangMenu] = useState(false)
 
   // โหลดภาษาจาก profiles เมื่อ session พร้อม
