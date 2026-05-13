@@ -214,10 +214,10 @@ export default function Discover() {
         {/* Row 1 */}
         <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
-            <option value="all">Guys & Girls</option>
-            <option value="male">Guys</option>
-            <option value="female">Girls</option>
-            <option value="other">Other</option>
+            <option value="all">{tx.genderAll || "Guys & Girls"}</option>
+            <option value="male">{tx.genderMale || "Guys"}</option>
+            <option value="female">{tx.genderFemale || "Girls"}</option>
+            <option value="other">{tx.genderOther || "Other"}</option>
           </select>
 
           <select value={filters.ageRange} onChange={e => updateFilter('ageRange', e.target.value)} style={S.input}>
@@ -225,18 +225,18 @@ export default function Discover() {
           </select>
 
           <select value={filters.province} onChange={e => updateFilter('province', e.target.value)} style={S.input}>
-            <option value="all">All provinces</option>
+            <option value="all">{tx.allProvinces || "All provinces"}</option>
             {PROVINCES.map(p => (
               <option key={p.id} value={p.id}>{p.name.en}</option>
             ))}
           </select>
 
           <select value={filters.ignoreAgePref ? 'ignore' : 'respect'} onChange={e => updateFilter('ignoreAgePref', e.target.value === 'ignore')} style={S.input}>
-            <option value="respect">Respect their age range</option>
-            <option value="ignore">Ignore their age range</option>
+            <option value="respect">{tx.respectAgePref || "Respect their age range"}</option>
+            <option value="ignore">{tx.ignoreAgePref || "Ignore their age range"}</option>
           </select>
 
-          <button style={S.searchBtn} onClick={() => {}}>Search</button>
+          <button style={S.searchBtn} onClick={() => {}}>{tx.search || "Search"}</button>
         </div>
 
         {/* Row 2 */}
@@ -250,7 +250,7 @@ export default function Discover() {
           </select>
 
           <select value={filters.education} onChange={e => updateFilter('education', e.target.value)} style={S.input}>
-            <option value="all">Any education</option>
+            <option value="all">{tx.anyEducation || "Any education"}</option>
             <option value="High School">High School</option>
             <option value="Bachelor">Bachelor</option>
             <option value="Master">Master</option>
@@ -258,7 +258,7 @@ export default function Discover() {
           </select>
 
           <select value={filters.children} onChange={e => updateFilter('children', e.target.value)} style={S.input}>
-            <option value="all">Any children</option>
+            <option value="all">{tx.anyChildren || "Any children"}</option>
             <option value="No">No children</option>
             <option value="Has children">Has children</option>
             <option value="Want children">Want children</option>
