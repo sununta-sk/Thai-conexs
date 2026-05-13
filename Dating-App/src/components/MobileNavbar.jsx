@@ -32,7 +32,7 @@ function MenuItem({ onClick, color = '#f1f5f9', children }) {
 export default function MobileNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tx } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const { onlineCount } = useOnline();
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -112,7 +112,7 @@ export default function MobileNavbar() {
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
         height: TOP_H, background: '#0f172a',
-        display: 'flex', alignItems: 'center', padding: '0 12px', gap: 8,
+        display: 'flex', alignItems: 'center', padding: '0 6px', gap: 4,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       }}>
@@ -120,7 +120,7 @@ export default function MobileNavbar() {
           src={logoImg} alt="Thai Conexns"
           onClick={() => goTo('/discover')}
           style={{
-            width: 38, height: 38, borderRadius: '50%',
+            width: 32, height: 32, borderRadius: '50%',
             objectFit: 'cover', cursor: 'pointer',
             boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
           }}
@@ -129,12 +129,16 @@ export default function MobileNavbar() {
           display: 'flex', alignItems: 'center', gap: 5,
           background: 'rgba(76,175,80,0.15)',
           border: '1px solid rgba(76,175,80,0.3)',
-          borderRadius: 12, padding: '4px 10px',
+          borderRadius: 12, padding: '3px 7px',
         }}>
           <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4caf50' }} />
           <span style={{ fontSize: 11, fontWeight: 700, color: '#4caf50' }}>
             {onlineCount} {tx.online || 'online'}
           </span>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
+          <button onClick={() => setLang('en')} style={{ padding: '4px 7px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>EN</button>
+          <button onClick={() => setLang('th')} style={{ padding: '4px 7px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>TH</button>
         </div>
       </div>
 
