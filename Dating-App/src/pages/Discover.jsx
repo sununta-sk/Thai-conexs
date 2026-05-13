@@ -207,7 +207,7 @@ export default function Discover() {
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
-    <div style={S.page}>
+    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
       {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} />}
       {/* SEARCH BAR — ThaiFriendly compact 3-row layout */}
       <div style={S.searchBar}>
