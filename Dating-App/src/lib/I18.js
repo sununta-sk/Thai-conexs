@@ -48,8 +48,8 @@ const T = {
   // DISCOVER PAGE
   // ─────────────────────────────────────────────
   discover: {
-    th: { title:'ค้นพบ', noUsers:'ไม่มีผู้ใช้ออนไลน์', onlineUsers:'ผู้ใช้ออนไลน์', sendMessage:'ส่งข้อความ', viewProfile:'ดูโปรไฟล์', filters:'ตัวกรอง', },
-    en: { title:'Discover', noUsers:'No users online', onlineUsers:'Online Users', sendMessage:'Send Message', viewProfile:'View Profile', filters:'Filters', },
+    th: { title:'ค้นพบ', noUsers:'ไม่มีผู้ใช้ออนไลน์', onlineUsers:'ผู้ใช้ออนไลน์', sendMessage:'ส่งข้อความ', viewProfile:'ดูโปรไฟล์', filters:'ตัวกรอง', gender:'เพศ', ageRange:'ช่วงอายุ', province:'จังหวัด', agePref:'ช่วงอายุที่ต้องการ', applyFilters:'ใช้ตัวกรอง', genderAll:'ชาย & หญิง', genderMale:'ชาย', genderFemale:'หญิง', genderOther:'อื่นๆ', allAges:'ทุกช่วงอายุ', allProvinces:'ทุกจังหวัด', respectAgePref:'เคารพช่วงอายุที่ต้องการ', ignoreAgePref:'ไม่สนใจช่วงอายุ', },
+    en: { title:'Discover', noUsers:'No users online', onlineUsers:'Online Users', sendMessage:'Send Message', viewProfile:'View Profile', filters:'Filters', gender:'Gender', ageRange:'Age Range', province:'Province', agePref:'Age Preference', applyFilters:'Apply Filters', genderAll:'Guys & Girls', genderMale:'Guys', genderFemale:'Girls', genderOther:'Other', allAges:'All ages', allProvinces:'All provinces', respectAgePref:'Respect their age range', ignoreAgePref:'Ignore their age range', },
     zh: { title:'发现', noUsers:'没有在线用户', onlineUsers:'在线用户', sendMessage:'发送消息', viewProfile:'查看资料', filters:'筛选', },
     ja: { title:'発見', noUsers:'オンラインユーザーなし', onlineUsers:'オンラインユーザー', sendMessage:'メッセージ送信', viewProfile:'プロフィール表示', filters:'フィルター', },
     ko: { title:'발견', noUsers:'온라인 사용자 없음', onlineUsers:'온라인 사용자', sendMessage:'메시지 보내기', viewProfile:'프로필 보기', filters:'필터', },
@@ -114,8 +114,8 @@ const T = {
   // AUTH — Login / Register
   // ─────────────────────────────────────────────
   auth: {
-    th: { login:'เข้าสู่ระบบ', register:'สมัครสมาชิก', email:'อีเมล', password:'รหัสผ่าน', forgotPassword:'ลืมรหัสผ่าน?', noAccount:'ยังไม่มีบัญชี?', hasAccount:'มีบัญชีแล้ว?', continueGoogle:'ดำเนินการด้วย Google', },
-    en: { login:'Log In', register:'Sign Up', email:'Email', password:'Password', forgotPassword:'Forgot password?', noAccount:"Don't have an account?", hasAccount:'Already have an account?', continueGoogle:'Continue with Google', },
+    th: { login:'เข้าสู่ระบบ', register:'สมัครสมาชิก', email:'อีเมล', password:'รหัสผ่าน', forgotPassword:'ลืมรหัสผ่าน?', noAccount:'ยังไม่มีบัญชี?', hasAccount:'มีบัญชีแล้ว?', continueGoogle:'ดำเนินการด้วย Google', signUpFree:'สมัครฟรี', noCredit:'ไม่ต้องใช้บัตรเครดิต • สมัครฟรี', confirmPassword:'ยืนยันรหัสผ่าน', passwordMin:'รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)', passwordsMustMatch:'รหัสผ่านไม่ตรงกัน', passwordTooShort:'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', },
+    en: { login:'Log In', register:'Sign Up', email:'Email', password:'Password', forgotPassword:'Forgot password?', noAccount:"Don't have an account?", hasAccount:'Already have an account?', continueGoogle:'Continue with Google', signUpFree:'Sign Up Free', noCredit:'No credit card required • Free to join', confirmPassword:'Confirm Password', passwordMin:'Password (min 6 chars)', passwordsMustMatch:'Passwords do not match', passwordTooShort:'Password must be at least 6 characters', },
     zh: { login:'登录', register:'注册', email:'电子邮件', password:'密码', forgotPassword:'忘记密码？', noAccount:'没有账户？', hasAccount:'已有账户？', continueGoogle:'使用Google继续', },
     ja: { login:'ログイン', register:'登録', email:'メールアドレス', password:'パスワード', forgotPassword:'パスワードを忘れた？', noAccount:'アカウントをお持ちでない方は？', hasAccount:'すでにアカウントをお持ちの方は？', continueGoogle:'Googleで続ける', },
     ko: { login:'로그인', register:'회원가입', email:'이메일', password:'비밀번호', forgotPassword:'비밀번호를 잊으셨나요?', noAccount:'계정이 없으신가요?', hasAccount:'이미 계정이 있으신가요?', continueGoogle:'Google로 계속', },

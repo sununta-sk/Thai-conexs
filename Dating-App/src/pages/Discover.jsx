@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOnline } from '../context/OnlineContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileDiscoverFilters from '../components/MobileDiscoverFilters';
+import { useTranslation } from '../hooks/useTranslation';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -106,6 +107,7 @@ function inRange(value, range) {
 }
 
 export default function Discover() {
+  const { tx } = useTranslation(['common', 'discover', 'messages']);
   const [profiles, setProfiles] = useState([]);
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
