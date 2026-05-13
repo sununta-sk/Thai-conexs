@@ -32,7 +32,7 @@ function MenuItem({ onClick, color = '#f1f5f9', children }) {
 export default function MobileNavbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tx } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const { onlineCount } = useOnline();
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -135,6 +135,10 @@ export default function MobileNavbar() {
           <span style={{ fontSize: 11, fontWeight: 700, color: '#4caf50' }}>
             {onlineCount} {tx.online || 'online'}
           </span>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
+          <button onClick={() => setLang('en')} style={{ padding: '5px 9px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>EN</button>
+          <button onClick={() => setLang('th')} style={{ padding: '5px 9px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>TH</button>
         </div>
       </div>
 

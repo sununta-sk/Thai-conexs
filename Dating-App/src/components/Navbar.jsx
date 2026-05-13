@@ -12,7 +12,7 @@ import { useUnreadCount } from '../hooks/useUnreadCount';
 function NavbarDesktop() {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { tx } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -141,6 +141,10 @@ function NavbarDesktop() {
         )}
         {/* Avatar dropdown */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
+          <div style={{ display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden', marginRight: 4 }}>
+            <button onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+            <button onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+          </div>
           {!isPremium && (
             <button
               onClick={() => goTo('/subscription')}
