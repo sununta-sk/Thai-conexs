@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { useMobilePreview } from "../hooks/useMobilePreview";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
@@ -133,7 +132,6 @@ const menuItemStyle = (variant) => ({
 export default function MobileRoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  const [mobilePreview] = useMobilePreview();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -312,7 +310,7 @@ export default function MobileRoomChat() {
 
   if (loading) {
     return (
-      <div style={{ ...S.loadingWrap, height: mobilePreview ? "100%" : "100dvh" }}>
+      <div style={S.loadingWrap}>
         <div style={S.dot} />
         <div style={{ ...S.dot, animationDelay: "0.15s" }} />
         <div style={{ ...S.dot, animationDelay: "0.3s" }} />
@@ -322,7 +320,7 @@ export default function MobileRoomChat() {
   }
 
   return (
-    <div style={{ ...S.root, height: mobilePreview ? "100%" : "100dvh" }}>
+    <div style={S.root}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
@@ -516,8 +514,8 @@ export default function MobileRoomChat() {
 
 // ── Styles ──
 const S = {
-  root: { display: "flex", flexDirection: "column", height: "100%", minHeight: 0, background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
-  loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100%", background: "#0f172a", gap: 8 },
+  root: { display: "flex", flexDirection: "column", height: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", background: "#0f172a", gap: 8 },
   dot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
 
   // Header — sticky top, 64px, #0f172a bg, border-bottom
@@ -534,7 +532,7 @@ const S = {
   menuDropdown: { position: "absolute", right: 0, top: "110%", background: "#1e293b", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", zIndex: 100, minWidth: 160, overflow: "hidden", border: "1px solid #334155" },
 
   // Messages
-  messageArea: { flex: 1, minHeight: 0, overflowY: "auto", padding: "12px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
+  messageArea: { flex: 1, overflowY: "auto", padding: "12px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
   emptyState: { textAlign: "center", color: "#64748b", fontSize: 14, marginTop: 40, fontWeight: 600 },
   separator: { textAlign: "center", color: "#64748b", fontSize: 11, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },
   msgRow: { display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 2 },
