@@ -59,7 +59,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }
         background: '#1e293b',
         borderBottom: '1px solid #334155',
         padding: 12,
-        position: 'sticky',
+        position: 'relative',
         top: 56,
         zIndex: 50,
       }}>
