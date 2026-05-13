@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from '../hooks/useTranslation';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
@@ -165,6 +166,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const navigate  = useNavigate();
   const isMobile  = useIsMobile();
+  const { tx, lang } = useTranslation(['auth']);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -176,7 +178,7 @@ export default function Login() {
   // Google login — hidden for now, re-enable later
   // const handleGoogleLogin = async () => { ... };
 
-  const c = CONTENT.en;
+  const c = CONTENT[lang] || CONTENT.en;
 
   // ── MOBILE LAYOUT ────────────────────────────────────────
   if (isMobile) {
@@ -187,16 +189,16 @@ export default function Login() {
         <div style={M.section}>
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
           <form onSubmit={handleLogin} style={M.form}>
-            <input type="email" placeholder="Email" value={email}
+            <input type="email" placeholder={tx.email || 'Email'} value={email}
               onChange={e => setEmail(e.target.value)} style={M.input} required />
-            <input type="password" placeholder="Password" value={password}
+            <input type="password" placeholder={tx.password || 'Password'} value={password}
               onChange={e => setPassword(e.target.value)} style={M.input} required />
-            <button type="submit" style={M.btnPink}>Log In</button>
-            <Link to="/forgot-password" style={M.forgotLink}>Forgot password?</Link>
+            <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
+            <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
           </form>
           <div style={M.signupRow}>
-            <p style={M.signupText}>Don't have an account?</p>
-            <Link to="/register" style={M.signupBtn}>Sign Up Free</Link>
+            <p style={M.signupText}>{tx.noAccount || "Don't have an account?"}</p>
+            <Link to="/register" style={M.signupBtn}>{tx.signUpFree || 'Sign Up Free'}</Link>
           </div>
         </div>
 
@@ -208,7 +210,7 @@ export default function Login() {
               <span style={M.joinBtnMain}>{c.cta}</span>
               <span style={M.joinBtnPrize}>🎁 {c.ctaPrize}</span>
             </Link>
-            <p style={M.joinSubtext}>No credit card required • Free to join</p>
+            <p style={M.joinSubtext}>{tx.noCredit || 'No credit card required • Free to join'}</p>
           </div>
         </div>
 
@@ -239,7 +241,6 @@ export default function Login() {
   // ── DESKTOP LAYOUT (เหมือนเดิมทุกอย่าง) ─────────────────
   return (
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
-      <div style={{ background: 'linear-gradient(135deg, #e91e63, #c2185b)', padding: '10px 16px', textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#fff', lineHeight: 1.5 }}>🎉 Free for the first 500 Thai women to join! Upload 4+ photos to enter our 5,000 THB prize draw in June. First 500 get lifetime free access + Founders Badge!</div>
 
       {/* Hero */}
       <div style={S.page}>
@@ -248,12 +249,12 @@ export default function Login() {
           <div style={S.formInner}>
             <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
             <form onSubmit={handleLogin} style={S.form}>
-              <input type="email" placeholder="Email" value={email}
+              <input type="email" placeholder={tx.email || 'Email'} value={email}
                 onChange={e => setEmail(e.target.value)} style={S.input} required />
-              <input type="password" placeholder="Password" value={password}
+              <input type="password" placeholder={tx.password || 'Password'} value={password}
                 onChange={e => setPassword(e.target.value)} style={S.input} required />
-              <button type="submit" style={S.btnPink}>Log In</button>
-              <Link to="/forgot-password" style={S.forgotLink}>Forgot password?</Link>
+              <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
+              <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
 
               {/* Google login — hidden until fixed */}
               {/* <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
@@ -263,8 +264,8 @@ export default function Login() {
               </button> */}
             </form>
             <div style={S.signupRow}>
-              <p style={S.signupText}>Don't have an account?</p>
-              <Link to="/register" style={S.signupBtn}>Sign Up</Link>
+              <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
+              <Link to="/register" style={S.signupBtn}>{tx.register || 'Sign Up'}</Link>
             </div>
           </div>
         </div>
@@ -277,7 +278,7 @@ export default function Login() {
               <span style={S.joinBtnMain}>{c.cta}</span>
               <span style={S.joinBtnPrize}>🎁 {c.ctaPrize}</span>
             </Link>
-            <p style={S.joinSubtext}>No credit card required • Free to join</p>
+            <p style={S.joinSubtext}>{tx.noCredit || 'No credit card required • Free to join'}</p>
           </div>
         </div>
       </div>

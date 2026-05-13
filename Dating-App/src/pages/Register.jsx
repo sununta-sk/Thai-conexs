@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from '../hooks/useTranslation';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
@@ -156,10 +157,12 @@ export default function Register() {
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
 
+  const { tx, lang } = useTranslation(['auth']);
+
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (password !== confirm) { alert('Passwords do not match'); return; }
-    if (password.length < 6) { alert('Password must be at least 6 characters'); return; }
+    if (password !== confirm) { alert(tx.passwordsMustMatch || 'Passwords do not match'); return; }
+    if (password.length < 6) { alert(tx.passwordTooShort || 'Password must be at least 6 characters'); return; }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -173,7 +176,7 @@ export default function Register() {
     navigate('/profile-setup');
   };
 
-  const c = CONTENT.en;
+  const c = CONTENT[lang] || CONTENT.en;
 
   return (
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
@@ -185,19 +188,19 @@ export default function Register() {
           <div style={S.formInner}>
             <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
             <form onSubmit={handleRegister} style={S.form}>
-              <input type="email" placeholder="Email" value={email}
+              <input type="email" placeholder={tx.email || 'Email'} value={email}
                 onChange={e => setEmail(e.target.value)} style={S.input} required />
-              <input type="password" placeholder="Password (min 6 chars)" value={password}
+              <input type="password" placeholder={tx.passwordMin || 'Password (min 6 chars)'} value={password}
                 onChange={e => setPassword(e.target.value)} style={S.input} required minLength={6} />
-              <input type="password" placeholder="Confirm Password" value={confirm}
+              <input type="password" placeholder={tx.confirmPassword || 'Confirm Password'} value={confirm}
                 onChange={e => setConfirm(e.target.value)} style={S.input} required />
               <button type="submit" disabled={loading} style={{ ...S.btnPink, opacity: loading ? 0.7 : 1 }}>
-                {loading ? 'Creating account…' : 'Sign Up'}
+                {loading ? '...' : (tx.register || 'Sign Up')}
               </button>
             </form>
             <div style={S.loginRow}>
-              <p style={S.loginText}>Already have an account?</p>
-              <Link to="/login" style={S.loginBtn}>Log In</Link>
+              <p style={S.loginText}>{tx.hasAccount || 'Already have an account?'}</p>
+              <Link to="/login" style={S.loginBtn}>{tx.login || 'Log In'}</Link>
             </div>
           </div>
         </div>
@@ -213,7 +216,7 @@ export default function Register() {
               <span style={S.joinBtnPrize}>🎁 {c.ctaPrize}</span>
             </Link>
             <p style={S.joinSubtext}>
-              No credit card required • Free to join
+              {tx.noCredit || 'No credit card required • Free to join'}
             </p>
           </div>
         </div>

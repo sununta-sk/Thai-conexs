@@ -28,7 +28,7 @@ const sel = {
   cursor: 'pointer',
 };
 
-export default function MobileDiscoverFilters({ filters, updateFilter }) {
+export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }) {
   const [open, setOpen] = useState(false);
 
   // Inject CSS once: hide existing search bar (next sibling) when mobile
@@ -81,7 +81,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter }) {
           boxShadow: '0 2px 8px rgba(233,30,99,0.3)',
         }}>
         <span>
-          🔍 Filters
+          🔍 {tx.filters || 'Filters'}
           {activeCount > 0 && (
             <span style={{
               marginLeft: 8,
@@ -109,52 +109,53 @@ export default function MobileDiscoverFilters({ filters, updateFilter }) {
           border: '1px solid #334155',
         }}>
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4 }}>
-            Gender
+            {tx.gender || 'Gender'}
           </label>
           <select
             value={filters?.gender || 'all'}
             onChange={e => updateFilter('gender', e.target.value)}
             style={sel}>
-            <option value="all">Guys & Girls</option>
-            <option value="male">Guys</option>
-            <option value="female">Girls</option>
-            <option value="other">Other</option>
+            <option value="all">{tx.genderAll || 'Guys & Girls'}</option>
+            <option value="male">{tx.genderMale || 'Guys'}</option>
+            <option value="female">{tx.genderFemale || 'Girls'}</option>
+            <option value="other">{tx.genderOther || 'Other'}</option>
           </select>
 
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
-            Age Range
+            {tx.ageRange || 'Age Range'}
           </label>
           <select
             value={filters?.ageRange || 'all'}
             onChange={e => updateFilter('ageRange', e.target.value)}
             style={sel}>
-            {AGE_RANGES.map(r => (
+            <option value="all">{tx.allAges || 'All ages'}</option>
+            {AGE_RANGES.slice(1).map(r => (
               <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
 
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
-            Province
+            {tx.province || 'Province'}
           </label>
           <select
             value={filters?.province || 'all'}
             onChange={e => updateFilter('province', e.target.value)}
             style={sel}>
-            <option value="all">All provinces</option>
+            <option value="all">{tx.allProvinces || 'All provinces'}</option>
             {PROVINCES.map(p => (
               <option key={p.id} value={p.id}>{p.name?.en || p.id}</option>
             ))}
           </select>
 
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
-            Age Preference
+            {tx.agePref || 'Age Preference'}
           </label>
           <select
             value={filters?.ignoreAgePref ? 'ignore' : 'respect'}
             onChange={e => updateFilter('ignoreAgePref', e.target.value === 'ignore')}
             style={sel}>
-            <option value="respect">Respect their age range</option>
-            <option value="ignore">Ignore their age range</option>
+            <option value="respect">{tx.respectAgePref || 'Respect their age range'}</option>
+            <option value="ignore">{tx.ignoreAgePref || 'Ignore their age range'}</option>
           </select>
 
           <button
@@ -171,7 +172,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter }) {
               cursor: 'pointer',
               boxShadow: '0 2px 8px rgba(233,30,99,0.3)',
             }}>
-            Apply Filters
+            {tx.applyFilters || 'Apply Filters'}
           </button>
         </div>
       )}

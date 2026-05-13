@@ -188,7 +188,7 @@ export default function Discover() {
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
   const handleCardClick = (targetUserId) => {
-    if (window.innerWidth >= 900) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
+    if (!isMobile) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
     else navigate('/profile/' + targetUserId);
   };
   const getMainPhoto = (profile) => {
@@ -206,7 +206,7 @@ export default function Discover() {
 
   return (
     <div style={S.page}>
-      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} />}
+      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} />}
       {/* SEARCH BAR — ThaiFriendly compact 3-row layout */}
       <div style={S.searchBar}>
         {/* Row 1 */}
