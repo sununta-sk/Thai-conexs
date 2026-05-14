@@ -1,17 +1,13 @@
 // src/components/MobileDiscoverFilters.jsx
-// Mobile filter dropdown for Discover page.
-// Receives `filters` and `updateFilter` from parent Discover.
-// On mount: injects CSS that hides the next sibling (existing search bar)
-// when html.mobile-active is set.
-import { useState, useEffect } from 'react';
+// Mobile filter dropdown for Discover page (desktop search bar is not rendered on mobile).
+import { useState } from 'react';
 import { PROVINCES } from '../data/thaiLocations';
 
 const AGE_RANGES = [
-  { value: 'all', label: 'All ages' },
-  { value: '18-25', label: '18-25' },
-  { value: '26-35', label: '26-35' },
-  { value: '36-45', label: '36-45' },
-  { value: '46-55', label: '46-55' },
+  { value: '18-24', label: '18-24' },
+  { value: '25-34', label: '25-34' },
+  { value: '35-44', label: '35-44' },
+  { value: '45-54', label: '45-54' },
   { value: '55+', label: '55+' },
 ];
 
@@ -28,29 +24,16 @@ const sel = {
   cursor: 'pointer',
 };
 
-export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }) {
+export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, lang = 'en' }) {
   const [open, setOpen] = useState(false);
 
-  // Inject CSS once: hide existing search bar (next sibling) when mobile
-  useEffect(() => {
-    const ID = 'mobile-discover-filters-css';
-    if (document.getElementById(ID)) return;
-    const style = document.createElement('style');
-    style.id = ID;
-    style.textContent = `
-      .mobile-active .mobile-discover-filters + div {
-        display: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }, []);
-
-  // Count active filters for badge
   const activeCount =
     (filters?.gender && filters.gender !== 'all' ? 1 : 0) +
     (filters?.ageRange && filters.ageRange !== 'all' ? 1 : 0) +
     (filters?.province && filters.province !== 'all' ? 1 : 0) +
     (filters?.ignoreAgePref ? 1 : 0);
+
+  const provinceLabel = (p) => (p?.name && (p.name[lang] || p.name.en)) || p?.id || '';
 
   return (
     <div
@@ -59,11 +42,12 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }
         background: '#1e293b',
         borderBottom: '1px solid #334155',
         padding: 12,
-        position: 'relative',
-        top: 56,
+        position: 'sticky',
+        top: 0,
         zIndex: 50,
       }}>
       <button
+        type="button"
         onClick={() => setOpen(v => !v)}
         style={{
           width: '100%',
@@ -129,7 +113,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }
             onChange={e => updateFilter('ageRange', e.target.value)}
             style={sel}>
             <option value="all">{tx.allAges || 'All ages'}</option>
-            {AGE_RANGES.slice(1).map(r => (
+            {AGE_RANGES.map(r => (
               <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
@@ -143,7 +127,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }
             style={sel}>
             <option value="all">{tx.allProvinces || 'All provinces'}</option>
             {PROVINCES.map(p => (
-              <option key={p.id} value={p.id}>{p.name?.en || p.id}</option>
+              <option key={p.id} value={p.id}>{provinceLabel(p)}</option>
             ))}
           </select>
 
@@ -159,6 +143,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {} }
           </select>
 
           <button
+            type="button"
             onClick={() => setOpen(false)}
             style={{
               marginTop: 8,
