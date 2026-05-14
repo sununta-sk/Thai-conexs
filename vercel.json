@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd Dating-App && npm install && npm run build",
-  "outputDirectory": "Dating-App/dist",
-  "installCommand": "echo 'skip root install'",
-  "framework": null
-}
