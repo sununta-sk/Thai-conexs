@@ -142,6 +142,10 @@ function NavbarDesktop() {
         )}
         {/* Avatar dropdown */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
+          <div style={{ display: 'flex', gap: 0, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
+            <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+            <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+          </div>
           {!isPremium && (
             <button
               onClick={() => goTo('/subscription')}
@@ -213,12 +217,8 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Right: Language + notifications */}
+      {/* Right: Notification bell */}
       <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ display: 'flex', gap: 0, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
-          <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
-          <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
-        </div>
         <NotificationBell />
       </div>
 
