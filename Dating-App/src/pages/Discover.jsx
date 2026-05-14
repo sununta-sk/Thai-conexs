@@ -43,13 +43,13 @@ function BanScreen({ bannedUntil, banReason }) {
   );
 }
 
-function timeAgo(dateStr) {
+function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
-  if (diff < 60) return 'Right Now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-  return Math.floor(diff / 86400) + 'd ago';
+  if (diff < 60) return tx.rightNow || 'Right now';
+  if (diff < 3600) return (tx.agoMinutes || '{n}m ago').replace('{n}', String(Math.floor(diff / 60)));
+  if (diff < 86400) return (tx.agoHours || '{n}h ago').replace('{n}', String(Math.floor(diff / 3600)));
+  return (tx.agoDays || '{n}d ago').replace('{n}', String(Math.floor(diff / 86400)));
 }
 
 const DEFAULT_FILTERS = {
@@ -66,32 +66,9 @@ const DEFAULT_FILTERS = {
   orderBy: 'last_seen',
 };
 
-const AGE_RANGES = [
-  { value: 'all', label: 'All ages' },
-  { value: '18-24', label: '18-24' },
-  { value: '25-34', label: '25-34' },
-  { value: '35-44', label: '35-44' },
-  { value: '45-54', label: '45-54' },
-  { value: '55+', label: '55+' },
-];
-
-const HEIGHT_RANGES = [
-  { value: 'all', label: 'Any height' },
-  { value: '<150', label: 'Under 150 cm' },
-  { value: '150-160', label: '150-160 cm' },
-  { value: '161-170', label: '161-170 cm' },
-  { value: '171-180', label: '171-180 cm' },
-  { value: '181+', label: 'Over 180 cm' },
-];
-
-const WEIGHT_RANGES = [
-  { value: 'all', label: 'Any weight' },
-  { value: '<50', label: 'Under 50 kg' },
-  { value: '50-60', label: '50-60 kg' },
-  { value: '61-70', label: '61-70 kg' },
-  { value: '71-80', label: '71-80 kg' },
-  { value: '81+', label: 'Over 80 kg' },
-];
+const AGE_VALUES = ['all', '18-24', '25-34', '35-44', '45-54', '55+'];
+const HEIGHT_VALUES = ['all', '<150', '150-160', '161-170', '171-180', '181+'];
+const WEIGHT_VALUES = ['all', '<50', '50-60', '61-70', '71-80', '81+'];
 
 function inRange(value, range) {
   if (range === 'all' || !value) return true;
@@ -107,7 +84,8 @@ function inRange(value, range) {
 }
 
 export default function Discover() {
-  const { tx } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
+  const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState([]);
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -200,7 +178,36 @@ export default function Discover() {
     return raw.url;
   };
 
-  const isMobile = useIsMobile();
+  const ageRanges = useMemo(() => {
+    const labels = { all: tx.allAges || 'All ages' };
+    return AGE_VALUES.map((v) => ({ value: v, label: labels[v] || v }));
+  }, [tx]);
+
+  const heightRanges = useMemo(() => {
+    const m = {
+      all: tx.anyHeight || 'Any height',
+      '<150': tx.heightUnder150,
+      '150-160': tx.height150_160,
+      '161-170': tx.height161_170,
+      '171-180': tx.height171_180,
+      '181+': tx.height181Plus,
+    };
+    return HEIGHT_VALUES.map((v) => ({ value: v, label: m[v] || v }));
+  }, [tx]);
+
+  const weightRanges = useMemo(() => {
+    const m = {
+      all: tx.anyWeight || 'Any weight',
+      '<50': tx.weightUnder50,
+      '50-60': tx.weight50_60,
+      '61-70': tx.weight61_70,
+      '71-80': tx.weight71_80,
+      '81+': tx.weight81Plus,
+    };
+    return WEIGHT_VALUES.map((v) => ({ value: v, label: m[v] || v }));
+  }, [tx]);
+
+  const provinceLabel = (p) => (p?.name && (p.name[lang] || p.name.en)) || p?.id || '';
 
   const updateFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
 
@@ -208,8 +215,8 @@ export default function Discover() {
 
   return (
     <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
-      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} />}
-      {/* SEARCH BAR — ThaiFriendly compact 3-row layout */}
+      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} lang={lang} />}
+      {!isMobile && (
       <div style={S.searchBar}>
         {/* Row 1 */}
         <div style={S.row}>
@@ -221,13 +228,13 @@ export default function Discover() {
           </select>
 
           <select value={filters.ageRange} onChange={e => updateFilter('ageRange', e.target.value)} style={S.input}>
-            {AGE_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            {ageRanges.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
 
           <select value={filters.province} onChange={e => updateFilter('province', e.target.value)} style={S.input}>
             <option value="all">{tx.allProvinces || "All provinces"}</option>
             {PROVINCES.map(p => (
-              <option key={p.id} value={p.id}>{p.name.en}</option>
+              <option key={p.id} value={p.id}>{provinceLabel(p)}</option>
             ))}
           </select>
 
@@ -236,43 +243,43 @@ export default function Discover() {
             <option value="ignore">{tx.ignoreAgePref || "Ignore their age range"}</option>
           </select>
 
-          <button style={S.searchBtn} onClick={() => {}}>{tx.search || "Search"}</button>
+          <button type="button" style={S.searchBtn} onClick={() => {}}>{tx.search || "Search"}</button>
         </div>
 
         {/* Row 2 */}
         <div style={S.row}>
           <select value={filters.height} onChange={e => updateFilter('height', e.target.value)} style={S.input}>
-            {HEIGHT_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            {heightRanges.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
 
           <select value={filters.weight} onChange={e => updateFilter('weight', e.target.value)} style={S.input}>
-            {WEIGHT_RANGES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            {weightRanges.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
 
           <select value={filters.education} onChange={e => updateFilter('education', e.target.value)} style={S.input}>
             <option value="all">{tx.anyEducation || "Any education"}</option>
-            <option value="High School">High School</option>
-            <option value="Bachelor">Bachelor</option>
-            <option value="Master">Master</option>
-            <option value="PhD">PhD</option>
+            <option value="High School">{tx.eduHighSchool || "High School"}</option>
+            <option value="Bachelor">{tx.eduBachelor || "Bachelor"}</option>
+            <option value="Master">{tx.eduMaster || "Master"}</option>
+            <option value="PhD">{tx.eduPhD || "PhD"}</option>
           </select>
 
           <select value={filters.children} onChange={e => updateFilter('children', e.target.value)} style={S.input}>
             <option value="all">{tx.anyChildren || "Any children"}</option>
-            <option value="No">No children</option>
-            <option value="Has children">Has children</option>
-            <option value="Want children">Want children</option>
-            <option value="Don't want">Don't want children</option>
+            <option value="No">{tx.childNo || "No children"}</option>
+            <option value="Has children">{tx.childHas || "Has children"}</option>
+            <option value="Want children">{tx.childWant || "Want children"}</option>
+            <option value="Don't want">{tx.childDontWant || "Don't want children"}</option>
           </select>
 
           <div style={S.checks}>
             <label style={S.checkLabel}>
               <input type="checkbox" checked={filters.onlineOnly} onChange={e => updateFilter('onlineOnly', e.target.checked)} style={S.checkbox} />
-              Online
+              {tx.onlineOnly || 'Online'}
             </label>
             <label style={S.checkLabel}>
               <input type="checkbox" checked={filters.hasPhoto} onChange={e => updateFilter('hasPhoto', e.target.checked)} style={S.checkbox} />
-              Photo
+              {tx.hasPhotoOnly || 'Photo'}
             </label>
           </div>
         </div>
@@ -283,20 +290,23 @@ export default function Discover() {
           <div />
           <div />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>
-            <option value="last_seen">Order by Last Active</option>
-            <option value="newest">Order by Newest</option>
+            <option value="last_seen">{tx.orderLastActive || "Order by Last Active"}</option>
+            <option value="newest">{tx.orderNewest || "Order by Newest"}</option>
           </select>
           <div style={S.resultCount}>
-            <strong style={{ color: '#e91e63' }}>{filteredProfiles.length}</strong> of {profiles.length} members
+            {(tx.memberCount || '{shown} of {total} members')
+              .replace('{shown}', String(filteredProfiles.length))
+              .replace('{total}', String(profiles.length))}
           </div>
         </div>
       </div>
+      )}
 
       {/* GRID */}
       {loading ? (
-        <div style={S.emptyState}>Loading...</div>
+        <div style={S.emptyState}>{tx.loadingMembers || tx.loading || 'Loading...'}</div>
       ) : filteredProfiles.length === 0 ? (
-        <div style={S.emptyState}>{profiles.length === 0 ? 'No members found' : 'No matches. Try adjusting your filters.'}</div>
+        <div style={S.emptyState}>{profiles.length === 0 ? (tx.noMembersFound || 'No members found') : (tx.noMatchesAdjust || 'No matches. Try adjusting your filters.')}</div>
       ) : (
         <div style={S.grid}>
           {filteredProfiles.map((profile) => {
@@ -305,7 +315,7 @@ export default function Discover() {
             const age = profile.details?.age ?? '';
             const gender = profile.details?.gender ?? '';
             const city = profile.city || profile.details?.city || '';
-            const lastSeen = isOnline ? 'Right Now' : timeAgo(profile.last_seen_at);
+            const lastSeen = isOnline ? (tx.rightNow || 'Right now') : formatLastSeen(profile.last_seen_at, tx);
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
@@ -320,8 +330,8 @@ export default function Discover() {
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#64748b' }}>{lastSeen}</div>
                 </div>
                 <div style={S.actions}>
-                  <button style={S.btnX} onClick={e => e.stopPropagation()}>X</button>
-                  <button style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>Chat</button>
+                  <button type="button" style={S.btnX} onClick={e => e.stopPropagation()}>{tx.hideBtn || 'X'}</button>
+                  <button type="button" style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>{tx.chatBtn || 'Chat'}</button>
                 </div>
               </div>
             );

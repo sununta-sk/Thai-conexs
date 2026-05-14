@@ -8,11 +8,12 @@ import logoImg from '../lib/LotusConnexs.jpeg';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
+import NotificationBell from './NotificationBell';
 
 function NavbarDesktop() {
   const navigate  = useNavigate();
   const location  = useLocation();
-  const { tx } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -102,7 +103,7 @@ function NavbarDesktop() {
           background: 'rgba(76, 175, 80, 0.15)', border: '1px solid rgba(76, 175, 80, 0.3)', borderRadius: 14, padding: '6px 12px',
         }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4caf50' }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#4caf50' }}>{onlineCount} online</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#4caf50' }}>{onlineCount} {tx.online || 'online'}</span>
         </div>
       </div>
 
@@ -212,8 +213,13 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Right: NotificationBell */}
-      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center' }}>
+      {/* Right: Language + notifications */}
+      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 0, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
+          <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+          <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+        </div>
+        <NotificationBell />
       </div>
 
     </div>

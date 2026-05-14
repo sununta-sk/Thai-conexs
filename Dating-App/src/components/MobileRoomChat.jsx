@@ -514,8 +514,8 @@ export default function MobileRoomChat() {
 
 // ── Styles ──
 const S = {
-  root: { display: "flex", flexDirection: "column", height: "calc(100dvh - 56px - 64px)", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
-  loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "calc(100dvh - 56px - 64px)", background: "#0f172a", gap: 8 },
+  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", minHeight: "100dvh", background: "#0f172a", gap: 8 },
   dot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
 
   // Header — sticky top, 64px, #0f172a bg, border-bottom
