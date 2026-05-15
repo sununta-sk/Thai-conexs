@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Messages() {
@@ -8,6 +9,7 @@ export default function Messages() {
   const [activeTab, setActiveTab] = useState("Inbox");
   const [myId, setMyId] = useState(null);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchChats = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -48,7 +50,7 @@ export default function Messages() {
   );
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: 90 }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: isMobile ? 0 : 90 }}>
       {/* Tabs */}
       <div style={{ display: 'flex', background: '#1e293b', borderBottom: '1px solid #334155', textAlign: 'center' }}>
         {['Inbox', 'Outbox'].map(t => (
