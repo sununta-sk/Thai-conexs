@@ -205,16 +205,29 @@ export default function UserDetailPage() {
               <Row label="Language"  value={profile.preferred_lang} />
               <Row label="Verified"  value={profile.is_verified ? 'Yes ✅' : 'No ❌'} />
               <Row label="Status"    value={accountStatus.toUpperCase()} />
-              {profile.photos?.length > 0 && (
-                <div style={{ marginTop: 16, paddingBottom: 12 }}>
-                  <div style={S.rowLabel}>Photos</div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                    {profile.photos.map((p, i) => (
-                      <img key={i} src={typeof p === 'string' ? p : p?.url} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #334155' }} alt="" />
-                    ))}
+              {(() => {
+                const validPhotos = (profile.photos || []).map(p => typeof p === 'string' ? p : p?.url).filter(Boolean);
+                if (validPhotos.length === 0) {
+                  return (
+                    <div style={{ marginTop: 16, paddingBottom: 12 }}>
+                      <div style={S.rowLabel}>Photos</div>
+                      <div style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>No photos uploaded</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ marginTop: 16, paddingBottom: 12 }}>
+                    <div style={S.rowLabel}>Photos ({validPhotos.length})</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                      {validPhotos.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #334155', cursor: 'pointer' }} alt="" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 
