@@ -36,20 +36,6 @@ const NAV_GROUPS = [
 const LANGUAGES = [
   { code: 'th', flag: '🇹🇭', label: 'ภาษาไทย' },
   { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'zh', flag: '🇨🇳', label: '中文' },
-  { code: 'ja', flag: '🇯🇵', label: '日本語' },
-  { code: 'ko', flag: '🇰🇷', label: '한국어' },
-  { code: 'fr', flag: '🇫🇷', label: 'Français' },
-  { code: 'de', flag: '🇩🇪', label: 'Deutsch' },
-  { code: 'es', flag: '🇪🇸', label: 'Español' },
-  { code: 'it', flag: '🇮🇹', label: 'Italiano' },
-  { code: 'pt', flag: '🇧🇷', label: 'Português' },
-  { code: 'ru', flag: '🇷🇺', label: 'Русский' },
-  { code: 'ar', flag: '🇸🇦', label: 'العربية' },
-  { code: 'hi', flag: '🇮🇳', label: 'हिन्दी' },
-  { code: 'vi', flag: '🇻🇳', label: 'Tiếng Việt' },
-  { code: 'id', flag: '🇮🇩', label: 'Bahasa Indonesia' },
-  { code: 'ms', flag: '🇲🇾', label: 'Bahasa Melayu' },
 ]
 
 export default function AdminLayout({ children }) {
