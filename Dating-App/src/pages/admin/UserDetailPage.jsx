@@ -206,7 +206,19 @@ export default function UserDetailPage() {
               <Row label="Verified"  value={profile.is_verified ? 'Yes ✅' : 'No ❌'} />
               <Row label="Status"    value={accountStatus.toUpperCase()} />
               {(() => {
-                const validPhotos = (profile.photos || []).map(p => typeof p === 'string' ? p : p?.url).filter(Boolean);
+                function extractPhotoUrl(p) {
+    if (!p) return null;
+    if (typeof p === 'string') {
+      // Try parsing JSON string (some photos stored as JSON)
+      if (p.trim().startsWith('{')) {
+        try { return JSON.parse(p)?.url || null; } catch { return null; }
+      }
+      return p.startsWith('http') ? p : null;
+    }
+    if (typeof p === 'object') return p.url || p.path || null;
+    return null;
+  }
+  const validPhotos = (profile.photos || []).map(extractPhotoUrl).filter(Boolean);
                 if (validPhotos.length === 0) {
                   return (
                     <div style={{ marginTop: 16, paddingBottom: 12 }}>
