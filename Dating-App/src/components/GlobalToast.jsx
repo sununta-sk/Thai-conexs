@@ -41,6 +41,7 @@ function getChatId(uid1, uid2) {
 export default function GlobalToast() {
   const [toasts, setToasts] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [isSubscriber, setIsSubscriber] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const toastIdRef = useRef(0);
@@ -54,6 +55,10 @@ export default function GlobalToast() {
         setUserId(data.user.id);
         userIdRef.current = data.user.id;
         console.log('[Toast] My userId:', data.user.id);
+        supabase.from('profiles').select('subscription_plan').eq('id', data.user.id).maybeSingle().then(({ data: prof }) => {
+          const plan = prof?.subscription_plan;
+          setIsSubscriber(plan === 'gold' || plan === 'platinum');
+        });
       }
     });
   }, []);
@@ -149,7 +154,7 @@ export default function GlobalToast() {
             avatar: liker ? liker.avatar_url : null,
             name: liker ? (liker.username || 'Someone') : 'Someone',
             text: isInsert ? 'liked you!' : 'unliked you',
-            onClick: () => navigateRef.current('/room-chat/' + chatId),
+            onClick: () => navigateRef.current(isSubscriber ? '/room-chat/' + chatId : '/subscription'),
           });
         })
       .subscribe((status) => console.log('[Toast] Like channel:', status));
