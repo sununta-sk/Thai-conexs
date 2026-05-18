@@ -223,6 +223,13 @@ export default function UserProfilePage() {
 
   const handleSendMessage = () => navigate(`/room-chat/${getChatId(currentUserId, profile.id)}`);
   const handleUpgrade     = () => navigate('/subscription');
+  const handleBlock = async () => {
+    if (!window.confirm(`Block ${profile.username || 'this user'}? You won't see them in Discover or receive messages from them.`)) return;
+    const { error } = await supabase.from('user_blocks').insert({ blocker_id: currentUserId, blocked_id: profile.id });
+    if (error) { alert('Failed to block: ' + error.message); return; }
+    alert('User blocked successfully');
+    navigate('/discover');
+  };
 
   return (
     <div style={S.page}>
@@ -255,6 +262,9 @@ export default function UserProfilePage() {
 
         <button style={S.msgBtn} onClick={handleSendMessage}>
           💬 Send Message
+        </button>
+        <button style={S.blockBtn} onClick={handleBlock}>
+          🚫 Block User
         </button>
 
         {profile.bio && (
@@ -321,6 +331,7 @@ const S = {
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
   msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  blockBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
   bioText: { margin: 0, fontSize: 14, color: '#cbd5e1', lineHeight: 1.8 },

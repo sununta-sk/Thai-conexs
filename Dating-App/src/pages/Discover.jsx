@@ -124,7 +124,10 @@ export default function Discover() {
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
       const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified').neq('id', user.id);
-      if (!error && data) setProfiles(data);
+      // Fetch blocked users to filter them out
+      const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
+      const blockedIds = new Set((blocks || []).map(b => b.blocked_id));
+      if (!error && data) setProfiles(data.filter(p => !blockedIds.has(p.id)));
       setLoading(false);
     }
     fetchProfiles();
