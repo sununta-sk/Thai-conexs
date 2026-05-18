@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAdminAuth } from '../hooks/useAdminAuth';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const NAV_ITEMS = [
   { icon: '📊', label: 'Dashboard',         path: '/admin-secret-portal',          module: null },
@@ -90,6 +91,10 @@ export default function AdminLayout({ children }) {
     navigate('/login');
   };
 
+  const isMobile = useIsMobile()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  useEffect(() => { setDrawerOpen(false) }, [location.pathname])
+
   if (loading) {
     return (
       <div style={S.loadingScreen}>
@@ -154,7 +159,8 @@ export default function AdminLayout({ children }) {
 
   return (
     <div style={S.shell}>
-      <aside style={S.sidebar}>
+      {isMobile && drawerOpen && <div style={S.drawerOverlay} onClick={() => setDrawerOpen(false)} />}
+      <aside style={{ ...S.sidebar, ...(isMobile ? { ...S.sidebarMobile, transform: drawerOpen ? "translateX(0)" : "translateX(-100%)" } : {}) }}>
         <div style={S.logo}>
           <span style={{ fontSize: 22 }}>💞</span>
           <span style={S.logoText}>Thai Conexns</span>
@@ -175,6 +181,9 @@ export default function AdminLayout({ children }) {
 
       <main style={S.main}>
         <div style={S.header}>
+          {isMobile && (
+            <button onClick={() => setDrawerOpen(true)} style={S.hamburger} aria-label="Open menu">☰</button>
+          )}
           <div style={{ color: '#94a3b8', fontSize: 13 }}>
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
@@ -220,6 +229,9 @@ const S = {
   loadingScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif" },
   spinner:       { width: 36, height: 36, border: '3px solid #1e293b', borderTop: '3px solid #e91e63', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
   backBtn:       { marginTop: 20, padding: '10px 24px', background: '#e91e63', border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
+  sidebarMobile: { position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 1000, transition: 'transform 0.25s ease' },
+  drawerOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 },
+  hamburger:     { background: 'none', border: 'none', color: '#f1f5f9', fontSize: 24, cursor: 'pointer', padding: '0 12px 0 0', lineHeight: 1 },
 
   // ── Language Switcher ──
   langBtn: {
