@@ -147,7 +147,6 @@ export default function UserProfilePage() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isSubscriber, setIsSubscriber] = useState(false);
   const [loading, setLoading]           = useState(true);
-  const [liked, setLiked]               = useState(false);
 
   // Desktop redirect to chat (this page is mobile-only)
   useEffect(() => {
@@ -183,9 +182,6 @@ export default function UserProfilePage() {
 
       const plan = me?.subscription_plan;
       setIsSubscriber(plan === 'gold' || plan === 'platinum');
-      // Check if current user already liked this profile
-      const { data: likeRow } = await supabase.from('user_likes').select('id').eq('liker_id', session.user.id).eq('liked_id', userId).maybeSingle();
-      setLiked(Boolean(likeRow));
 
       // Track profile view (don't track if viewing own profile)
       if (session.user.id !== userId) {
@@ -234,15 +230,6 @@ export default function UserProfilePage() {
     alert('User blocked successfully');
     navigate('/discover');
   };
-  const handleLike = async () => {
-    if (liked) {
-      const r = await supabase.from('user_likes').delete().match({ liker_id: currentUserId, liked_id: profile.id });
-      if (!r.error) setLiked(false);
-    } else {
-      const r = await supabase.from('user_likes').insert({ liker_id: currentUserId, liked_id: profile.id });
-      if (!r.error) setLiked(true);
-    }
-  };
 
   return (
     <div style={S.page}>
@@ -275,9 +262,6 @@ export default function UserProfilePage() {
 
         <button style={S.msgBtn} onClick={handleSendMessage}>
           💬 Send Message
-        </button>
-        <button style={liked ? S.likedBtn : S.likeBtn} ick={handleLike}>
-          {liked ? '❤️ Liked' : '🤍 Like'}
         </button>
         <button style={S.blockBtn} onClick={handleBlock}>
           🚫 Block User
@@ -347,8 +331,6 @@ const S = {
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
   msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
-  likeBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius:olor: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  likedBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   blockBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
