@@ -277,7 +277,7 @@ export default function UserProfilePage() {
           💬 Send Message
         </button>
         <button style={liked ? S.likedBtn : S.likeBtn} onClick={handleLike}>
-          {liked ? 'Liked' : 'Like'}
+          {liked ? '❤ Liked' : '♡ Like'}
         </button>
         <button style={S.blockBtn} onClick={handleBlock}>
           🚫 Block User
