@@ -301,6 +301,14 @@ function RoomChatDesktop() {
     await supabase.from('content_reports').insert({ reporter_id: session.user.id, reported_user_id: otherUserId, report_type: reportReason, status: 'open' });
     setShowReport(false); setReportReason(''); alert('ส่ง Report เรียบร้อยแล้ว');
   };
+  const submitBlock = async () => {
+    if (!session || !otherUserId) return;
+    if (!window.confirm("Block this user? You won't see them in Discover or receive messages.")) return;
+    const r = await supabase.from('user_blocks').insert({ blocker_id: session.user.id, blocked_id: otherUserId });
+    if (r.error) { alert('Failed to block: ' + r.error.message); return; }
+    alert('User blocked successfully');
+    navigate('/discover');
+  };
   const submitTicket = async () => {
     if (!ticketMsg || !session) return;
     await supabase.from('support_tickets').insert({ user_id: session.user.id, subject: 'Chat issue', message: ticketMsg, status: 'open', priority: 'medium' });
@@ -514,6 +522,7 @@ function RoomChatDesktop() {
             <div style={{position:'absolute',right:0,top:'110%',background:'#1e293b',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:100,minWidth:160,overflow:'hidden',border:'1px solid #334155'}}>
               <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
               <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#cbd5e1'}}>🎫 Support Ticket</button>
+              <button onClick={() => { submitBlock(); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#ef4444',borderTop:'1px solid #334155'}}>🚫 Block User</button>
             </div>
           )}
         </div>
