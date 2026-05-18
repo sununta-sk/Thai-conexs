@@ -216,7 +216,7 @@ export default function SubscriptionPage() {
 }
 
 const styles = {
-  page: { minHeight: "100vh", background: "#0d0d12", color: "#fff", fontFamily: "'DM Sans', sans-serif", position: "relative", overflow: "hidden" },
+  page: { minHeight: "100vh", background: "#0d0d12", color: "#fff", fontFamily: "'DM Sans', sans-serif", position: "relative", overflow: "hidden", paddingTop: 90 },
   bgOrbs: { position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 },
   orb: { position: "absolute", borderRadius: "50%", filter: "blur(60px)" },
   container: { position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "40px 20px 80px" },
