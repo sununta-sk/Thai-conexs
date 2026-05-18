@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
 
 // ── Sound notifications ──
@@ -282,6 +283,7 @@ function RoomChatDesktop() {
   const { chatId } = useParams();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop(900);
+  const { lang } = useTranslation(['common']);
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -315,7 +317,7 @@ function RoomChatDesktop() {
   const submitTicket = async () => {
     if (!ticketMsg || !session) return;
     await supabase.from('support_tickets').insert({ user_id: session.user.id, subject: 'Chat issue', message: ticketMsg, status: 'open', priority: 'medium' });
-    setShowTicket(false); setTicketMsg(''); alert('ส่ง Ticket เรียบร้อยแล้ว');
+    setShowTicket(false); setTicketMsg(''); alert(lang === 'th' ? 'ส่ง Ticket เรียบร้อยแล้ว' : 'Ticket sent successfully');
   };
 
   const bottomRef = useRef(null);
@@ -546,7 +548,7 @@ function RoomChatDesktop() {
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
             <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
               <div style={{fontWeight:700,marginBottom:12,color:'#f1f5f9'}}>Support Ticket</div>
-              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder="อธิบายปัญหา..." style={{width:'100%',height:100,borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',padding:8,fontSize:14,resize:'none'}} />
+              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder={lang === 'th' ? 'อธิบายปัญหา...' : 'Describe the issue...'} style={{width:'100%',height:100,borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',padding:8,fontSize:14,resize:'none'}} />
               <button onClick={submitTicket} style={{marginTop:12,width:'100%',padding:'10px',background:'#e91e63',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Send Ticket</button>
             </div>
           </div>
