@@ -133,9 +133,10 @@ export default function GlobalToast() {
     const likeChannel = supabase
       .channel('global-like-' + userId)
       .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'user_likes', filter: 'liked_id=eq.' + userId },
+        { event: '*', schema: 'public', table: 'user_likes', filter: 'liked_id=eq.' + userId },
         async (payload) => {
-          const lk = payload.new;
+          const isInsert = payload.eventType === 'INSERT';
+          const lk = isInsert ? payload.new : payload.old;
           if (!lk || lk.liker_id === userIdRef.current) return;
           const likerResult = await supabase.from('profiles')
             .select('username, avatar_url')
@@ -147,7 +148,7 @@ export default function GlobalToast() {
             type: 'like',
             avatar: liker ? liker.avatar_url : null,
             name: liker ? (liker.username || 'Someone') : 'Someone',
-            text: 'liked you!',
+            text: isInsert ? 'liked you!' : 'unliked you',
             onClick: () => navigateRef.current('/room-chat/' + chatId),
           });
         })
