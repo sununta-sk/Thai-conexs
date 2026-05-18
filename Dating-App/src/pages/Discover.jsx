@@ -159,7 +159,18 @@ export default function Discover() {
     });
 
     if (filters.orderBy === 'last_seen') {
-      result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      // Split: users with photos shuffled first, users without photos at bottom
+      const hasPhoto = (p) => Boolean(p.avatar_url) || (Array.isArray(p.details?.photos) && p.details.photos.length > 0);
+      const withPhotos = result.filter(hasPhoto);
+      const withoutPhotos = result.filter(p => !hasPhoto(p));
+      // Fisher-Yates shuffle for users with photos
+      for (let i = withPhotos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
+      }
+      // Users without photos: keep sorted by last_seen
+      withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      result = [...withPhotos, ...withoutPhotos];
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
     }
