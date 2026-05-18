@@ -87,6 +87,7 @@ export default function Discover() {
   const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
   const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState([]);
+  const [likedIds, setLikedIds] = useState(new Set());
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -127,6 +128,8 @@ export default function Discover() {
       // Fetch blocked users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
       const blockedIds = new Set((blocks || []).map(b => b.blocked_id));
+      const { data: likes } = await supabase.from('user_likes').select('liked_id').eq('liker_id', user.id);
+      setLikedIds(new Set((likes || []).map(l => l.liked_id)));
       if (!error && data) setProfiles(data.filter(p => !blockedIds.has(p.id)));
       setLoading(false);
     }
@@ -181,6 +184,16 @@ export default function Discover() {
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
+  const handleToggleLike = async (targetUserId) => {
+    if (!currentUserId) return;
+    if (likedIds.has(targetUserId)) {
+      await supabase.from('user_likes').delete().match({ liker_id: currentUserId, liked_id: targetUserId });
+      setLikedIds(prev => { const next = new Set(prev); next.delete(targetUserId); return next; });
+    } else {
+      await supabase.from('user_likes').insert({ liker_id: currentUserId, liked_id: targetUserId });
+      setLikedIds(prev => { const next = new Set(prev); next.add(targetUserId); return next; });
+    }
+  };
   const handleCardClick = (targetUserId) => {
     if (!isMobile) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
     else navigate('/profile/' + targetUserId);
@@ -345,7 +358,7 @@ export default function Discover() {
                 </div>
                 <div style={S.actions}>
                   <button type="button" style={S.btnX} onClick={e => e.stopPropagation()}>{tx.hideBtn || 'X'}</button>
-                  <button type="button" style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>{tx.chatBtn || 'Chat'}</button>
+                  <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                 </div>
               </div>
             );
@@ -431,17 +444,19 @@ const S = {
     maxWidth: '1400px',
     margin: '0 auto',
   },
-  card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' },
+  card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
-  info: { padding: '8px 8px 4px' },
+  info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   meta: { fontSize: '11px', color: '#94a3b8', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   lastSeen: { fontSize: '10px', marginTop: '1px', fontWeight: 600 },
   actions: { display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '4px', borderTop: '1px solid #334155' },
   btnX: { background: 'none', border: 'none', color: '#64748b', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
   btnChat: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
+  btnLike: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
+  btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 };
