@@ -291,6 +291,9 @@ export default function ProfileSetup() {
       id: user.id, username, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
       lifestyle,
+      city: details.city || null,
+      province: details.province || null,
+      country: details.country || null,
       updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
     }, { onConflict: 'id' });
