@@ -162,7 +162,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -206,6 +206,8 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
           {education && <span style={DS.chip}>🎓 {education}</span>}
           {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
         </div>
+
+        <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
       </div>
     </div>
   );
@@ -225,6 +227,7 @@ const DS = {
   bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
+  blockBtn: { marginTop: 20, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -522,7 +525,6 @@ function RoomChatDesktop() {
             <div style={{position:'absolute',right:0,top:'110%',background:'#1e293b',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:100,minWidth:160,overflow:'hidden',border:'1px solid #334155'}}>
               <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
               <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#cbd5e1'}}>🎫 Support Ticket</button>
-              <button onClick={() => { submitBlock(); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#ef4444',borderTop:'1px solid #334155'}}>🚫 Block User</button>
             </div>
           )}
         </div>
@@ -647,6 +649,7 @@ function RoomChatDesktop() {
           onlineStatusText={onlineStatusText}
           isSubscriber={isSubscriber}
           onUpgrade={handleUpgrade}
+          onBlock={submitBlock}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}
