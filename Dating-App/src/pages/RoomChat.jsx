@@ -163,7 +163,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -208,6 +208,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
           {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
         </div>
 
+        <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
         <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
       </div>
     </div>
@@ -228,7 +229,9 @@ const DS = {
   bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
-  blockBtn: { marginTop: 20, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -361,6 +364,21 @@ function RoomChatDesktop() {
   }, [session]);
 
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
+  const [liked, setLiked] = useState(false);
+  const handleLike = async () => {
+    if (!session || !otherUserId) return;
+    if (liked) {
+      const r = await supabase.from('user_likes').delete().match({ liker_id: session.user.id, liked_id: otherUserId });
+      if (!r.error) setLiked(false);
+    } else {
+      const r = await supabase.from('user_likes').insert({ liker_id: session.user.id, liked_id: otherUserId });
+      if (!r.error) setLiked(true);
+    }
+  };
+  useEffect(() => {
+    if (!session || !otherUserId) return;
+    supabase.from('user_likes').select('id').eq('liker_id', session.user.id).eq('liked_id', otherUserId).maybeSingle().then(({ data }) => setLiked(Boolean(data)));
+  }, [session, otherUserId]);
 
   useEffect(() => {
     if (!otherUserId || !session) return;
@@ -652,6 +670,8 @@ function RoomChatDesktop() {
           isSubscriber={isSubscriber}
           onUpgrade={handleUpgrade}
           onBlock={submitBlock}
+          liked={liked}
+          onLike={handleLike}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}
