@@ -130,10 +130,33 @@ export default function GlobalToast() {
         })
       .subscribe((status) => console.log('[Toast] View channel:', status));
 
+    const likeChannel = supabase
+      .channel('global-like-' + userId)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_likes', filter: 'liked_id=eq.' + userId },
+        async (payload) => {
+          const lk = payload.new;
+          if (!lk || lk.liker_id === userIdRef.current) return;
+          const likerResult = await supabase.from('profiles')
+            .select('username, avatar_url')
+            .eq('id', lk.liker_id)
+            .maybeSingle();
+          const liker = likerResult.data;
+          const chatId = getChatId(userIdRef.current, lk.liker_id);
+          addToast({
+            type: 'like',
+            avatar: liker ? liker.avatar_url : null,
+            name: liker ? (liker.username || 'Someone') : 'Someone',
+            text: 'liked you!',
+            onClick: () => navigateRef.current('/room-chat/' + chatId),
+          });
+        })
+      .subscribe((status) => console.log('[Toast] Like channel:', status));
     return () => {
       console.log('[Toast] Cleaning up subscriptions');
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(viewChannel);
+      supabase.removeChannel(likeChannel);
     };
   }, [userId]);
 
