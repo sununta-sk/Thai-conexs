@@ -9,7 +9,13 @@ const CONTENT = {
     back: 'Back',
     sections: [
       {
-        heading: '1. Account & Identity',
+        heading: '1. The Most Important Rule — No Commercial Sex Work',
+        items: [
+          'Thai Conexns is a dating platform for genuine connections — NOT a marketplace for sex. Selling, advertising, soliciting, or arranging paid sexual services in any form (in your profile, photos, or chat messages) is strictly forbidden. Violators are PERMANENTLY BANNED immediately, with no warning, no appeal, and no refund.',
+        ],
+      },
+      {
+        heading: '2. Account & Identity',
         items: [
           'You must be 18 years or older to use Thai Conexns.',
           'One account per person. Duplicate accounts will be removed.',
@@ -19,7 +25,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '2. Respectful Behavior',
+        heading: '3. Respectful Behavior',
         items: [
           'Treat every member with respect, regardless of gender, age, nationality, or beliefs.',
           'No harassment, threats, intimidation, or repeated unwanted contact.',
@@ -28,10 +34,9 @@ const CONTENT = {
         ],
       },
       {
-        heading: '3. Prohibited Content & Activity',
+        heading: '4. Other Prohibited Content',
         items: [
-          'NO COMMERCIAL SEX WORK. Thai Conexns is for genuine dating — not a marketplace. Selling, advertising, soliciting, or arranging paid sexual services in any form (in profile, chat, or photos) results in IMMEDIATE PERMANENT BAN with no warning and no refund.',
-          'No escort services, "sugar" arrangements presented as paid services, or any exchange of sex for money, gifts, or favors.',
+          'No escort services or "sugar" arrangements presented as paid services.',
           'No nudity or sexually explicit photos in profile or chat.',
           'No minors in any photo, even fully clothed.',
           'No violence, gore, weapons, or illegal substances.',
@@ -40,7 +45,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '4. Honesty & Scams',
+        heading: '5. Honesty & Scams',
         items: [
           'No catfishing — pretending to be someone you are not.',
           'No requests for money, gifts, bank details, or cryptocurrency.',
@@ -49,7 +54,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '5. Safety First',
+        heading: '6. Safety First',
         items: [
           'Never share your address, ID card, banking details, or passwords.',
           'Be cautious before meeting in person — meet in public places first.',
@@ -58,17 +63,17 @@ const CONTENT = {
         ],
       },
       {
-        heading: '6. Enforcement',
+        heading: '7. Enforcement',
         items: [
           'Minor violations: warning.',
           'Repeated or serious violations: temporary suspension (1 hour to 30 days).',
-          'Severe violations result in PERMANENT BAN with no refund. This includes: commercial sex work or solicitation, scams, content involving minors, and credible threats.',
+          'Severe violations result in PERMANENT BAN with no refund. This includes: Rule 1 violations (commercial sex work), scams, content involving minors, and credible threats.',
           'Ban decisions are at the discretion of our moderation team.',
           'Banned users may not create new accounts. Doing so is itself a violation.',
         ],
       },
       {
-        heading: '7. Reporting',
+        heading: '8. Reporting',
         items: [
           'Use the report button on any profile or message.',
           'Reports are reviewed within 24–48 hours.',
@@ -76,7 +81,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '8. Contact',
+        heading: '9. Contact',
         items: [
           'Questions or appeals: support@thai-conexns.com',
           'Appeals must include your account email and a clear explanation.',
@@ -91,7 +96,13 @@ const CONTENT = {
     back: 'ย้อนกลับ',
     sections: [
       {
-        heading: '1. บัญชีและตัวตน',
+        heading: '1. กฎสำคัญที่สุด — ห้ามค้าประเวณี',
+        items: [
+          'Thai Conexns เป็นเว็บหาคู่เพื่อความสัมพันธ์จริง ไม่ใช่ตลาดขายบริการทางเพศ ห้ามขาย โฆษณา ชักชวน หรือนัดแลกเปลี่ยนเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ในรูปแบบใดๆ (ในโปรไฟล์ รูป หรือแชท) ผู้ฝ่าฝืนจะถูกแบนถาวรทันที ไม่มีเตือน ไม่มีอุทธรณ์ และไม่คืนเงิน',
+        ],
+      },
+      {
+        heading: '2. บัญชีและตัวตน',
         items: [
           'ต้องมีอายุ 18 ปีขึ้นไปจึงจะใช้ Thai Conexns ได้',
           'หนึ่งคนต่อหนึ่งบัญชี บัญชีซ้ำจะถูกลบ',
@@ -101,7 +112,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '2. การปฏิบัติต่อสมาชิกอื่น',
+        heading: '3. การปฏิบัติต่อสมาชิกอื่น',
         items: [
           'ปฏิบัติต่อสมาชิกทุกคนด้วยความเคารพ ไม่ว่าจะเพศ อายุ สัญชาติ หรือความเชื่อใด',
           'ห้ามคุกคาม ข่มขู่ หรือติดต่อซ้ำเมื่ออีกฝ่ายไม่ตอบรับ',
@@ -110,10 +121,9 @@ const CONTENT = {
         ],
       },
       {
-        heading: '3. เนื้อหาและกิจกรรมต้องห้าม',
+        heading: '4. เนื้อหาต้องห้ามอื่นๆ',
         items: [
-          'ห้ามค้าประเวณีหรือขายบริการทางเพศโดยเด็ดขาด Thai Conexns เป็นเว็บหาคู่จริง ไม่ใช่ตลาดค้าบริการ การขาย โฆษณา ชักชวน หรือนัดแลกเปลี่ยนเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ใดๆ (ในโปรไฟล์ แชท หรือรูป) จะถูกแบนถาวรทันทีไม่มีเตือนและไม่คืนเงิน',
-          'ห้ามให้บริการ escort, "ชูก้า" ที่ตกลงจ่ายเงินเป็นบริการ หรือการแลกเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ใดๆ',
+          'ห้ามให้บริการ escort หรือ "ชูก้า" ที่ตกลงจ่ายเงินเป็นบริการ',
           'ห้ามภาพเปลือยหรือรูปทางเพศในโปรไฟล์และในแชท',
           'ห้ามรูปที่มีเด็กในรูปใดๆ แม้จะใส่เสื้อผ้าครบ',
           'ห้ามรูปความรุนแรง อาวุธ หรือยาเสพติด',
@@ -122,7 +132,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '4. ความซื่อสัตย์และการหลอกลวง',
+        heading: '5. ความซื่อสัตย์และการหลอกลวง',
         items: [
           'ห้ามปลอมเป็นคนอื่น (catfishing)',
           'ห้ามขอเงิน ของขวัญ ข้อมูลธนาคาร หรือคริปโต',
@@ -131,7 +141,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '5. ความปลอดภัย',
+        heading: '6. ความปลอดภัย',
         items: [
           'อย่าให้ที่อยู่ บัตรประชาชน ข้อมูลธนาคาร หรือรหัสผ่านกับใคร',
           'ก่อนนัดเจอ ระวังไว้ก่อน นัดเจอที่สาธารณะครั้งแรก',
@@ -140,17 +150,17 @@ const CONTENT = {
         ],
       },
       {
-        heading: '6. บทลงโทษ',
+        heading: '7. บทลงโทษ',
         items: [
           'ละเมิดเล็กน้อย: เตือน',
           'ละเมิดซ้ำหรือร้ายแรง: ระงับชั่วคราว (1 ชั่วโมง ถึง 30 วัน)',
-          'ละเมิดรุนแรง: แบนถาวรไม่คืนเงิน รวมถึง: การค้าบริการทางเพศหรือชักชวน, หลอกลวง, เนื้อหาเกี่ยวข้องผู้เยาว์, ข่มขู่อย่างจริงจัง',
+          'ละเมิดรุนแรง: แบนถาวรไม่คืนเงิน รวมถึง: การฝ่าฝืนกฎข้อ 1 (ค้าบริการทางเพศ), หลอกลวง, เนื้อหาเกี่ยวข้องผู้เยาว์, ข่มขู่อย่างจริงจัง',
           'การตัดสินใจขึ้นอยู่กับทีม moderation',
           'ผู้ถูกแบนห้ามสมัครบัญชีใหม่ การสมัครซ้ำคือการละเมิดเพิ่มเติม',
         ],
       },
       {
-        heading: '7. การแจ้งปัญหา',
+        heading: '8. การแจ้งปัญหา',
         items: [
           'ใช้ปุ่ม Report ในโปรไฟล์หรือข้อความที่มีปัญหา',
           'รายงานจะได้รับการตรวจสอบภายใน 24–48 ชั่วโมง',
@@ -158,7 +168,7 @@ const CONTENT = {
         ],
       },
       {
-        heading: '8. ติดต่อ',
+        heading: '9. ติดต่อ',
         items: [
           'คำถามหรืออุทธรณ์: support@thai-conexns.com',
           'การอุทธรณ์ต้องระบุอีเมลบัญชีและเหตุผลให้ชัดเจน',
@@ -201,7 +211,7 @@ export default function RulesPage() {
         <p style={S.lastUpdated}>{c.lastUpdated}</p>
 
         {c.sections.map((sec, i) => {
-          const isCritical = i === 2;
+          const isCritical = i === 0;
           return (
             <section
               key={i}
@@ -216,7 +226,7 @@ export default function RulesPage() {
                     key={j}
                     style={{
                       ...S.listItem,
-                      ...(isCritical && j === 0 ? S.listItemCritical : {}),
+                      ...(isCritical ? S.listItemCritical : {}),
                     }}
                   >
                     {item}
@@ -323,7 +333,8 @@ const S = {
   sectionCritical: {
     background: '#fff5f5',
     border: '2px solid #fca5a5',
-    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.1)',
+    boxShadow: '0 6px 16px rgba(220, 38, 38, 0.15)',
+    padding: '24px 22px',
   },
   heading: {
     fontSize: 18,
@@ -333,6 +344,7 @@ const S = {
   },
   headingCritical: {
     color: '#dc2626',
+    fontSize: 19,
   },
   list: {
     margin: 0,
@@ -348,12 +360,14 @@ const S = {
     fontWeight: 700,
     color: '#991b1b',
     background: '#fee2e2',
-    padding: '10px 12px',
+    padding: '12px 14px',
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 0,
     marginLeft: -8,
     listStyle: 'none',
     border: '1px solid #fca5a5',
+    fontSize: 15,
+    lineHeight: 1.65,
   },
   footer: {
     marginTop: 40,
