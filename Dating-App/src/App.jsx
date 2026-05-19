@@ -9,6 +9,7 @@ import Register     from './pages/Register';
 import CheckEmail   from './pages/CheckEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
+import RulesPage from './pages/RulesPage';
 import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
@@ -163,6 +164,7 @@ function AppContent() {
             <Route path="/check-email" element={<CheckEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/rules" element={<RulesPage />} />
 
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
