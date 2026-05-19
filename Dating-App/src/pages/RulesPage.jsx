@@ -28,12 +28,14 @@ const CONTENT = {
         ],
       },
       {
-        heading: '3. Prohibited Content',
+        heading: '3. Prohibited Content & Activity',
         items: [
+          'NO COMMERCIAL SEX WORK. Thai Conexns is for genuine dating — not a marketplace. Selling, advertising, soliciting, or arranging paid sexual services in any form (in profile, chat, or photos) results in IMMEDIATE PERMANENT BAN with no warning and no refund.',
+          'No escort services, "sugar" arrangements presented as paid services, or any exchange of sex for money, gifts, or favors.',
           'No nudity or sexually explicit photos in profile or chat.',
           'No minors in any photo, even fully clothed.',
           'No violence, gore, weapons, or illegal substances.',
-          'No links to external dating sites, escort services, or paid content.',
+          'No links to external dating sites, escort sites, or paid adult content.',
           'No spam, advertising, or repeated promotional messages.',
         ],
       },
@@ -60,9 +62,9 @@ const CONTENT = {
         items: [
           'Minor violations: warning.',
           'Repeated or serious violations: temporary suspension (1 hour to 30 days).',
-          'Severe violations (scams, minors, threats): permanent ban with no refund.',
+          'Severe violations result in PERMANENT BAN with no refund. This includes: commercial sex work or solicitation, scams, content involving minors, and credible threats.',
           'Ban decisions are at the discretion of our moderation team.',
-          'Banned users may not create new accounts. Doing so is also a violation.',
+          'Banned users may not create new accounts. Doing so is itself a violation.',
         ],
       },
       {
@@ -108,12 +110,14 @@ const CONTENT = {
         ],
       },
       {
-        heading: '3. เนื้อหาต้องห้าม',
+        heading: '3. เนื้อหาและกิจกรรมต้องห้าม',
         items: [
+          'ห้ามค้าประเวณีหรือขายบริการทางเพศโดยเด็ดขาด Thai Conexns เป็นเว็บหาคู่จริง ไม่ใช่ตลาดค้าบริการ การขาย โฆษณา ชักชวน หรือนัดแลกเปลี่ยนเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ใดๆ (ในโปรไฟล์ แชท หรือรูป) จะถูกแบนถาวรทันทีไม่มีเตือนและไม่คืนเงิน',
+          'ห้ามให้บริการ escort, "ชูก้า" ที่ตกลงจ่ายเงินเป็นบริการ หรือการแลกเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ใดๆ',
           'ห้ามภาพเปลือยหรือรูปทางเพศในโปรไฟล์และในแชท',
           'ห้ามรูปที่มีเด็กในรูปใดๆ แม้จะใส่เสื้อผ้าครบ',
           'ห้ามรูปความรุนแรง อาวุธ หรือยาเสพติด',
-          'ห้ามลิงก์ไปเว็บหาคู่อื่น เว็บบริการทางเพศ หรือเนื้อหาเสียเงิน',
+          'ห้ามลิงก์ไปเว็บหาคู่อื่น เว็บ escort หรือเนื้อหาผู้ใหญ่ที่ต้องจ่ายเงิน',
           'ห้ามสแปม โฆษณา หรือส่งข้อความโปรโมตซ้ำๆ',
         ],
       },
@@ -140,7 +144,7 @@ const CONTENT = {
         items: [
           'ละเมิดเล็กน้อย: เตือน',
           'ละเมิดซ้ำหรือร้ายแรง: ระงับชั่วคราว (1 ชั่วโมง ถึง 30 วัน)',
-          'ละเมิดรุนแรง (หลอกลวง ผู้เยาว์ ข่มขู่): แบนถาวรโดยไม่คืนเงิน',
+          'ละเมิดรุนแรง: แบนถาวรไม่คืนเงิน รวมถึง: การค้าบริการทางเพศหรือชักชวน, หลอกลวง, เนื้อหาเกี่ยวข้องผู้เยาว์, ข่มขู่อย่างจริงจัง',
           'การตัดสินใจขึ้นอยู่กับทีม moderation',
           'ผู้ถูกแบนห้ามสมัครบัญชีใหม่ การสมัครซ้ำคือการละเมิดเพิ่มเติม',
         ],
@@ -196,16 +200,32 @@ export default function RulesPage() {
         <p style={S.subtitle}>{c.subtitle}</p>
         <p style={S.lastUpdated}>{c.lastUpdated}</p>
 
-        {c.sections.map((sec, i) => (
-          <section key={i} style={S.section}>
-            <h2 style={S.heading}>{sec.heading}</h2>
-            <ul style={S.list}>
-              {sec.items.map((item, j) => (
-                <li key={j} style={S.listItem}>{item}</li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        {c.sections.map((sec, i) => {
+          const isCritical = i === 2;
+          return (
+            <section
+              key={i}
+              style={{ ...S.section, ...(isCritical ? S.sectionCritical : {}) }}
+            >
+              <h2 style={{ ...S.heading, ...(isCritical ? S.headingCritical : {}) }}>
+                {sec.heading}
+              </h2>
+              <ul style={S.list}>
+                {sec.items.map((item, j) => (
+                  <li
+                    key={j}
+                    style={{
+                      ...S.listItem,
+                      ...(isCritical && j === 0 ? S.listItemCritical : {}),
+                    }}
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
 
         <div style={S.footer}>
           <p style={S.footerText}>
@@ -300,11 +320,19 @@ const S = {
     boxShadow: '0 2px 8px rgba(233, 30, 99, 0.06)',
     border: '1px solid #fce4ec',
   },
+  sectionCritical: {
+    background: '#fff5f5',
+    border: '2px solid #fca5a5',
+    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.1)',
+  },
   heading: {
     fontSize: 18,
     fontWeight: 700,
     color: '#e91e63',
     margin: '0 0 12px',
+  },
+  headingCritical: {
+    color: '#dc2626',
   },
   list: {
     margin: 0,
@@ -315,6 +343,17 @@ const S = {
     lineHeight: 1.7,
     color: '#333',
     marginBottom: 6,
+  },
+  listItemCritical: {
+    fontWeight: 700,
+    color: '#991b1b',
+    background: '#fee2e2',
+    padding: '10px 12px',
+    borderRadius: 8,
+    marginBottom: 10,
+    marginLeft: -8,
+    listStyle: 'none',
+    border: '1px solid #fca5a5',
   },
   footer: {
     marginTop: 40,
