@@ -1,7 +1,45 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from '../hooks/useTranslation';
+
+const COPY = {
+  en: {
+    greeting: 'Hello',
+    apologyTemp: 'We are sorry — your account has been temporarily suspended.',
+    apologyPerm: 'We are sorry — your account has been permanently banned.',
+    expired: 'Your suspension has ended.\nReloading...',
+    reasonLabel: 'Reason',
+    timeLabel: 'Time remaining',
+    permanent: 'Permanent',
+    defaultReason: 'Terms of service violation',
+    readRules: 'Read Rules',
+    signOut: 'Sign out',
+    footnote: 'You will regain access automatically when the time expires.',
+    days: 'd',
+    hours: 'h',
+    minutes: 'm',
+  },
+  th: {
+    greeting: 'สวัสดีค่ะ',
+    apologyTemp: 'ขอแสดงความเสียใจด้วย\nบัญชีของคุณถูกระงับชั่วคราว',
+    apologyPerm: 'ขอแสดงความเสียใจด้วย\nบัญชีของคุณถูกแบนถาวร',
+    expired: 'การระงับสิ้นสุดแล้ว\nกำลังโหลดใหม่...',
+    reasonLabel: 'เหตุผล',
+    timeLabel: 'เวลาที่เหลือ',
+    permanent: 'ถาวร',
+    defaultReason: 'ละเมิดข้อกำหนดการใช้งาน',
+    readRules: 'อ่านกฎเพิ่มเติม',
+    signOut: 'ออกจากระบบ',
+    footnote: 'คุณจะกลับมาใช้งานได้อัตโนมัติเมื่อเวลาหมด',
+    days: 'วัน',
+    hours: 'ชม.',
+    minutes: 'นาที',
+  },
+};
 
 export default function BanModal({ bannedUntil, banReason }) {
+  const { lang } = useTranslation(['common']);
+  const t = COPY[lang === 'th' ? 'th' : 'en'];
   const isPermanent = !bannedUntil;
   const [timeLeft, setTimeLeft] = useState(null);
   const [isExpired, setIsExpired] = useState(false);
@@ -43,38 +81,36 @@ export default function BanModal({ bannedUntil, banReason }) {
   };
 
   const formatTime = () => {
-    if (isPermanent) return 'ถาวร / Permanent';
+    if (isPermanent) return t.permanent;
     if (!timeLeft) return '...';
     const { d, h, m, s } = timeLeft;
     const pad = (n) => String(n).padStart(2, '0');
-    if (d > 0) return `${d} วัน ${h} ชม. / ${d}d ${h}h ${pad(m)}m`;
+    if (d > 0) return `${d} ${t.days} ${h} ${t.hours} ${pad(m)} ${t.minutes}`;
     if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
     return `${pad(m)}:${pad(s)}`;
   };
 
+  const apology = isPermanent ? t.apologyPerm : t.apologyTemp;
+
   return (
-    <div style={S.backdrop} onClick={(e) => e.stopPropagation()}>
+    <div style={S.backdrop}>
       <div style={S.modal}>
         <div style={S.iconWrap}>
           <div style={S.icon}>{isPermanent ? '\u26D4' : '\u23F1'}</div>
         </div>
 
-        <h2 style={S.title}>สวัสดีค่ะ</h2>
-        <p style={S.subtitle}>
-          {isExpired
-            ? 'การระงับสิ้นสุดแล้ว\nกำลังโหลดใหม่...'
-            : 'ขอแสดงความเสียใจด้วย\nบัญชีของคุณถูกระงับชั่วคราว'}
-        </p>
+        <h2 style={S.title}>{t.greeting}</h2>
+        <p style={S.subtitle}>{isExpired ? t.expired : apology}</p>
 
         {!isExpired && (
           <>
             <div style={S.box}>
-              <div style={S.boxLabel}>เหตุผล / Reason</div>
-              <div style={S.boxText}>{banReason || 'ละเมิดข้อกำหนดการใช้งาน'}</div>
+              <div style={S.boxLabel}>{t.reasonLabel}</div>
+              <div style={S.boxText}>{banReason || t.defaultReason}</div>
             </div>
 
             <div style={{ ...S.box, marginBottom: 24 }}>
-              <div style={S.boxLabel}>เวลาที่เหลือ / Time remaining</div>
+              <div style={S.boxLabel}>{t.timeLabel}</div>
               <div style={{
                 ...S.timerText,
                 color: isPermanent ? '#dc2626' : '#e91e63',
@@ -84,16 +120,14 @@ export default function BanModal({ bannedUntil, banReason }) {
             </div>
 
             <button style={S.primaryBtn} onClick={handleReadRules}>
-              อ่านกฎเพิ่มเติม / Read Rules
+              {t.readRules}
             </button>
 
             <button style={S.secondaryBtn} onClick={handleSignOut}>
-              ออกจากระบบ / Sign out
+              {t.signOut}
             </button>
 
-            <p style={S.footnote}>
-              คุณจะกลับมาใช้งานได้อัตโนมัติเมื่อเวลาหมด
-            </p>
+            <p style={S.footnote}>{t.footnote}</p>
           </>
         )}
       </div>
