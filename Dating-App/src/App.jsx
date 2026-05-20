@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { OnlineProvider } from './context/OnlineContext';
+import BanModal from './components/BanModal';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
@@ -51,6 +52,8 @@ const AdminFallback = () => <LoadingScreen />;
 
 const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
+  const [banInfo, setBanInfo] = useState(undefined);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
@@ -59,9 +62,41 @@ const ProtectedRoute = ({ children }) => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session === undefined) return;
+    if (!session) { setBanInfo(null); return; }
+
+    supabase
+      .from('profiles')
+      .select('banned_until, ban_reason')
+      .eq('id', session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { setBanInfo(null); return; }
+        const now = Date.now();
+        const banUntil = data.banned_until ? new Date(data.banned_until).getTime() : null;
+        const reason = data.ban_reason;
+        const isPermanent = !banUntil && reason;
+        const isTemporary = banUntil && banUntil > now;
+        if (isPermanent || isTemporary) {
+          setBanInfo({ bannedUntil: data.banned_until, banReason: reason });
+        } else {
+          setBanInfo(null);
+        }
+      });
+  }, [session]);
+
   if (session === undefined) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
-  return children;
+  if (banInfo === undefined) return <LoadingScreen />;
+
+  return (
+    <>
+      {children}
+      {banInfo && <BanModal bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />}
+    </>
+  );
 };
 
 function AdminRoute({ children }) {
