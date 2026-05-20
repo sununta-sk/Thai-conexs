@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 
 const CONTENT = {
@@ -7,6 +7,7 @@ const CONTENT = {
     subtitle: 'Please read carefully before using Thai Conexns',
     lastUpdated: 'Last updated: May 2026',
     back: 'Back',
+    agree: 'By using Thai Conexns you agree to follow these rules.',
     sections: [
       {
         heading: '1. The Most Important Rule — No Commercial Sex Work',
@@ -94,6 +95,7 @@ const CONTENT = {
     subtitle: 'กรุณาอ่านอย่างละเอียดก่อนใช้งาน Thai Conexns',
     lastUpdated: 'อัปเดตล่าสุด: พฤษภาคม 2026',
     back: 'ย้อนกลับ',
+    agree: 'การใช้ Thai Conexns ถือว่าคุณยอมรับและจะปฏิบัติตามกฎเหล่านี้',
     sections: [
       {
         heading: '1. กฎสำคัญที่สุด — ห้ามค้าประเวณี',
@@ -179,9 +181,9 @@ const CONTENT = {
 };
 
 export default function RulesPage() {
-  const [lang, setLang] = useState('en');
+  const { lang, setLang } = useTranslation(['common']);
   const navigate = useNavigate();
-  const c = CONTENT[lang];
+  const c = CONTENT[lang === 'th' ? 'th' : 'en'];
 
   return (
     <div style={S.page}>
@@ -191,12 +193,14 @@ export default function RulesPage() {
         </button>
         <div style={S.langToggle}>
           <button
+            type="button"
             style={{ ...S.langBtn, ...(lang === 'en' ? S.langBtnActive : {}) }}
             onClick={() => setLang('en')}
           >
             EN
           </button>
           <button
+            type="button"
             style={{ ...S.langBtn, ...(lang === 'th' ? S.langBtnActive : {}) }}
             onClick={() => setLang('th')}
           >
@@ -238,11 +242,7 @@ export default function RulesPage() {
         })}
 
         <div style={S.footer}>
-          <p style={S.footerText}>
-            {lang === 'en'
-              ? 'By using Thai Conexns you agree to follow these rules.'
-              : 'การใช้ Thai Conexns ถือว่าคุณยอมรับและจะปฏิบัติตามกฎเหล่านี้'}
-          </p>
+          <p style={S.footerText}>{c.agree}</p>
         </div>
       </div>
     </div>
@@ -256,9 +256,6 @@ const S = {
     paddingBottom: 60,
   },
   topBar: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
