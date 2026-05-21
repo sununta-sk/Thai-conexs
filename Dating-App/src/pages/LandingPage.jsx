@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
@@ -228,7 +228,7 @@ const CONTENT = {
         { q: 'ถ้าเจอคนทำผิดกฎต้องทำยังไง', a: 'ทุกโปรไฟล์และข้อความมีปุ่ม report รายงานจะถูกตรวจสอบใน 24-48 ชั่วโมง การละเมิดรุนแรงโดนแบนถาวรทันที' },
         { q: 'ยกเลิกการสมัครได้ไหม', a: 'ได้ ยกเลิกได้ตลอดในหน้าตั้งค่าบัญชี การสมัครจะใช้งานได้จนถึงวันสุดท้ายของรอบบิล' },
         { q: 'ข้อมูลส่วนตัวปลอดภัยไหม', a: 'เราให้ความสำคัญกับความเป็นส่วนตัว — ข้อมูลติดต่อไม่ถูกแชร์กับสมาชิกอื่น คุณควบคุมได้ว่าจะให้ข้อมูลไหนแสดงในโปรไฟล์' },
-        { q: 'ติดต่อช่วยเหลือที่ไหน', a: 'ติดต่อทีม support ได้ที่ support@thai-conexns.com ตอบกลับภายใน 24 ชั่วโมง' },
+        { q: 'ติดต่อช่วยเหลือที่ไหน', a: 'ติดต่อทีม support ได้ที่ support@thai-conexs.com ตอบกลับภายใน 24 ชั่วโมง' },
       ],
     },
     finalCta: {
@@ -254,7 +254,6 @@ const CONTENT = {
 
 export default function LandingPage() {
   const { lang, setLang } = useTranslation(['common']);
-  const navigate = useNavigate();
   const [session, setSession] = useState(undefined);
   const [scrolled, setScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -271,7 +270,6 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Logged-in users go straight to Discover
   if (session) return <Navigate to="/discover" replace />;
   if (session === undefined) return null;
 
@@ -314,6 +312,7 @@ export default function LandingPage() {
 
       {/* ===== HERO ===== */}
       <section style={S.hero}>
+        <div style={S.heroGlow} />
         <div style={S.heroInner}>
           <div style={S.heroLeft}>
             <h1 style={S.heroH1}>{c.hero.h1}</h1>
@@ -526,18 +525,23 @@ export default function LandingPage() {
   );
 }
 
+const BG = '#0f172a';        // same as Discover
+const BG_CARD = '#1e293b';   // slate-800
+const BG_DEEP = '#0a0f1e';   // deeper for footer
+const BORDER = '#1e293b';
+const BORDER_LIGHT = '#334155';
+const TEXT = '#f1f5f9';
+const TEXT_DIM = '#cbd5e1';
+const TEXT_MUTED = '#94a3b8';
 const PINK = '#e91e63';
 const PINK_DARK = '#c2185b';
-const PINK_LIGHT = '#fce4ec';
-const DARK = '#1a1a1a';
-const GRAY = '#666';
-const GRAY_LIGHT = '#f8fafc';
+const PINK_GLOW = 'rgba(233, 30, 99, 0.15)';
 
 const S = {
   page: {
     minHeight: '100vh',
-    background: '#fff',
-    color: DARK,
+    background: BG,
+    color: TEXT,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
 
@@ -546,16 +550,16 @@ const S = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
     zIndex: 1000,
-    background: 'rgba(255, 255, 255, 0.7)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
+    background: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     transition: 'all 0.3s',
     borderBottom: '1px solid transparent',
   },
   navbarScrolled: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    borderBottom: '1px solid #f5d0e0',
-    boxShadow: '0 1px 12px rgba(0,0,0,0.04)',
+    background: 'rgba(15, 23, 42, 0.92)',
+    borderBottom: `1px solid ${BORDER}`,
+    boxShadow: '0 1px 20px rgba(0, 0, 0, 0.3)',
   },
   navInner: {
     maxWidth: 1200,
@@ -569,38 +573,51 @@ const S = {
   },
   navLeft: { display: 'flex', alignItems: 'center', gap: 10 },
   navLogo: { width: 36, height: 36, borderRadius: 8, objectFit: 'cover' },
-  navBrand: { fontSize: 17, fontWeight: 800, color: DARK, letterSpacing: '-0.3px' },
+  navBrand: { fontSize: 17, fontWeight: 800, color: TEXT, letterSpacing: '-0.3px' },
   navLinks: { display: 'flex', gap: 4, flexWrap: 'wrap' },
   navLink: {
     background: 'none', border: 'none', cursor: 'pointer',
     padding: '8px 12px', fontSize: 14, fontWeight: 600,
-    color: '#555', borderRadius: 8,
+    color: TEXT_DIM, borderRadius: 8,
   },
   navRight: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   langToggle: {
-    display: 'flex', gap: 2, background: '#f1f5f9',
-    borderRadius: 20, padding: 3,
+    display: 'flex', gap: 2, background: BG_CARD,
+    borderRadius: 20, padding: 3, border: `1px solid ${BORDER}`,
   },
   langBtn: {
     background: 'none', border: 'none', padding: '5px 12px',
-    fontSize: 12, fontWeight: 700, color: '#94a3b8',
+    fontSize: 12, fontWeight: 700, color: TEXT_MUTED,
     cursor: 'pointer', borderRadius: 16,
   },
   langBtnActive: { background: PINK, color: '#fff' },
   navLogin: {
     padding: '8px 16px', fontSize: 14, fontWeight: 700,
-    color: DARK, textDecoration: 'none', borderRadius: 8,
+    color: TEXT, textDecoration: 'none', borderRadius: 8,
   },
   navSignup: {
     padding: '8px 18px', fontSize: 14, fontWeight: 700,
     background: PINK, color: '#fff', textDecoration: 'none',
-    borderRadius: 8,
+    borderRadius: 8, boxShadow: `0 4px 14px ${PINK_GLOW}`,
   },
 
   // ===== HERO =====
   hero: {
-    background: 'linear-gradient(145deg, #fce4ec 0%, #fdf0f5 50%, #fff 100%)',
+    position: 'relative',
+    background: BG,
     padding: '120px 20px 80px',
+    overflow: 'hidden',
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: '-20%',
+    right: '-10%',
+    width: 600,
+    height: 600,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(233, 30, 99, 0.25) 0%, transparent 70%)',
+    filter: 'blur(40px)',
+    pointerEvents: 'none',
   },
   heroInner: {
     maxWidth: 1200,
@@ -609,6 +626,8 @@ const S = {
     gap: 60,
     alignItems: 'center',
     flexWrap: 'wrap',
+    position: 'relative',
+    zIndex: 1,
   },
   heroLeft: { flex: '1 1 400px', minWidth: 300 },
   heroH1: {
@@ -617,12 +636,16 @@ const S = {
     lineHeight: 1.1,
     margin: '0 0 20px',
     letterSpacing: '-1px',
-    color: DARK,
+    color: TEXT,
+    background: 'linear-gradient(135deg, #f1f5f9 0%, #e91e63 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
   },
   heroSub: {
     fontSize: 18,
     lineHeight: 1.6,
-    color: GRAY,
+    color: TEXT_DIM,
     margin: '0 0 32px',
     maxWidth: 540,
   },
@@ -630,7 +653,7 @@ const S = {
   trustRow: { display: 'flex', flexWrap: 'wrap', gap: '12px 24px' },
   trustItem: {
     display: 'flex', alignItems: 'center', gap: 6,
-    fontSize: 14, color: GRAY, fontWeight: 500,
+    fontSize: 14, color: TEXT_MUTED, fontWeight: 500,
   },
   trustCheck: { color: PINK, fontWeight: 900 },
   heroRight: {
@@ -642,19 +665,19 @@ const S = {
   phoneFrame: {
     width: 320,
     height: 640,
-    background: '#1a1a1a',
+    background: '#0a0f1e',
     borderRadius: 40,
     padding: 12,
-    boxShadow: '0 30px 80px rgba(233, 30, 99, 0.25), 0 10px 30px rgba(0,0,0,0.15)',
+    boxShadow: `0 30px 80px ${PINK_GLOW}, 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px ${BORDER_LIGHT}`,
     transform: 'rotate(-3deg)',
   },
   phoneFrameSmall: {
     width: 220,
     height: 440,
-    background: '#1a1a1a',
+    background: '#0a0f1e',
     borderRadius: 28,
     padding: 8,
-    boxShadow: '0 20px 50px rgba(0,0,0,0.15)',
+    boxShadow: `0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px ${BORDER_LIGHT}`,
     margin: '0 auto 20px',
   },
   phoneImg: {
@@ -665,7 +688,7 @@ const S = {
   },
 
   // ===== STATS =====
-  stats: { background: '#fff', padding: '60px 20px' },
+  stats: { background: BG, padding: '60px 20px', borderTop: `1px solid ${BORDER}` },
   statsInner: { maxWidth: 1200, margin: '0 auto' },
   statsGrid: {
     display: 'grid',
@@ -674,18 +697,19 @@ const S = {
     marginTop: 32,
   },
   statCard: {
-    background: PINK_LIGHT,
+    background: BG_CARD,
     borderRadius: 16,
     padding: '28px 20px',
     textAlign: 'center',
+    border: `1px solid ${BORDER}`,
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 900,
-    color: PINK_DARK,
+    color: PINK,
     marginBottom: 6,
   },
-  statLabel: { fontSize: 14, color: GRAY, fontWeight: 500 },
+  statLabel: { fontSize: 14, color: TEXT_MUTED, fontWeight: 500 },
 
   // ===== SECTIONS =====
   sectionInner: { maxWidth: 1200, margin: '0 auto', textAlign: 'center' },
@@ -693,19 +717,19 @@ const S = {
     fontSize: 'clamp(28px, 4vw, 42px)',
     fontWeight: 800,
     margin: '0 0 12px',
-    color: DARK,
+    color: TEXT,
     letterSpacing: '-0.5px',
   },
   sectionSub: {
     fontSize: 17,
-    color: GRAY,
+    color: TEXT_MUTED,
     margin: '0 auto 48px',
     maxWidth: 600,
     lineHeight: 1.5,
   },
 
   // ===== FEATURES =====
-  features: { background: GRAY_LIGHT, padding: '80px 20px' },
+  features: { background: BG_DEEP, padding: '80px 20px' },
   featuresGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -713,16 +737,16 @@ const S = {
     textAlign: 'left',
   },
   featureCard: {
-    background: '#fff',
+    background: BG_CARD,
     borderRadius: 16,
     padding: 28,
-    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-    border: '1px solid #f1f5f9',
+    border: `1px solid ${BORDER}`,
+    transition: 'border-color 0.2s, transform 0.2s',
   },
   featureIcon: {
     width: 48,
     height: 48,
-    background: PINK_LIGHT,
+    background: PINK_GLOW,
     color: PINK,
     borderRadius: 12,
     display: 'flex',
@@ -731,22 +755,23 @@ const S = {
     fontSize: 24,
     fontWeight: 900,
     marginBottom: 16,
+    border: `1px solid ${PINK}40`,
   },
   featureTitle: {
     fontSize: 18,
     fontWeight: 800,
     margin: '0 0 8px',
-    color: DARK,
+    color: TEXT,
   },
   featureDesc: {
     fontSize: 14.5,
     lineHeight: 1.6,
-    color: GRAY,
+    color: TEXT_MUTED,
     margin: 0,
   },
 
   // ===== HOW =====
-  how: { background: '#fff', padding: '80px 20px' },
+  how: { background: BG, padding: '80px 20px' },
   howGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
@@ -766,19 +791,19 @@ const S = {
     justifyContent: 'center',
     fontSize: 24,
     fontWeight: 900,
-    boxShadow: '0 8px 20px rgba(233, 30, 99, 0.3)',
+    boxShadow: `0 8px 24px ${PINK_GLOW}`,
   },
   howTitle: {
     fontSize: 20,
     fontWeight: 800,
     margin: '0 0 10px',
-    color: DARK,
+    color: TEXT,
   },
-  howDesc: { fontSize: 15, lineHeight: 1.6, color: GRAY, margin: 0 },
+  howDesc: { fontSize: 15, lineHeight: 1.6, color: TEXT_MUTED, margin: 0 },
 
   // ===== SHOWCASE =====
   showcase: {
-    background: 'linear-gradient(145deg, #fdf0f5, #fff)',
+    background: BG_DEEP,
     padding: '80px 20px',
   },
   showcaseGrid: {
@@ -792,12 +817,12 @@ const S = {
     fontSize: 20,
     fontWeight: 800,
     margin: '0 0 6px',
-    color: DARK,
+    color: TEXT,
   },
-  showcaseDesc: { fontSize: 14.5, color: GRAY, margin: 0, lineHeight: 1.5 },
+  showcaseDesc: { fontSize: 14.5, color: TEXT_MUTED, margin: 0, lineHeight: 1.5 },
 
   // ===== WHY US =====
-  whyUs: { background: '#fff', padding: '80px 20px' },
+  whyUs: { background: BG, padding: '80px 20px' },
   whyGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -807,20 +832,23 @@ const S = {
   },
   whyCard: {
     padding: 28,
-    background: PINK_LIGHT,
+    background: BG_CARD,
     borderRadius: 16,
     borderLeft: `4px solid ${PINK}`,
+    border: `1px solid ${BORDER}`,
+    borderLeftWidth: 4,
+    borderLeftColor: PINK,
   },
   whyTitle: {
     fontSize: 19,
     fontWeight: 800,
     margin: '0 0 10px',
-    color: PINK_DARK,
+    color: PINK,
   },
-  whyDesc: { fontSize: 15, lineHeight: 1.6, color: '#444', margin: 0 },
+  whyDesc: { fontSize: 15, lineHeight: 1.6, color: TEXT_DIM, margin: 0 },
 
   // ===== PRICING =====
-  pricing: { background: GRAY_LIGHT, padding: '80px 20px' },
+  pricing: { background: BG_DEEP, padding: '80px 20px' },
   pricingGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
@@ -830,17 +858,18 @@ const S = {
     alignItems: 'stretch',
   },
   pricingCard: {
-    background: '#fff',
+    background: BG_CARD,
     borderRadius: 20,
     padding: '32px 28px',
-    border: '2px solid #f1f5f9',
+    border: `1px solid ${BORDER}`,
     display: 'flex',
     flexDirection: 'column',
     position: 'relative',
   },
   pricingCardHighlight: {
+    background: 'linear-gradient(165deg, #1e293b 0%, #2a1530 100%)',
     border: `2px solid ${PINK}`,
-    boxShadow: '0 12px 40px rgba(233, 30, 99, 0.15)',
+    boxShadow: `0 12px 40px ${PINK_GLOW}`,
     transform: 'scale(1.02)',
   },
   pricingBadge: {
@@ -864,8 +893,8 @@ const S = {
     marginBottom: 8,
   },
   pricingPriceRow: { display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 24 },
-  pricingPrice: { fontSize: 40, fontWeight: 900, color: DARK },
-  pricingPeriod: { fontSize: 14, color: GRAY },
+  pricingPrice: { fontSize: 40, fontWeight: 900, color: TEXT },
+  pricingPeriod: { fontSize: 14, color: TEXT_MUTED },
   pricingList: {
     listStyle: 'none',
     padding: 0,
@@ -876,7 +905,7 @@ const S = {
     display: 'flex',
     gap: 10,
     fontSize: 14.5,
-    color: '#444',
+    color: TEXT_DIM,
     padding: '8px 0',
     lineHeight: 1.5,
     alignItems: 'flex-start',
@@ -884,11 +913,11 @@ const S = {
   pricingCheck: { color: PINK, fontWeight: 900, flexShrink: 0 },
 
   // ===== FAQ =====
-  faq: { background: '#fff', padding: '80px 20px' },
+  faq: { background: BG, padding: '80px 20px' },
   faqInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   faqList: { marginTop: 32, textAlign: 'left' },
   faqItem: {
-    borderBottom: '1px solid #e5e7eb',
+    borderBottom: `1px solid ${BORDER}`,
   },
   faqQuestion: {
     width: '100%',
@@ -897,7 +926,7 @@ const S = {
     padding: '20px 4px',
     fontSize: 16,
     fontWeight: 700,
-    color: DARK,
+    color: TEXT,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -907,7 +936,7 @@ const S = {
     padding: '0 4px 20px',
     fontSize: 15,
     lineHeight: 1.6,
-    color: GRAY,
+    color: TEXT_MUTED,
   },
 
   // ===== FINAL CTA =====
@@ -933,24 +962,24 @@ const S = {
   finalNote: {
     fontSize: 13,
     marginTop: 16,
-    opacity: 0.8,
+    opacity: 0.85,
   },
 
   // ===== FOOTER =====
-  footer: { background: '#0f172a', color: '#cbd5e1', padding: '60px 20px 24px' },
+  footer: { background: BG_DEEP, color: TEXT_MUTED, padding: '60px 20px 24px', borderTop: `1px solid ${BORDER}` },
   footerInner: { maxWidth: 1200, margin: '0 auto' },
   footerTop: {
     display: 'flex',
     gap: 60,
     paddingBottom: 40,
-    borderBottom: '1px solid #1e293b',
+    borderBottom: `1px solid ${BORDER}`,
     flexWrap: 'wrap',
   },
   footerBrand: { flex: '1 1 280px', minWidth: 240 },
   footerLogo: { width: 48, height: 48, borderRadius: 10, marginBottom: 12 },
   footerTagline: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: TEXT_MUTED,
     margin: 0,
     lineHeight: 1.6,
     maxWidth: 280,
@@ -960,7 +989,7 @@ const S = {
   footerColTitle: {
     fontSize: 13,
     fontWeight: 800,
-    color: '#fff',
+    color: TEXT,
     textTransform: 'uppercase',
     letterSpacing: '1px',
     margin: '0 0 6px',
@@ -968,7 +997,7 @@ const S = {
   footerLink: {
     background: 'none',
     border: 'none',
-    color: '#94a3b8',
+    color: TEXT_MUTED,
     fontSize: 14,
     cursor: 'pointer',
     padding: 0,
@@ -994,7 +1023,7 @@ const S = {
     borderRadius: 12,
     border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+    boxShadow: `0 8px 24px ${PINK_GLOW}`,
     textAlign: 'center',
   },
   btnPrimaryLarge: {
@@ -1006,25 +1035,25 @@ const S = {
     fontWeight: 800,
     textDecoration: 'none',
     borderRadius: 14,
-    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
     textAlign: 'center',
   },
   btnSecondary: {
     display: 'inline-block',
     padding: '14px 28px',
-    background: 'rgba(255,255,255,0.7)',
-    color: DARK,
+    background: BG_CARD,
+    color: TEXT,
     fontSize: 15,
     fontWeight: 700,
     textDecoration: 'none',
     borderRadius: 12,
-    border: '1px solid #f5d0e0',
+    border: `1px solid ${BORDER_LIGHT}`,
     textAlign: 'center',
   },
   btnOutline: {
     display: 'inline-block',
     padding: '14px 28px',
-    background: '#fff',
+    background: 'transparent',
     color: PINK,
     fontSize: 15,
     fontWeight: 700,
