@@ -4,13 +4,13 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { OnlineProvider } from './context/OnlineContext';
 import BanModal from './components/BanModal';
+import WelcomeModal from './components/WelcomeModal';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
 import CheckEmail   from './pages/CheckEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
-import LandingPage from './pages/LandingPage';
 import RulesPage from './pages/RulesPage';
 import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
@@ -241,11 +241,12 @@ function AppContent() {
             <Route path="/admin/team"      element={<SuperAdminRoute><TeamPage /></SuperAdminRoute>} />
             <Route path="/admin/audit-log" element={<SuperAdminRoute><AuditLogPage /></SuperAdminRoute>} />
 
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Navigate to="/discover" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </div>
+      <WelcomeModal />
       <GlobalToast />
       {!hideNavbar && <Navbar />}
     </div>
