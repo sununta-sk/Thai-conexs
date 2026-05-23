@@ -143,7 +143,14 @@ export default function Discover() {
       const d = p.details || {};
       const isOnline = onlineUsers.has(p.id);
 
-      if (filters.gender !== 'all' && d.gender !== filters.gender) return false;
+      if (filters.gender !== 'all') {
+        const g = (d.gender || '').toLowerCase().trim();
+        const isMale = ['male', 'ชาย', 'm', 'man'].includes(g);
+        const isFemale = ['female', 'หญิง', 'f', 'woman'].includes(g);
+        if (filters.gender === 'male' && !isMale) return false;
+        if (filters.gender === 'female' && !isFemale) return false;
+        if (filters.gender === 'other' && (isMale || isFemale || !g)) return false;
+      }
       if (!inRange(d.age, filters.ageRange)) return false;
       if (filters.province !== 'all' && (p.details?.province || '') !== filters.province) return false;
       if (!inRange(d.height, filters.height)) return false;
