@@ -92,6 +92,14 @@ export default function UserDetailPage() {
         return;
       }
 
+      // ── Look up admin_users row (FK requires admin_users.id, not auth.users.id) ──
+      const { data: adminRow, error: adminErr } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      if (adminErr || !adminRow) throw new Error('Admin record not found for current user');
+
       let expiresAt = null;
       if (modal.action === 'suspend') {
         expiresAt = new Date(Date.now() + suspendDays * 86400000).toISOString();
@@ -108,7 +116,7 @@ export default function UserDetailPage() {
 
       const { error: logErr } = await supabase.from('user_moderation_actions').insert({
         target_user_id: userId,
-        admin_user_id:  user.id,
+        admin_user_id:  adminRow.id,
         action_type:    modal.action,
         reason:         reason.trim() || null,
         message_to_user: msgToUser.trim() || null,
@@ -217,18 +225,17 @@ export default function UserDetailPage() {
               <Row label="Status"    value={accountStatus.toUpperCase()} />
               {(() => {
                 function extractPhotoUrl(p) {
-    if (!p) return null;
-    if (typeof p === 'string') {
-      // Try parsing JSON string (some photos stored as JSON)
-      if (p.trim().startsWith('{')) {
-        try { return JSON.parse(p)?.url || null; } catch { return null; }
-      }
-      return p.startsWith('http') ? p : null;
-    }
-    if (typeof p === 'object') return p.url || p.path || null;
-    return null;
-  }
-  const validPhotos = (profile.photos || []).map(extractPhotoUrl).filter(Boolean);
+                  if (!p) return null;
+                  if (typeof p === 'string') {
+                    if (p.trim().startsWith('{')) {
+                      try { return JSON.parse(p)?.url || null; } catch { return null; }
+                    }
+                    return p.startsWith('http') ? p : null;
+                  }
+                  if (typeof p === 'object') return p.url || p.path || null;
+                  return null;
+                }
+                const validPhotos = (profile.photos || []).map(extractPhotoUrl).filter(Boolean);
                 if (validPhotos.length === 0) {
                   return (
                     <div style={{ marginTop: 16, paddingBottom: 12 }}>
@@ -320,7 +327,6 @@ export default function UserDetailPage() {
               </div>
             </div>
 
-            {/* Verify info */}
             {modal.action === 'verify' && (
               <div style={{ background: '#4fc3f711', border: '1px solid #4fc3f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#4fc3f7', margin: '0 20px 16px' }}>
                 Verify <strong>{profile.username}</strong> — they will receive a ✓ badge next to their name
