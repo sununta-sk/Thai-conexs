@@ -5,6 +5,7 @@ import { supabase } from './lib/supabaseClient';
 import { OnlineProvider } from './context/OnlineContext';
 import BanModal from './components/BanModal';
 import WelcomeModal from './components/WelcomeModal';
+import WarnModal from './components/WarnModal';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
@@ -54,6 +55,7 @@ const AdminFallback = () => <LoadingScreen />;
 const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
   const [banInfo, setBanInfo] = useState(undefined);
+  const [warnInfo, setWarnInfo] = useState(undefined);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -88,14 +90,39 @@ const ProtectedRoute = ({ children }) => {
       });
   }, [session]);
 
+  useEffect(() => {
+    if (session === undefined) return;
+    if (!session) { setWarnInfo(null); return; }
+
+    supabase
+      .from('user_moderation_actions')
+      .select('reason, message_to_user, expires_at')
+      .eq('target_user_id', session.user.id)
+      .eq('action_type', 'warn')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { setWarnInfo(null); return; }
+        setWarnInfo({
+          expiresAt: data.expires_at,
+          reason: data.reason,
+          message: data.message_to_user,
+        });
+      });
+  }, [session]);
+
   if (session === undefined) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
   if (banInfo === undefined) return <LoadingScreen />;
+  if (warnInfo === undefined) return <LoadingScreen />;
 
   return (
     <>
       {children}
       {banInfo && <BanModal bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />}
+      {!banInfo && warnInfo && <WarnModal expiresAt={warnInfo.expiresAt} reason={warnInfo.reason} message={warnInfo.message} />}
     </>
   );
 };
