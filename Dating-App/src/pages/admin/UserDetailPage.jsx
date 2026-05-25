@@ -92,9 +92,19 @@ export default function UserDetailPage() {
         return;
       }
 
-      const expiresAt = modal.action === 'suspend'
-        ? new Date(Date.now() + suspendDays * 86400000).toISOString()
-        : null;
+      let expiresAt = null;
+      if (modal.action === 'suspend') {
+        expiresAt = new Date(Date.now() + suspendDays * 86400000).toISOString();
+      } else if (modal.action === 'warn') {
+        // Escalating: 30min -> 1hr -> 2hr -> 4hr (cap)
+        const { count: prevWarns } = await supabase
+          .from('user_moderation_actions')
+          .select('*', { count: 'exact', head: true })
+          .eq('target_user_id', userId)
+          .eq('action_type', 'warn');
+        const minutes = [30, 60, 120, 240][prevWarns ?? 0] ?? 240;
+        expiresAt = new Date(Date.now() + minutes * 60000).toISOString();
+      }
 
       const { error: logErr } = await supabase.from('user_moderation_actions').insert({
         target_user_id: userId,
