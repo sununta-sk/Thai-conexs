@@ -4,6 +4,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import ReportModal from '../components/ReportModal';
 
 import { optimizeImage } from '../lib/imageUtils';
 function getChatId(uid1, uid2) {
@@ -146,7 +147,9 @@ export default function UserProfilePage() {
   const [profile, setProfile]           = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isSubscriber, setIsSubscriber] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked]               = useState(false);
+  const [passed, setPassed]             = useState(false);
+  const [reportOpen, setReportOpen]     = useState(false);
   const [loading, setLoading]           = useState(true);
 
   // Desktop redirect to chat (this page is mobile-only)
@@ -186,17 +189,16 @@ export default function UserProfilePage() {
       const lk = await supabase.from('user_likes').select('id').eq('liker_id', session.user.id).eq('liked_id', userId).maybeSingle();
       setLiked(Boolean(lk.data));
 
+      const ps = await supabase.from('user_passes').select('id').eq('passer_id', session.user.id).eq('passed_id', userId).maybeSingle();
+      setPassed(Boolean(ps.data));
+
       // Track profile view (don't track if viewing own profile)
       if (session.user.id !== userId) {
-        console.log('[ProfileView] Inserting view:', session.user.id, '->', userId);
         const { error: viewError } = await supabase.from('profile_views').insert({
           viewer_id: session.user.id,
           viewed_id: userId,
         });
         if (viewError) console.error('[ProfileView] ERROR:', viewError);
-        else console.log('[ProfileView] OK');
-      } else {
-        console.log('[ProfileView] Skipped (own profile)');
       }
 
       setLoading(false);
@@ -226,6 +228,7 @@ export default function UserProfilePage() {
 
   const handleSendMessage = () => navigate(`/room-chat/${getChatId(currentUserId, profile.id)}`);
   const handleUpgrade     = () => navigate('/subscription');
+
   const handleLike = async () => {
     if (!currentUserId || !profile?.id) return;
     if (liked) {
@@ -236,6 +239,23 @@ export default function UserProfilePage() {
       if (!r.error) setLiked(true);
     }
   };
+
+  const handlePass = async () => {
+    if (!currentUserId || !profile?.id) return;
+    if (passed) {
+      // Undo pass
+      const r = await supabase.from('user_passes').delete().match({ passer_id: currentUserId, passed_id: profile.id });
+      if (!r.error) setPassed(false);
+    } else {
+      const r = await supabase.from('user_passes').insert({ passer_id: currentUserId, passed_id: profile.id });
+      if (!r.error) {
+        setPassed(true);
+        // Navigate away — they don't want to see this profile
+        setTimeout(() => navigate('/discover'), 400);
+      }
+    }
+  };
+
   const handleBlock = async () => {
     if (!window.confirm(`Block ${profile.username || 'this user'}? You won't see them in Discover or receive messages from them.`)) return;
     const { error } = await supabase.from('user_blocks').insert({ blocker_id: currentUserId, blocked_id: profile.id });
@@ -276,9 +296,20 @@ export default function UserProfilePage() {
         <button style={S.msgBtn} onClick={handleSendMessage}>
           💬 Send Message
         </button>
-        <button style={liked ? S.likedBtn : S.likeBtn} onClick={handleLike}>
-          {liked ? '❤ Liked' : '♡ Like'}
+
+        <div style={S.actionRow}>
+          <button style={liked ? S.likedBtn : S.likeBtn} onClick={handleLike}>
+            {liked ? '❤ Liked' : '♡ Like'}
+          </button>
+          <button style={passed ? S.passedBtn : S.passBtn} onClick={handlePass}>
+            {passed ? '✓ Passed' : '✕ Pass'}
+          </button>
+        </div>
+
+        <button style={S.reportBtn} onClick={() => setReportOpen(true)}>
+          ⚠ Report User
         </button>
+
         <button style={S.blockBtn} onClick={handleBlock}>
           🚫 Block User
         </button>
@@ -320,6 +351,13 @@ export default function UserProfilePage() {
         )}
       </div>
 
+      {reportOpen && (
+        <ReportModal
+          targetUserId={profile.id}
+          targetUsername={profile.username}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -347,8 +385,12 @@ const S = {
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
   msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
-  likeBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 30, color: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  likedBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
+  actionRow: { display: 'flex', gap: 8, marginTop: 10 },
+  likeBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 30, color: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  likedBtn: { flex: 1, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
+  passBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #64748b66', borderRadius: 30, color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  passedBtn: { flex: 1, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
+  reportBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   blockBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
