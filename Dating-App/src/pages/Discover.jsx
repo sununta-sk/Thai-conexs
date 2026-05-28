@@ -88,6 +88,7 @@ export default function Discover() {
   const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
+  const [passedIds, setPassedIds] = useState(new Set());
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,7 +105,6 @@ export default function Discover() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + latitude + '&lon=' + longitude + '&format=json');
         const data = await res.json();
-        // City now manually selected via Province dropdown — only update last_seen_at
         await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
       } catch {}
     }, () => {
@@ -125,12 +125,21 @@ export default function Discover() {
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
       const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified').neq('id', user.id);
-      // Fetch blocked users to filter them out
+
+      // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
       const blockedIds = new Set((blocks || []).map(b => b.blocked_id));
+
+      const { data: passes } = await supabase.from('user_passes').select('passed_id').eq('passer_id', user.id);
+      const passedSet = new Set((passes || []).map(p => p.passed_id));
+      setPassedIds(passedSet);
+
       const { data: likes } = await supabase.from('user_likes').select('liked_id').eq('liker_id', user.id);
       setLikedIds(new Set((likes || []).map(l => l.liked_id)));
-      if (!error && data) setProfiles(data.filter(p => !blockedIds.has(p.id)));
+
+      if (!error && data) {
+        setProfiles(data.filter(p => !blockedIds.has(p.id) && !passedSet.has(p.id)));
+      }
       setLoading(false);
     }
     fetchProfiles();
@@ -160,7 +169,6 @@ export default function Discover() {
       if (filters.onlineOnly && !isOnline) return false;
       if (filters.hasPhoto && !p.avatar_url) return false;
 
-      // Ignore their age range (respect their preferred_age_min/max if set)
       if (!filters.ignoreAgePref && myAge) {
         const minPref = parseInt(d.preferred_age_min);
         const maxPref = parseInt(d.preferred_age_max);
@@ -172,16 +180,13 @@ export default function Discover() {
     });
 
     if (filters.orderBy === 'last_seen') {
-      // Split: users with photos shuffled first, users without photos at bottom
       const hasPhoto = (p) => Boolean(p.avatar_url) || (Array.isArray(p.details?.photos) && p.details.photos.length > 0);
       const withPhotos = result.filter(hasPhoto);
       const withoutPhotos = result.filter(p => !hasPhoto(p));
-      // Fisher-Yates shuffle for users with photos
       for (let i = withPhotos.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
       }
-      // Users without photos: keep sorted by last_seen
       withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
       result = [...withPhotos, ...withoutPhotos];
     } else if (filters.orderBy === 'newest') {
@@ -191,6 +196,7 @@ export default function Discover() {
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
+
   const handleToggleLike = async (targetUserId) => {
     if (!currentUserId) return;
     if (likedIds.has(targetUserId)) {
@@ -201,6 +207,19 @@ export default function Discover() {
       setLikedIds(prev => { const next = new Set(prev); next.add(targetUserId); return next; });
     }
   };
+
+  const handlePass = async (targetUserId) => {
+    if (!currentUserId) return;
+    // Optimistic: remove from grid immediately
+    setProfiles(prev => prev.filter(p => p.id !== targetUserId));
+    setPassedIds(prev => { const next = new Set(prev); next.add(targetUserId); return next; });
+    // Persist
+    const { error } = await supabase.from('user_passes').insert({ passer_id: currentUserId, passed_id: targetUserId });
+    if (error && !String(error.message).includes('duplicate')) {
+      console.error('[Pass] failed:', error.message);
+    }
+  };
+
   const handleCardClick = (targetUserId) => {
     if (!isMobile) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
     else navigate('/profile/' + targetUserId);
@@ -364,7 +383,7 @@ export default function Discover() {
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#64748b' }}>{lastSeen}</div>
                 </div>
                 <div style={S.actions}>
-                  <button type="button" style={S.btnX} onClick={e => e.stopPropagation()}>{tx.hideBtn || 'X'}</button>
+                  <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
                   <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                 </div>
               </div>
