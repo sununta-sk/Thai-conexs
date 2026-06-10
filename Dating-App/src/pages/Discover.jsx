@@ -87,6 +87,8 @@ export default function Discover() {
   const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
   const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState([]);
+  const [likedIds, setLikedIds] = useState(new Set());
+  const [passedIds, setPassedIds] = useState(new Set());
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -103,7 +105,6 @@ export default function Discover() {
         const { latitude, longitude } = pos.coords;
         const res = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + latitude + '&lon=' + longitude + '&format=json');
         const data = await res.json();
-        // City now manually selected via Province dropdown — only update last_seen_at
         await supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId);
       } catch {}
     }, () => {
@@ -124,7 +125,21 @@ export default function Discover() {
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
       const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified').neq('id', user.id);
-      if (!error && data) setProfiles(data);
+
+      // Fetch blocked + passed users to filter them out
+      const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
+      const blockedIds = new Set((blocks || []).map(b => b.blocked_id));
+
+      const { data: passes } = await supabase.from('user_passes').select('passed_id').eq('passer_id', user.id);
+      const passedSet = new Set((passes || []).map(p => p.passed_id));
+      setPassedIds(passedSet);
+
+      const { data: likes } = await supabase.from('user_likes').select('liked_id').eq('liker_id', user.id);
+      setLikedIds(new Set((likes || []).map(l => l.liked_id)));
+
+      if (!error && data) {
+        setProfiles(data.filter(p => !blockedIds.has(p.id) && !passedSet.has(p.id)));
+      }
       setLoading(false);
     }
     fetchProfiles();
@@ -137,7 +152,14 @@ export default function Discover() {
       const d = p.details || {};
       const isOnline = onlineUsers.has(p.id);
 
-      if (filters.gender !== 'all' && d.gender !== filters.gender) return false;
+      if (filters.gender !== 'all') {
+        const g = (d.gender || '').toLowerCase().trim();
+        const isMale = ['male', 'ชาย', 'm', 'man'].includes(g);
+        const isFemale = ['female', 'หญิง', 'f', 'woman'].includes(g);
+        if (filters.gender === 'male' && !isMale) return false;
+        if (filters.gender === 'female' && !isFemale) return false;
+        if (filters.gender === 'other' && (isMale || isFemale || !g)) return false;
+      }
       if (!inRange(d.age, filters.ageRange)) return false;
       if (filters.province !== 'all' && (p.details?.province || '') !== filters.province) return false;
       if (!inRange(d.height, filters.height)) return false;
@@ -147,7 +169,6 @@ export default function Discover() {
       if (filters.onlineOnly && !isOnline) return false;
       if (filters.hasPhoto && !p.avatar_url) return false;
 
-      // Ignore their age range (respect their preferred_age_min/max if set)
       if (!filters.ignoreAgePref && myAge) {
         const minPref = parseInt(d.preferred_age_min);
         const maxPref = parseInt(d.preferred_age_max);
@@ -159,7 +180,15 @@ export default function Discover() {
     });
 
     if (filters.orderBy === 'last_seen') {
-      result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      const hasPhoto = (p) => Boolean(p.avatar_url) || (Array.isArray(p.details?.photos) && p.details.photos.length > 0);
+      const withPhotos = result.filter(hasPhoto);
+      const withoutPhotos = result.filter(p => !hasPhoto(p));
+      for (let i = withPhotos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
+      }
+      withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      result = [...withPhotos, ...withoutPhotos];
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
     }
@@ -167,6 +196,30 @@ export default function Discover() {
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
+
+  const handleToggleLike = async (targetUserId) => {
+    if (!currentUserId) return;
+    if (likedIds.has(targetUserId)) {
+      await supabase.from('user_likes').delete().match({ liker_id: currentUserId, liked_id: targetUserId });
+      setLikedIds(prev => { const next = new Set(prev); next.delete(targetUserId); return next; });
+    } else {
+      await supabase.from('user_likes').insert({ liker_id: currentUserId, liked_id: targetUserId });
+      setLikedIds(prev => { const next = new Set(prev); next.add(targetUserId); return next; });
+    }
+  };
+
+  const handlePass = async (targetUserId) => {
+    if (!currentUserId) return;
+    // Optimistic: remove from grid immediately
+    setProfiles(prev => prev.filter(p => p.id !== targetUserId));
+    setPassedIds(prev => { const next = new Set(prev); next.add(targetUserId); return next; });
+    // Persist
+    const { error } = await supabase.from('user_passes').insert({ passer_id: currentUserId, passed_id: targetUserId });
+    if (error && !String(error.message).includes('duplicate')) {
+      console.error('[Pass] failed:', error.message);
+    }
+  };
+
   const handleCardClick = (targetUserId) => {
     if (!isMobile) navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
     else navigate('/profile/' + targetUserId);
@@ -330,8 +383,8 @@ export default function Discover() {
                   <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#64748b' }}>{lastSeen}</div>
                 </div>
                 <div style={S.actions}>
-                  <button type="button" style={S.btnX} onClick={e => e.stopPropagation()}>{tx.hideBtn || 'X'}</button>
-                  <button type="button" style={S.btnChat} onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>{tx.chatBtn || 'Chat'}</button>
+                  <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
+                  <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                 </div>
               </div>
             );
@@ -417,17 +470,19 @@ const S = {
     maxWidth: '1400px',
     margin: '0 auto',
   },
-  card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)' },
+  card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
-  info: { padding: '8px 8px 4px' },
+  info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   meta: { fontSize: '11px', color: '#94a3b8', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   lastSeen: { fontSize: '10px', marginTop: '1px', fontWeight: 600 },
   actions: { display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '4px', borderTop: '1px solid #334155' },
   btnX: { background: 'none', border: 'none', color: '#64748b', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
   btnChat: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
+  btnLike: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
+  btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 };

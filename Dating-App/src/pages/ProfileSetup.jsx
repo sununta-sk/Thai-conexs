@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
+import PhotoCropper from '../components/PhotoCropper';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -120,8 +121,11 @@ export default function ProfileSetup() {
   const [cameraOpen, setCameraOpen]         = useState(false);
   const [capturedImage, setCapturedImage]   = useState(null);
   const [cameraError, setCameraError]       = useState('');
-  // preferredLang removed - controlled by Navbar toggle
   const [copied, setCopied]                 = useState(false);
+
+  // Photo cropper state
+  const [cropperImage, setCropperImage]     = useState(null); // data URL or http URL
+  const [recropIndex, setRecropIndex]       = useState(null); // null=new upload, number=re-crop existing
 
   const openCamera = async () => {
     setCameraError(''); setCapturedImage(null); setVerifyResult(null); setVerifyMessage('');
@@ -185,29 +189,77 @@ export default function ProfileSetup() {
     fetchProfile();
   }, []);
 
-  const handleUpload = async (e) => {
+  // ─── Photo Upload Flow ──────────────────────────────────────
+  // Step 1: User picks file → read as data URL → open cropper
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = ''; // reset so same file can be selected again
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperImage(reader.result);
+      setRecropIndex(null); // new upload, not re-crop
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Step 2: User opens cropper for an existing photo
+  const handleRecrop = (index) => {
+    const photo = photos[index];
+    if (!photo?.url) return;
+    setCropperImage(photo.url);
+    setRecropIndex(index);
+  };
+
+  // Step 3: Cropper save → upload Blob to storage
+  const handleCropSave = async (blob) => {
     try {
       setUploading(true);
-      const file = e.target.files[0];
-      if (!file) return;
       const { data: { user } } = await supabase.auth.getUser();
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const filePath = `${user.id}/${Date.now()}_${safeName}`;
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+      const filePath = `${user.id}/${Date.now()}_cropped.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, { contentType: 'image/jpeg' });
       if (uploadError) throw uploadError;
+
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      const isFirst = photos.length === 0;
-      setPhotos(prev => [...prev, { url: publicUrl, cropX: 50, cropY: 50, scale: 1 }]);
-      if (isFirst) setMainPhoto(publicUrl);
-      await supabase.from('photo_moderation_queue').insert({
-        user_id: user.id, photo_url: publicUrl,
-        photo_bucket: 'avatars', status: 'pending', is_profile_photo: isFirst,
-      });
+
+      if (recropIndex !== null) {
+        // Re-crop existing: replace photo at index
+        const oldPhoto = photos[recropIndex];
+        const wasMain = oldPhoto?.url === mainPhoto;
+        setPhotos(prev => prev.map((p, i) =>
+          i === recropIndex ? { url: publicUrl, cropX: 50, cropY: 50, scale: 1 } : p
+        ));
+        if (wasMain) setMainPhoto(publicUrl);
+      } else {
+        // New upload
+        const isFirst = photos.length === 0;
+        setPhotos(prev => [...prev, { url: publicUrl, cropX: 50, cropY: 50, scale: 1 }]);
+        if (isFirst) setMainPhoto(publicUrl);
+
+        await supabase.from('photo_moderation_queue').insert({
+          user_id: user.id,
+          photo_url: publicUrl,
+          photo_bucket: 'avatars',
+          status: 'pending',
+          is_profile_photo: isFirst,
+        });
+      }
+
+      setCropperImage(null);
+      setRecropIndex(null);
     } catch (err) {
       alert(err.message);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCropCancel = () => {
+    setCropperImage(null);
+    setRecropIndex(null);
   };
 
   const handleVerify = async () => {
@@ -291,6 +343,9 @@ export default function ProfileSetup() {
       id: user.id, username, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
       lifestyle,
+      city: details.city || null,
+      province: details.province || null,
+      country: details.country || null,
       updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
     }, { onConflict: 'id' });
@@ -309,7 +364,6 @@ export default function ProfileSetup() {
   // ──────────────────────────────────────────────
   const Sidebar = (
     <div style={S.sidebar}>
-      {/* Avatar */}
       <div style={S.avatarWrap}>
         {mainPhoto ? (
           <img src={mainPhoto} alt="me" style={S.avatarImg} />
@@ -321,7 +375,6 @@ export default function ProfileSetup() {
 
       <div style={S.sidebarUsername}>{username || '—'}</div>
 
-      {/* About Me */}
       {bio && (
         <div style={S.sidebarCard}>
           <div style={S.sidebarSection}>{tx.sidebarAbout}</div>
@@ -329,7 +382,6 @@ export default function ProfileSetup() {
         </div>
       )}
 
-      {/* Personal Info Table */}
       <div style={S.sidebarCard}>
         <div style={S.sidebarSection}>{tx.sidebarInfo}</div>
         <table style={S.infoTable}>
@@ -436,7 +488,6 @@ export default function ProfileSetup() {
           <input type="number" placeholder="Max age" value={details.preferred_age_max || ''} onChange={e => setDetails({...details, preferred_age_max: e.target.value})} style={S.input} />
         </div>
       </Field>
-      {/* Lifestyle */}
       {(lifestyle.hobbies?.length > 0 || lifestyle.sleepSchedule || lifestyle.drinking || lifestyle.smoking || lifestyle.exercise || lifestyle.personality) && (
         <div style={S.sidebarCard}>
           <div style={S.sidebarSection}>{tx.sidebarLifestyle}</div>
@@ -462,15 +513,16 @@ export default function ProfileSetup() {
       <SectionTitle>{tx.profilePhotos}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
         {photos.map((p, i) => (
-          <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
+          <div key={i} style={{ aspectRatio: '4/5', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
             <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
             <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} style={S.delBtn}>✕</button>
+            <button onClick={() => handleRecrop(i)} style={S.recropBtn} title="Re-crop">✂</button>
             {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>
         ))}
         {photos.length < 10 && (
           <label style={S.uploadBox}>
-            <input type="file" hidden onChange={handleUpload} accept="image/*" />
+            <input type="file" hidden onChange={handleFileSelect} accept="image/*" />
             {uploading ? '...' : '+'}
           </label>
         )}
@@ -758,11 +810,19 @@ export default function ProfileSetup() {
           </>
         ) : (
           <>
-            {/* Mobile: stacked layout, no separate sidebar */}
             {MainContent}
           </>
         )}
       </div>
+
+      {/* Photo Cropper Modal */}
+      {cropperImage && (
+        <PhotoCropper
+          imageSrc={cropperImage}
+          onCancel={handleCropCancel}
+          onSave={handleCropSave}
+        />
+      )}
     </div>
   );
 }
@@ -777,7 +837,7 @@ const S = {
 
   // Sidebar
   sidebar: { background: '#1e293b', border: '1px solid #334155', borderRadius: 16, padding: 20, position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 14 },
-  avatarWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: 16, overflow: 'hidden', background: '#0f172a', border: '1px solid #334155' },
+  avatarWrap: { position: 'relative', width: '100%', aspectRatio: '4/5', borderRadius: 16, overflow: 'hidden', background: '#0f172a', border: '1px solid #334155' },
   avatarImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   avatarPlaceholder: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: '#475569' },
   verifiedRibbon: { position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: '#e91e63', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' },
@@ -797,11 +857,12 @@ const S = {
   // Form elements
   label:     { display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#94a3b8' },
   input:     { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
-  delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.75)', color: '#fff', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', fontSize: '10px' },
+  delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.75)', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 },
+  recropBtn: { position: 'absolute', top: 5, left: 5, background: 'rgba(233, 30, 99, 0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.4)' },
   mainBadge: { position: 'absolute', bottom: 5, left: 5, background: '#e91e63', color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 6 },
-  uploadBox: { aspectRatio: '1/1', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: '#64748b', background: '#0f172a' },
+  uploadBox: { aspectRatio: '4/5', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: '#64748b', background: '#0f172a' },
 
-  // TCN Referral card (now in MAIN, after lifestyle)
+  // TCN Referral card
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },

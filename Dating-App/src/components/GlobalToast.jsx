@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 let _audioCtx = null;
 function getAudioCtx() {
@@ -40,7 +41,9 @@ function getChatId(uid1, uid2) {
 export default function GlobalToast() {
   const [toasts, setToasts] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [isSubscriber, setIsSubscriber] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const toastIdRef = useRef(0);
   const userIdRef = useRef(null);
   const navigateRef = useRef(navigate);
@@ -52,6 +55,10 @@ export default function GlobalToast() {
         setUserId(data.user.id);
         userIdRef.current = data.user.id;
         console.log('[Toast] My userId:', data.user.id);
+        supabase.from('profiles').select('subscription_plan').eq('id', data.user.id).maybeSingle().then(({ data: prof }) => {
+          const plan = prof?.subscription_plan;
+          setIsSubscriber(plan === 'gold' || plan === 'platinum');
+        });
       }
     });
   }, []);
@@ -65,7 +72,7 @@ export default function GlobalToast() {
       playDing();
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
-      }, 12000);
+      }, 8000);
     };
 
     console.log('[Toast] Subscribing for userId:', userId);
@@ -128,29 +135,55 @@ export default function GlobalToast() {
         })
       .subscribe((status) => console.log('[Toast] View channel:', status));
 
+    const likeChannel = supabase
+      .channel('global-like-' + userId)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'user_likes', filter: 'liked_id=eq.' + userId },
+        async (payload) => {
+          const isInsert = payload.eventType === 'INSERT';
+          const lk = isInsert ? payload.new : payload.old;
+          if (!lk || lk.liker_id === userIdRef.current) return;
+          const likerResult = await supabase.from('profiles')
+            .select('username, avatar_url')
+            .eq('id', lk.liker_id)
+            .maybeSingle();
+          const liker = likerResult.data;
+          const chatId = getChatId(userIdRef.current, lk.liker_id);
+          addToast({
+            type: 'like',
+            avatar: liker ? liker.avatar_url : null,
+            name: liker ? (liker.username || 'Someone') : 'Someone',
+            text: isInsert ? 'liked you!' : 'unliked you',
+            onClick: () => navigateRef.current(isSubscriber ? '/room-chat/' + chatId : '/subscription'),
+          });
+        })
+      .subscribe((status) => console.log('[Toast] Like channel:', status));
     return () => {
       console.log('[Toast] Cleaning up subscriptions');
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(viewChannel);
+      supabase.removeChannel(likeChannel);
     };
   }, [userId]);
 
   if (toasts.length === 0) return null;
 
   return (
-    <div style={S.wrap}>
+    <div style={isMobile ? S.wrapMobile : S.wrap}>
       {toasts.map(t => (
-        <div key={t.id} style={S.toast} onClick={t.onClick}>
+        <div key={t.id} style={isMobile ? S.toastMobile : S.toast} onClick={t.onClick}>
           <img src={t.avatar || 'https://placehold.co/48x48/1e293b/94a3b8?text=?'} alt="" style={S.avatar} />
           <div style={S.body}>
             <div style={S.name}>{t.name}</div>
             <div style={S.text}>{t.text}</div>
           </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); setToasts(prev => prev.filter(x => x.id !== t.id)); }}
-            style={S.closeBtn}>
-            X
-          </button>
+          {!isMobile && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setToasts(prev => prev.filter(x => x.id !== t.id)); }}
+              style={S.closeBtn}>
+              X
+            </button>
+          )}
         </div>
       ))}
     </div>
@@ -167,6 +200,33 @@ const S = {
     flexDirection: 'column',
     gap: 10,
     pointerEvents: 'none',
+  },
+  wrapMobile: {
+    position: 'fixed',
+    top: 12,
+    left: 12,
+    right: 12,
+    zIndex: 9999,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 6,
+    pointerEvents: 'none',
+    alignItems: 'center',
+  },
+  toastMobile: {
+    pointerEvents: 'auto',
+    background: 'rgba(30, 41, 59, 0.96)',
+    backdropFilter: 'blur(8px)',
+    border: '1px solid rgba(233, 30, 99, 0.4)',
+    borderRadius: 999,
+    padding: '6px 14px 6px 6px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    maxWidth: 320,
+    cursor: 'pointer',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+    animation: 'slideInTop 0.25s ease-out',
   },
   toast: {
     pointerEvents: 'auto',
@@ -210,7 +270,7 @@ if (typeof document !== 'undefined') {
   if (!document.getElementById(styleId)) {
     const styleEl = document.createElement('style');
     styleEl.id = styleId;
-    styleEl.textContent = '@keyframes slideInLeft { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }';
+    styleEl.textContent = '@keyframes slideInLeft { from { transform: translateX(-120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } } @keyframes slideInTop { from { transform: translateY(-120%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }';
     document.head.appendChild(styleEl);
   }
 }

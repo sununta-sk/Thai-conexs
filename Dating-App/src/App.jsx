@@ -3,12 +3,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { OnlineProvider } from './context/OnlineContext';
+import BanModal from './components/BanModal';
+import WelcomeModal from './components/WelcomeModal';
+import WarnModal from './components/WarnModal';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
 import CheckEmail   from './pages/CheckEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
+import RulesPage from './pages/RulesPage';
 import ProfileSetup from './pages/ProfileSetup';
 import AccountSettings from './pages/AccountSettings';
 import HelpPage from './pages/HelpPage';
@@ -50,6 +54,9 @@ const AdminFallback = () => <LoadingScreen />;
 
 const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
+  const [banInfo, setBanInfo] = useState(undefined);
+  const [warnInfo, setWarnInfo] = useState(undefined);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
@@ -58,9 +65,66 @@ const ProtectedRoute = ({ children }) => {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (session === undefined) return;
+    if (!session) { setBanInfo(null); return; }
+
+    supabase
+      .from('profiles')
+      .select('banned_until, ban_reason')
+      .eq('id', session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { setBanInfo(null); return; }
+        const now = Date.now();
+        const banUntil = data.banned_until ? new Date(data.banned_until).getTime() : null;
+        const reason = data.ban_reason;
+        const isPermanent = !banUntil && reason;
+        const isTemporary = banUntil && banUntil > now;
+        if (isPermanent || isTemporary) {
+          setBanInfo({ bannedUntil: data.banned_until, banReason: reason });
+        } else {
+          setBanInfo(null);
+        }
+      });
+  }, [session]);
+
+  useEffect(() => {
+    if (session === undefined) return;
+    if (!session) { setWarnInfo(null); return; }
+
+    supabase
+      .from('user_moderation_actions')
+      .select('reason, message_to_user, expires_at')
+      .eq('target_user_id', session.user.id)
+      .eq('action_type', 'warn')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { setWarnInfo(null); return; }
+        setWarnInfo({
+          expiresAt: data.expires_at,
+          reason: data.reason,
+          message: data.message_to_user,
+        });
+      });
+  }, [session]);
+
   if (session === undefined) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
-  return children;
+  if (banInfo === undefined) return <LoadingScreen />;
+  if (warnInfo === undefined) return <LoadingScreen />;
+
+  return (
+    <>
+      {children}
+      {banInfo && <BanModal bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />}
+      {!banInfo && warnInfo && <WarnModal expiresAt={warnInfo.expiresAt} reason={warnInfo.reason} message={warnInfo.message} />}
+    </>
+  );
 };
 
 function AdminRoute({ children }) {
@@ -163,6 +227,7 @@ function AppContent() {
             <Route path="/check-email" element={<CheckEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/rules" element={<RulesPage />} />
 
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
@@ -208,6 +273,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </div>
+      <WelcomeModal />
       <GlobalToast />
       {!hideNavbar && <Navbar />}
     </div>

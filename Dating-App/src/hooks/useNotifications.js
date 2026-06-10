@@ -9,7 +9,7 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState(null);
-  const [fcmPermission, setFcmPermission] = useState(Notification?.permission || "default");
+  const [fcmPermission, setFcmPermission] = useState(typeof Notification !== 'undefined' ? Notification.permission : "default");
   const sessionRef = useRef(null);
   const unsubFcmRef = useRef(null);
 
@@ -116,7 +116,7 @@ export const useNotifications = () => {
 
   const requestPermission = useCallback(async () => {
     const token = await requestFCMToken();
-    const perm = Notification?.permission || "default";
+    const perm = typeof Notification !== 'undefined' ? Notification.permission : "default";
     setFcmPermission(perm);
     if (token) await saveFCMToken(token);
     return token;
@@ -127,7 +127,7 @@ export const useNotifications = () => {
     loadPreferences();
 
     (async () => {
-      if (Notification?.permission === "granted") {
+      if (typeof Notification !== 'undefined' && Notification.permission === "granted") {
         const token = await requestFCMToken();
         if (token) await saveFCMToken(token);
       }

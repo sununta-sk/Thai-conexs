@@ -514,7 +514,7 @@ export default function MobileRoomChat() {
 
 // ── Styles ──
 const S = {
-  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", top: 0, left: 0, right: 0 },
   loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", minHeight: "100dvh", background: "#0f172a", gap: 8 },
   dot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
 
@@ -532,7 +532,7 @@ const S = {
   menuDropdown: { position: "absolute", right: 0, top: "110%", background: "#1e293b", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", zIndex: 100, minWidth: 160, overflow: "hidden", border: "1px solid #334155" },
 
   // Messages
-  messageArea: { flex: 1, overflowY: "auto", padding: "12px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
+  messageArea: { flex: 1, overflowY: "auto", padding: "12px 12px 8px", display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 4, background: "#0f172a" },
   emptyState: { textAlign: "center", color: "#64748b", fontSize: 14, marginTop: 40, fontWeight: 600 },
   separator: { textAlign: "center", color: "#64748b", fontSize: 11, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },
   msgRow: { display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 2 },

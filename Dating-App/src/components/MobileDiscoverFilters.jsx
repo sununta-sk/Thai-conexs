@@ -42,8 +42,9 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
         background: '#1e293b',
         borderBottom: '1px solid #334155',
         padding: 12,
-        position: 'relative',
-        zIndex: 2,
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
       }}>
       <button
         type="button"

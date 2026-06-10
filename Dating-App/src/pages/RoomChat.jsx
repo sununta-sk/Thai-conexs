@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
 
 // ── Sound notifications ──
@@ -162,7 +163,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -206,6 +207,9 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
           {education && <span style={DS.chip}>🎓 {education}</span>}
           {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
         </div>
+
+        <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
+        <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
       </div>
     </div>
   );
@@ -225,6 +229,9 @@ const DS = {
   bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
+  likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -279,6 +286,7 @@ function RoomChatDesktop() {
   const { chatId } = useParams();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop(900);
+  const { lang } = useTranslation(['common']);
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -301,10 +309,18 @@ function RoomChatDesktop() {
     await supabase.from('content_reports').insert({ reporter_id: session.user.id, reported_user_id: otherUserId, report_type: reportReason, status: 'open' });
     setShowReport(false); setReportReason(''); alert('ส่ง Report เรียบร้อยแล้ว');
   };
+  const submitBlock = async () => {
+    if (!session || !otherUserId) return;
+    if (!window.confirm("Block this user? You won't see them in Discover or receive messages.")) return;
+    const r = await supabase.from('user_blocks').insert({ blocker_id: session.user.id, blocked_id: otherUserId });
+    if (r.error) { alert('Failed to block: ' + r.error.message); return; }
+    alert('User blocked successfully');
+    navigate('/discover');
+  };
   const submitTicket = async () => {
     if (!ticketMsg || !session) return;
     await supabase.from('support_tickets').insert({ user_id: session.user.id, subject: 'Chat issue', message: ticketMsg, status: 'open', priority: 'medium' });
-    setShowTicket(false); setTicketMsg(''); alert('ส่ง Ticket เรียบร้อยแล้ว');
+    setShowTicket(false); setTicketMsg(''); alert(lang === 'th' ? 'ส่ง Ticket เรียบร้อยแล้ว' : 'Ticket sent successfully');
   };
 
   const bottomRef = useRef(null);
@@ -348,6 +364,21 @@ function RoomChatDesktop() {
   }, [session]);
 
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
+  const [liked, setLiked] = useState(false);
+  const handleLike = async () => {
+    if (!session || !otherUserId) return;
+    if (liked) {
+      const r = await supabase.from('user_likes').delete().match({ liker_id: session.user.id, liked_id: otherUserId });
+      if (!r.error) setLiked(false);
+    } else {
+      const r = await supabase.from('user_likes').insert({ liker_id: session.user.id, liked_id: otherUserId });
+      if (!r.error) setLiked(true);
+    }
+  };
+  useEffect(() => {
+    if (!session || !otherUserId) return;
+    supabase.from('user_likes').select('id').eq('liker_id', session.user.id).eq('liked_id', otherUserId).maybeSingle().then(({ data }) => setLiked(Boolean(data)));
+  }, [session, otherUserId]);
 
   useEffect(() => {
     if (!otherUserId || !session) return;
@@ -535,7 +566,7 @@ function RoomChatDesktop() {
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowTicket(false)}>
             <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
               <div style={{fontWeight:700,marginBottom:12,color:'#f1f5f9'}}>Support Ticket</div>
-              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder="อธิบายปัญหา..." style={{width:'100%',height:100,borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',padding:8,fontSize:14,resize:'none'}} />
+              <textarea value={ticketMsg} onChange={e => setTicketMsg(e.target.value)} placeholder={lang === 'th' ? 'อธิบายปัญหา...' : 'Describe the issue...'} style={{width:'100%',height:100,borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',padding:8,fontSize:14,resize:'none'}} />
               <button onClick={submitTicket} style={{marginTop:12,width:'100%',padding:'10px',background:'#e91e63',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600}}>Send Ticket</button>
             </div>
           </div>
@@ -638,6 +669,9 @@ function RoomChatDesktop() {
           onlineStatusText={onlineStatusText}
           isSubscriber={isSubscriber}
           onUpgrade={handleUpgrade}
+          onBlock={submitBlock}
+          liked={liked}
+          onLike={handleLike}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}

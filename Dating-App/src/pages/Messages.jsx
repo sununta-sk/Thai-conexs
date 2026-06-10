@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { supabase } from "../lib/supabaseClient";
 
 export default function Messages() {
@@ -8,6 +9,7 @@ export default function Messages() {
   const [activeTab, setActiveTab] = useState("Inbox");
   const [myId, setMyId] = useState(null);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchChats = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -29,7 +31,8 @@ export default function Messages() {
       const rid = m.room_id || m.chat_id;
       const otherId = rid.split('_').find(id => id !== uid);
       const { data: prof } = await supabase.from('profiles').select('username, avatar_url').eq('id', otherId).maybeSingle();
-      return { roomId: rid, content: m.content, time: m.created_at, user: prof, senderId: m.sender_id };
+      const unreadCount = msgs.filter(x => (x.room_id || x.chat_id) === rid && x.sender_id !== uid && !x.is_read).length;
+      return { roomId: rid, content: m.content, time: m.created_at, user: prof, senderId: m.sender_id, unreadCount };
     }));
     setChats(formatted);
     setLoading(false);
@@ -48,7 +51,7 @@ export default function Messages() {
   );
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: 90 }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: isMobile ? 0 : 90 }}>
       {/* Tabs */}
       <div style={{ display: 'flex', background: '#1e293b', borderBottom: '1px solid #334155', textAlign: 'center' }}>
         {['Inbox', 'Outbox'].map(t => (
@@ -73,7 +76,7 @@ export default function Messages() {
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>💬</div>
-          <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? 'ยังไม่มีข้อความเข้า' : 'ยังไม่มีข้อความออก'}</p>
+          <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? 'No incoming messages yet' : 'No outgoing messages yet'}</p>
         </div>
       ) : (
         filtered.map((c, i) => (
@@ -92,6 +95,11 @@ export default function Messages() {
               <div style={{ fontWeight: 'bold', color: '#f1f5f9' }}>{c.user?.username || 'User'}</div>
               <div style={{ color: '#94a3b8', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.content}</div>
             </div>
+            {c.unreadCount > 0 && (
+              <div style={{ background: '#e91e63', color: '#fff', borderRadius: '50%', minWidth: 24, height: 24, padding: '0 7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, marginLeft: 8 }}>
+                {c.unreadCount}
+              </div>
+            )}
           </div>
         ))
       )}

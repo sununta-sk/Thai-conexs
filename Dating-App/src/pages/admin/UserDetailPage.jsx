@@ -92,13 +92,31 @@ export default function UserDetailPage() {
         return;
       }
 
-      const expiresAt = modal.action === 'suspend'
-        ? new Date(Date.now() + suspendDays * 86400000).toISOString()
-        : null;
+      // ── Look up admin_users row (FK requires admin_users.id, not auth.users.id) ──
+      const { data: adminRow, error: adminErr } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+      if (adminErr || !adminRow) throw new Error('Admin record not found for current user');
+
+      let expiresAt = null;
+      if (modal.action === 'suspend') {
+        expiresAt = new Date(Date.now() + suspendDays * 86400000).toISOString();
+      } else if (modal.action === 'warn') {
+        // Escalating: 30min -> 1hr -> 2hr -> 4hr (cap)
+        const { count: prevWarns } = await supabase
+          .from('user_moderation_actions')
+          .select('*', { count: 'exact', head: true })
+          .eq('target_user_id', userId)
+          .eq('action_type', 'warn');
+        const minutes = [30, 60, 120, 240][prevWarns ?? 0] ?? 240;
+        expiresAt = new Date(Date.now() + minutes * 60000).toISOString();
+      }
 
       const { error: logErr } = await supabase.from('user_moderation_actions').insert({
         target_user_id: userId,
-        admin_user_id:  user.id,
+        admin_user_id:  adminRow.id,
         action_type:    modal.action,
         reason:         reason.trim() || null,
         message_to_user: msgToUser.trim() || null,
@@ -205,16 +223,40 @@ export default function UserDetailPage() {
               <Row label="Language"  value={profile.preferred_lang} />
               <Row label="Verified"  value={profile.is_verified ? 'Yes ✅' : 'No ❌'} />
               <Row label="Status"    value={accountStatus.toUpperCase()} />
-              {profile.photos?.length > 0 && (
-                <div style={{ marginTop: 16, paddingBottom: 12 }}>
-                  <div style={S.rowLabel}>Photos</div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                    {profile.photos.map((p, i) => (
-                      <img key={i} src={typeof p === 'string' ? p : p?.url} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #334155' }} alt="" />
-                    ))}
+              {(() => {
+                function extractPhotoUrl(p) {
+                  if (!p) return null;
+                  if (typeof p === 'string') {
+                    if (p.trim().startsWith('{')) {
+                      try { return JSON.parse(p)?.url || null; } catch { return null; }
+                    }
+                    return p.startsWith('http') ? p : null;
+                  }
+                  if (typeof p === 'object') return p.url || p.path || null;
+                  return null;
+                }
+                const validPhotos = (profile.photos || []).map(extractPhotoUrl).filter(Boolean);
+                if (validPhotos.length === 0) {
+                  return (
+                    <div style={{ marginTop: 16, paddingBottom: 12 }}>
+                      <div style={S.rowLabel}>Photos</div>
+                      <div style={{ color: '#64748b', fontSize: 13, marginTop: 4 }}>No photos uploaded</div>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ marginTop: 16, paddingBottom: 12 }}>
+                    <div style={S.rowLabel}>Photos ({validPhotos.length})</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                      {validPhotos.map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid #334155', cursor: 'pointer' }} alt="" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 
@@ -285,7 +327,6 @@ export default function UserDetailPage() {
               </div>
             </div>
 
-            {/* Verify info */}
             {modal.action === 'verify' && (
               <div style={{ background: '#4fc3f711', border: '1px solid #4fc3f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#4fc3f7', margin: '0 20px 16px' }}>
                 Verify <strong>{profile.username}</strong> — they will receive a ✓ badge next to their name
