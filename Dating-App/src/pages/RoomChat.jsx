@@ -7,6 +7,7 @@ import data from "@emoji-mart/data";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
+import { optimizeImage } from "../lib/imageUtils";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -99,20 +100,25 @@ function useIsDesktop(breakpoint = 900) {
 
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
-  if (!photos || photos.length === 0) {
+
+  const validPhotos = (photos || []).filter(p => typeof p === 'string' && p.startsWith('http'));
+
+  if (validPhotos.length === 0) {
     return <div style={SC.noPhoto}>No photos</div>;
   }
-  const prev = () => setCurrent(i => (i - 1 + photos.length) % photos.length);
-  const next = () => setCurrent(i => (i + 1) % photos.length);
+  const prev = () => setCurrent(i => (i - 1 + validPhotos.length) % validPhotos.length);
+  const next = () => setCurrent(i => (i + 1) % validPhotos.length);
   const isLocked = !isSubscriber && current >= FREE_LIMIT;
+  const src = optimizeImage(validPhotos[current], { width: 800, quality: 80 });
 
   return (
     <div style={SC.wrap}>
       <img
         key={current}
-        src={photos[current]}
-        alt={`photo-${current}`}
+        src={src}
+        alt=""
         style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+        onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = '#1e293b'; }}
       />
 
       {isLocked && (
@@ -126,20 +132,20 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         </div>
       )}
 
-      {photos.length > 1 && (
+      {validPhotos.length > 1 && (
         <>
           <button style={{ ...SC.arrow, left: 8 }} onClick={prev}>‹</button>
           <button style={{ ...SC.arrow, right: 8 }} onClick={next}>›</button>
-          <div style={SC.counter}>{current + 1} / {photos.length}</div>
+          <div style={SC.counter}>{current + 1} / {validPhotos.length}</div>
           <div style={SC.dots}>
-            {photos.map((_, i) => (
+            {validPhotos.map((_, i) => (
               <div key={i} style={{ ...SC.dot, background: i === current ? '#e91e63' : 'rgba(255,255,255,0.6)' }} onClick={() => setCurrent(i)} />
             ))}
           </div>
         </>
       )}
 
-      {!isSubscriber && photos.length > FREE_LIMIT && (
+      {!isSubscriber && validPhotos.length > FREE_LIMIT && (
         <div style={SC.freeBadge}>🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free</div>
       )}
     </div>
