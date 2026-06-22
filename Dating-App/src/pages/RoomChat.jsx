@@ -101,7 +101,11 @@ function useIsDesktop(breakpoint = 900) {
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
 
-  const validPhotos = (photos || []).filter(p => typeof p === 'string' && p.startsWith('http'));
+  const validPhotos = (photos || []).filter(p => {
+    if (!p || typeof p !== 'string') return false;
+    if (p.startsWith('http')) return true;
+    return false;
+  });
 
   if (validPhotos.length === 0) {
     return <div style={SC.noPhoto}>No photos</div>;
@@ -109,7 +113,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const prev = () => setCurrent(i => (i - 1 + validPhotos.length) % validPhotos.length);
   const next = () => setCurrent(i => (i + 1) % validPhotos.length);
   const isLocked = !isSubscriber && current >= FREE_LIMIT;
-  const src = optimizeImage(validPhotos[current], { width: 800, quality: 80 });
+  const src = validPhotos[current];
 
   return (
     <div style={SC.wrap}>
@@ -118,7 +122,9 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         src={src}
         alt=""
         style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
-        onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = '#1e293b'; }}
+        onError={(e) => {
+          e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
+        }}
       />
 
       {isLocked && (

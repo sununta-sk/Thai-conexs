@@ -340,7 +340,7 @@ export default function MobileRoomChat() {
 
         <div style={S.avatarWrap} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           {avatarUrl
-            ? <img src={optimizeImage(avatarUrl, { width: 80, quality: 80 })} alt="" style={S.avatar} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
+            ? <img src={avatarUrl} alt="" style={S.avatar} onError={(e) => { e.target.style.display = 'none'; }} />
             : <div style={S.avatarFallback}>{(otherProfile?.username?.[0] ?? "?").toUpperCase()}</div>}
           <div style={{ ...S.presenceDot, background: isOnline ? "#4caf50" : "#64748b" }} />
         </div>
@@ -383,7 +383,7 @@ export default function MobileRoomChat() {
               {showSep && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
                 {!isMine && (
-                  <img src={optimizeImage(otherProfile?.avatar_url ?? "", { width: 60, quality: 80 })} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = 'none'; }}
+                  <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = 'none'; }}
                     onError={e => { e.target.style.display = "none"; }} />
                 )}
                 <div className="mc-bubble" style={{
