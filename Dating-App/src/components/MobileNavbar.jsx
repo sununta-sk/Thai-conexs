@@ -40,12 +40,13 @@ export default function MobileNavbar() {
   const menuRef = useRef(null);
   const unreadCount = useUnreadCount();
 
-  // Body padding so content doesn't hide behind fixed bars
+  // Body padding so content doesn't hide behind fixed bars (includes safe area)
   useEffect(() => {
     const b = document.body.style;
     const origTop = b.paddingTop;
     const origBot = b.paddingBottom;
-    b.paddingTop = `${TOP_H}px`;
+    const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0', 10) || 0;
+    b.paddingTop = `${TOP_H + safeTop}px`;
     b.paddingBottom = `${BOTTOM_H}px`;
     return () => {
       b.paddingTop = origTop;
@@ -111,10 +112,14 @@ export default function MobileNavbar() {
       {/* Top bar */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
-        height: TOP_H, background: '#0f172a',
-        display: 'flex', alignItems: 'center', padding: '0 6px', gap: 4,
+        height: `calc(${TOP_H}px + env(safe-area-inset-top))`,
+        background: '#0f172a',
+        display: 'flex', alignItems: 'flex-end', padding: '0 6px', gap: 4,
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 0,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        boxSizing: 'border-box',
       }}>
         <img
           src={logoImg} alt="Thai Conexns"
@@ -145,10 +150,13 @@ export default function MobileNavbar() {
       {/* Bottom nav */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        height: BOTTOM_H, background: '#0f172a',
+        height: `calc(${BOTTOM_H}px + env(safe-area-inset-bottom))`,
+        background: '#0f172a',
         borderTop: '1px solid #334155', zIndex: 1000,
-        display: 'flex', alignItems: 'stretch',
+        display: 'flex', alignItems: 'flex-start',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         boxShadow: '0 -2px 10px rgba(0,0,0,0.3)',
+        boxSizing: 'border-box',
       }}>
         <button onClick={() => goTo('/discover')} style={navBtn(isActive('/discover'))}>
           <span style={{ fontSize: 22 }}>🔍</span>

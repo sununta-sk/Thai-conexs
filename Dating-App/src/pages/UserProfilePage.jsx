@@ -120,8 +120,8 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 }
 
 const C = {
-  wrap: { position: 'relative', width: '100%', maxWidth: 480, margin: '0 auto' },
-  slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
+  wrap: { position: 'relative', width: '100%' },
+  slider: { position: 'relative', width: '100%', aspectRatio: '4 / 5', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none', WebkitUserDrag: 'none', transition: 'filter 0.3s, transform 0.3s' },
   gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)', pointerEvents: 'none' },
   arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
@@ -372,11 +372,11 @@ function Chip({ icon, label }) {
 }
 
 const S = {
-  page: { minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 40 },
+  page: { minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 100 },
   loadWrap: { minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: 32, height: 32, border: '3px solid rgba(233,30,99,0.2)', borderTopColor: '#e91e63', borderRadius: '50%', animation: 'spin 0.7s linear infinite' },
-  backBtn: { position: 'fixed', top: 14, left: 14, zIndex: 50, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.3)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
-  card: { maxWidth: 480, margin: '0 auto', background: '#1e293b', borderRadius: '0 0 24px 24px', padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #334155', borderTop: 'none' },
+  backBtn: { position: 'fixed', top: 'calc(env(safe-area-inset-top) + 14px)', left: 14, zIndex: 50, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.3)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  card: { maxWidth: 480, margin: '0 auto', background: '#1e293b', borderRadius: 24, padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #334155', marginTop: 12 },
   nameRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   name: { fontSize: 24, fontWeight: 800, color: '#f1f5f9' },
   ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
