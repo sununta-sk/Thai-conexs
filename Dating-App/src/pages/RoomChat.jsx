@@ -101,11 +101,7 @@ function useIsDesktop(breakpoint = 900) {
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
 
-  const validPhotos = (photos || []).filter(p => {
-    if (!p || typeof p !== 'string') return false;
-    if (p.startsWith('http')) return true;
-    return false;
-  });
+  const validPhotos = (photos || []).map(extractPhotoUrl).filter(p => p && p.startsWith('http'));
 
   if (validPhotos.length === 0) {
     return <div style={SC.noPhoto}>No photos</div>;
@@ -495,7 +491,8 @@ function RoomChatDesktop() {
   const profileCity   = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const allPhotos = [...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []), ...photoUrls.filter(u => u !== otherProfile?.avatar_url)];
+  const avatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
+  const allPhotos = [...(avatarUrl ? [avatarUrl] : []), ...photoUrls.filter(u => u !== avatarUrl)];
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
