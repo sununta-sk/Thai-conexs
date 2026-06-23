@@ -384,6 +384,7 @@ export default function Discover() {
                 </div>
                 <div style={S.actions}>
                   <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
+                  <button type="button" style={S.btnChat} title="Chat" onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
                   <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                 </div>
               </div>
