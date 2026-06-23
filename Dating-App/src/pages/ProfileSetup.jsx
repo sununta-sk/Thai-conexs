@@ -790,6 +790,10 @@ export default function ProfileSetup() {
 
       <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
 
+      <button onClick={() => navigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
+        💸 {lang === 'th' ? 'ถอนเงิน / Request Payout' : 'Request Payout'} · €{balance}
+      </button>
+
 
       <button onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }} style={S.logoutBtn}>
         {tx.logoutBtn}

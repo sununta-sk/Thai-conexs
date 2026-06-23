@@ -39,6 +39,7 @@ const TicketsPage       = lazy(() => import('./pages/admin/TicketsPage'));
 const AffiliateDetailPage    = lazy(() => import('./pages/admin/AffiliateDetailPage'));
 const PayoutListPage         = lazy(() => import('./pages/admin/PayoutListPage'));
 const PayoutRequestPage      = lazy(() => import('./pages/admin/PayoutRequestPage'));
+const UserPayoutPage         = lazy(() => import('./pages/UserPayoutPage'));
 const CommissionSettingsPage = lazy(() => import('./pages/admin/CommissionSettingsPage'));
 const AnalyticsDashboardPage    = lazy(() => import('./pages/admin/AnalyticsDashboardPage'));
 const SubscriptionPage          = lazy(() => import('./pages/admin/SubscriptionPage'));
@@ -232,6 +233,7 @@ function AppContent() {
             <Route path="/discover"          element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/messages"          element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/profile-setup"     element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+            <Route path="/payout"           element={<ProtectedRoute><UserPayoutPage /></ProtectedRoute>} />
             <Route path="/account-settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
             <Route path="/help"             element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
             <Route path="/room-chat/:chatId" element={<RoomChat />} />
