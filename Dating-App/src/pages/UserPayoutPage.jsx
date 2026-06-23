@@ -54,7 +54,7 @@ export default function UserPayoutPage() {
     if (aff) {
       const { data: hist } = await supabase
         .from('affiliate_payouts')
-        .select('id, total_amount, currency, status, payment_method, requested_at, paid_at, review_notes')
+        .select('id, total_amount, currency, status, payment_method, payment_detail, requested_at, paid_at, review_notes')
         .eq('affiliate_id', aff.id)
         .order('requested_at', { ascending: false })
         .limit(10);
@@ -107,6 +107,7 @@ export default function UserPayoutPage() {
       total_amount:   balance,
       currency:       'EUR',
       payment_method: method,
+      payment_detail: detail.trim() || null,
       status:         'pending',
       requested_at:   new Date().toISOString(),
       review_notes:   note || null,
@@ -117,7 +118,7 @@ export default function UserPayoutPage() {
       // reload history
       const { data: hist } = await supabase
         .from('affiliate_payouts')
-        .select('id, total_amount, currency, status, payment_method, requested_at, paid_at, review_notes')
+        .select('id, total_amount, currency, status, payment_method, payment_detail, requested_at, paid_at, review_notes')
         .eq('affiliate_id', affId)
         .order('requested_at', { ascending: false })
         .limit(10);
@@ -253,6 +254,7 @@ export default function UserPayoutPage() {
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
                         {h.payment_method} · {new Date(h.requested_at).toLocaleDateString('th-TH')}
                       </div>
+                      {h.payment_detail && <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>📋 {h.payment_detail}</div>}
                       {h.review_notes && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 2 }}>📝 {h.review_notes}</div>}
                     </div>
                     <div style={{ ...Sx.statusPill, ...statusColor(h.status) }}>{h.status}</div>
