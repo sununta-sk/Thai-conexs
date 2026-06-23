@@ -305,7 +305,8 @@ export default function MobileRoomChat() {
   const profileCity = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const allPhotos = [...(otherProfile?.avatar_url ? [otherProfile.avatar_url] : []), ...photoUrls.filter(u => u !== otherProfile?.avatar_url)];
+  const extractedAvatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
+  const allPhotos = [...(extractedAvatarUrl ? [extractedAvatarUrl] : []), ...photoUrls.filter(u => u !== extractedAvatarUrl)];
   const avatarUrl = allPhotos[0] || null;
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
@@ -383,8 +384,7 @@ export default function MobileRoomChat() {
               {showSep && <div style={S.separator}>{formatDateSeparator(msg.created_at)}</div>}
               <div style={{ ...S.msgRow, justifyContent: isMine ? "flex-end" : "flex-start" }}>
                 {!isMine && (
-                  <img src={otherProfile?.avatar_url ?? ""} alt="" style={S.msgAvatar} onError={(e) => { e.target.style.display = 'none'; }}
-                    onError={e => { e.target.style.display = "none"; }} />
+                  <img src={avatarUrl ?? ""} alt="" style={S.msgAvatar} onError={e => { e.target.style.display = "none"; }} />
                 )}
                 <div className="mc-bubble" style={{
                   ...S.bubble,
