@@ -162,13 +162,13 @@ export default function PayoutListPage() {
                       onChange={e => setSelected(e.target.checked ? new Set(filtered.map(p => p.id)) : new Set())}
                       style={S.checkbox} />
                   </th>
-                  {['Affiliate', 'Amount', 'Method', 'Status', 'Requested', 'Actions'].map(h =>
+                  {['Affiliate', 'Amount', 'Method', 'Payment Detail', 'Status', 'Requested', 'Actions'].map(h =>
                     <th key={h} style={S.th}>{h}</th>)}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 && (
-                  <tr><td colSpan={7} style={S.emptyCell}>No payouts found</td></tr>
+                  <tr><td colSpan={8} style={S.emptyCell}>No payouts found</td></tr>
                 )}
                 {filtered.map(p => {
                   const user = p.affiliate?.users || {}
@@ -208,7 +208,11 @@ export default function PayoutListPage() {
                       </td>
                       <td style={S.td}>
                         <span style={S.methodTag}>{p.payment_method || 'bank'}</span>
-                        {p.payment_detail && <div style={S.payDetail}>{p.payment_detail}</div>}
+                      </td>
+                      <td style={S.td}>
+                        <div style={{ fontSize: '13px', color: '#cbd5e1', wordBreak: 'break-all', maxWidth: 200 }}>
+                          {p.payment_detail || <span style={{ color: '#475569' }}>—</span>}
+                        </div>
                       </td>
                       <td style={S.td}>
                         <span style={{ ...S.statusPill, ...statusStyle(p.status) }}>{p.status}</span>
