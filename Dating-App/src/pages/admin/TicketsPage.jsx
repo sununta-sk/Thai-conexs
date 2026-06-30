@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_TABS  = ['open', 'in_progress', 'waiting_user', 'resolved', 'closed'];
 const PRIORITIES   = ['all', 'urgent', 'high', 'medium', 'low'];
@@ -24,6 +25,7 @@ const PRIORITY_ICON = { urgent: '🔴', high: '🟠', medium: '🔵', low: '⚪'
 
 export default function TicketsPage() {
   const { adminUser } = useAdminAuth();
+  const isMobile = useIsMobile();
 
   const [tickets,       setTickets]       = useState([]);
   const [loading,       setLoading]       = useState(true);
@@ -168,7 +170,7 @@ export default function TicketsPage() {
         </div>
 
         {/* ── Layout: List + Detail ── */}
-        <div style={{ display: 'flex', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16 }}>
 
           {/* Ticket List */}
           <div style={{ ...S.tableCard, flex: 1 }}>
@@ -179,11 +181,45 @@ export default function TicketsPage() {
                 <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
                 <div>No tickets {statusLabel(activeTab)}</div>
               </div>
+            ) : isMobile ? (
+              /* ── Mobile: card list instead of table ── */
+              <div style={S.cardList}>
+                {tickets.map(t => (
+                  <div
+                    key={t.id}
+                    style={{ ...S.ticketCard, background: detail?.id === t.id ? '#0f172a' : 'transparent' }}
+                    onClick={() => openDetail(t)}
+                  >
+                    <img
+                      src={t.user?.avatar_url || `https://ui-avatars.com/api/?name=${t.user?.display_name}&background=1e293b&color=f1f5f9&size=36`}
+                      alt=""
+                      style={S.cardAvatar}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={S.cardTopRow}>
+                        <div style={S.cardName}>{t.user?.display_name}</div>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 20,
+                          fontSize: 10, fontWeight: 700, flexShrink: 0,
+                          background: `${PRIORITY_COLOR[t.priority]}22`,
+                          color: PRIORITY_COLOR[t.priority],
+                        }}>
+                          {PRIORITY_ICON[t.priority]} {t.priority}
+                        </span>
+                      </div>
+                      <div style={S.cardSubject}>{t.subject}</div>
+                      <div style={S.cardDate}>{new Date(t.updated_at).toLocaleDateString('en-GB')}</div>
+                    </div>
+                    <div style={{ color: '#334155', fontSize: 18, flexShrink: 0 }}>›</div>
+                  </div>
+                ))}
+              </div>
             ) : (
+              /* ── Desktop: table ── */
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['ผู้ใช้', 'Subject', 'Priority', 'Updated', ''].map(h => (
+                    {['User', 'Subject', 'Priority', 'Updated', ''].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -240,7 +276,7 @@ export default function TicketsPage() {
 
           {/* Detail Panel: Ticket Thread */}
           {detail && (
-            <div style={S.detailPanel}>
+            <div style={{ ...S.detailPanel, ...(isMobile ? S.detailPanelMobile : {}) }}>
               {/* Panel Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                 <div style={{ flex: 1, marginRight: 8 }}>
@@ -305,7 +341,7 @@ export default function TicketsPage() {
                       onClick={sendReply}
                       disabled={replyLoading || !reply.trim()}
                     >
-                      {replyLoading ? 'Sending...' : '↑ ส่งข้อความ'}
+                      {replyLoading ? 'Sending...' : '↑ Send Message'}
                     </button>
                   </div>
                 </div>
@@ -373,6 +409,18 @@ const S = {
   td:        { padding: '12px 16px', color: '#94a3b8', fontSize: 13 },
   empty:     { padding: 60, textAlign: 'center', color: '#475569', fontSize: 14 },
 
+  cardList: { display: 'flex', flexDirection: 'column' },
+  ticketCard: {
+    display: 'flex', alignItems: 'flex-start', gap: 10,
+    padding: '14px 16px', borderBottom: '1px solid #0f172a',
+    cursor: 'pointer',
+  },
+  cardAvatar: { width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', background: '#334155', flexShrink: 0 },
+  cardTopRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  cardName:   { color: '#f1f5f9', fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  cardSubject:{ color: '#94a3b8', fontSize: 12, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  cardDate:   { color: '#475569', fontSize: 10, marginTop: 4 },
+
   detailPanel: {
     width: 320, flexShrink: 0,
     background: '#1e293b', borderRadius: 16,
@@ -380,6 +428,16 @@ const S = {
     alignSelf: 'flex-start', position: 'sticky', top: 0,
     maxHeight: 'calc(100vh - 130px)', overflow: 'hidden',
     display: 'flex', flexDirection: 'column',
+  },
+  detailPanelMobile: {
+    width: 'auto', position: 'fixed',
+    top: 'calc(16px + env(safe-area-inset-top))',
+    left: 12, right: 12,
+    bottom: 'calc(16px + env(safe-area-inset-bottom))',
+    borderRadius: 16, border: '1px solid #334155',
+    maxHeight: 'none', zIndex: 1000,
+    padding: 16,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
   },
   closePanelBtn: {
     background: '#0f172a', border: '1px solid #334155',

@@ -11,21 +11,21 @@ const PAYMENT_METHODS = [
 
 // ── รายชื่อธนาคารไทยทั้งหมด ──
 const THAI_BANKS = [
-  { code: 'SCB',   name: 'ธนาคารไทยพาณิชย์ (SCB)' },
-  { code: 'KBANK', name: 'ธนาคารกสิกรไทย (KBank)' },
-  { code: 'BBL',   name: 'ธนาคารกรุงเทพ (BBL)' },
-  { code: 'KTB',   name: 'ธนาคารกรุงไทย (KTB)' },
-  { code: 'BAY',   name: 'ธนาคารกรุงศรีอยุธยา (Krungsri)' },
-  { code: 'TTB',   name: 'ธนาคารทหารไทยธนชาต (TTB)' },
-  { code: 'GSB',   name: 'ธนาคารออมสิน (GSB)' },
-  { code: 'BAAC',  name: 'ธนาคารเพื่อการเกษตรและสหกรณ์ (BAAC)' },
-  { code: 'GHB',   name: 'ธนาคารอาคารสงเคราะห์ (GHB)' },
-  { code: 'CIMBT', name: 'ธนาคารซีไอเอ็มบีไทย (CIMB)' },
-  { code: 'UOB',   name: 'ธนาคารยูโอบี (UOB)' },
-  { code: 'TISCO', name: 'ธนาคารทิสโก้ (TISCO)' },
-  { code: 'KKP',   name: 'ธนาคารเกียรตินาคินภัทร (KKP)' },
-  { code: 'LHFG',  name: 'ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)' },
-  { code: 'IBANK', name: 'ธนาคารอิสลามแห่งประเทศไทย (IBANK)' },
+  { code: 'SCB',   name: 'Siam Commercial Bank (SCB)' },
+  { code: 'KBANK', name: 'Kasikorn Bank (KBank)' },
+  { code: 'BBL',   name: 'Bangkok Bank (BBL)' },
+  { code: 'KTB',   name: 'Krungthai Bank (KTB)' },
+  { code: 'BAY',   name: 'Bank of Ayudhya (Krungsri)' },
+  { code: 'TTB',   name: 'TMBThanachart Bank (TTB)' },
+  { code: 'GSB',   name: 'Government Savings Bank (GSB)' },
+  { code: 'BAAC',  name: 'Bank for Agriculture and Agricultural Cooperatives (BAAC)' },
+  { code: 'GHB',   name: 'Government Housing Bank (GHB)' },
+  { code: 'CIMBT', name: 'CIMB Thai Bank (CIMB)' },
+  { code: 'UOB',   name: 'United Overseas Bank (UOB)' },
+  { code: 'TISCO', name: 'TISCO Bank (TISCO)' },
+  { code: 'KKP',   name: 'Kiatnakin Phatra Bank (KKP)' },
+  { code: 'LHFG',  name: 'Land and Houses Bank (LH Bank)' },
+  { code: 'IBANK', name: 'Islamic Bank of Thailand (IBANK)' },
   { code: 'OTHER', name: 'Other / International' },
 ]
 
@@ -79,10 +79,10 @@ export default function PayoutRequestPage() {
     else if (settings?.min_payout && amt < settings.min_payout) errs.amount = `Minimum payout is €${settings.min_payout}`
     // ── validate bank fields เฉพาะ bank_transfer ──
     if (form.payment_method === 'bank_transfer') {
-      if (!bankInfo.bankCode)          errs.bankCode      = 'กรุณาSelect Bank'
+      if (!bankInfo.bankCode)          errs.bankCode      = 'Please select a bank'
       if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'Please enter account number'
     } else {
-      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'กรุณากรอกDetails'
+      if (!bankInfo.accountNumber.trim()) errs.accountNumber = 'Please enter details'
     }
     return errs
   }

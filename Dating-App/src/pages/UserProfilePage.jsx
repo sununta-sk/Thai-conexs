@@ -105,15 +105,9 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           </div>
         )}
 
-        {photos.length > 1 && (
-          <div style={C.counter}>{current + 1} / {photos.length}</div>
-        )}
-
-        {!isSubscriber && photos.length > FREE_LIMIT && (
-          <div style={C.freeBadge}>
-            🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free
-          </div>
-        )}
+        <div style={C.freeBadge}>
+          🔓 {current + 1}/{photos.length}
+        </div>
       </div>
     </div>
   );
@@ -121,7 +115,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
 const C = {
   wrap: { position: 'relative', width: '100%' },
-  slider: { position: 'relative', width: '100%', aspectRatio: '4 / 5', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
+  slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none', WebkitUserDrag: 'none', transition: 'filter 0.3s, transform 0.3s' },
   gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)', pointerEvents: 'none' },
   arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
@@ -129,7 +123,7 @@ const C = {
   dots: { position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, zIndex: 3 },
   dot: { height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s ease' },
   counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3, border: '1px solid #334155' },
-  freeBadge: { position: 'absolute', top: 12, left: 12, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  freeBadge: { position: 'absolute', top: 56, right: 20, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20, pointerEvents: 'none' },
   lockBoxWrap: { pointerEvents: 'auto' },
   lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(8px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.3)', maxWidth: 280, border: '1px solid #334155' },
@@ -305,14 +299,10 @@ export default function UserProfilePage() {
             {passed ? '✓ Passed' : '✕ Pass'}
           </button>
         </div>
-
-        <button style={S.reportBtn} onClick={() => setReportOpen(true)}>
-          ⚠ Report User
-        </button>
-
-        <button style={S.blockBtn} onClick={handleBlock}>
-          🚫 Block User
-        </button>
+        <div style={S.actionRow2}>
+          <button style={S.reportBtn} onClick={() => setReportOpen(true)}>⚠ Report</button>
+          <button style={S.blockBtn} onClick={handleBlock}>🚫 Block</button>
+        </div>
 
         {profile.bio && (
           <div style={S.section}>
@@ -390,8 +380,9 @@ const S = {
   likedBtn: { flex: 1, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   passBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #64748b66', borderRadius: 30, color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   passedBtn: { flex: 1, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
-  reportBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  blockBtn: { display: 'block', width: '100%', marginTop: 10, padding: '11px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  actionRow2: { display: 'flex', gap: 8, marginTop: 10 },
+  reportBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  blockBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
   bioText: { margin: 0, fontSize: 14, color: '#cbd5e1', lineHeight: 1.8 },

@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { useTranslation } from "../hooks/useTranslation";
 import { supabase } from "../lib/supabaseClient";
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
 
 export default function Messages() {
   const [chats, setChats] = useState([]);
@@ -10,6 +23,7 @@ export default function Messages() {
   const [myId, setMyId] = useState(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { tx } = useTranslation(['messages']);
 
   const fetchChats = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -38,6 +52,17 @@ export default function Messages() {
     setLoading(false);
   };
 
+  const markAsRead = async (roomId) => {
+    if (!myId) return;
+    await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .or(`room_id.eq.${roomId},chat_id.eq.${roomId}`)
+      .neq('sender_id', myId)
+      .eq('is_read', false);
+    fetchChats();
+  };
+
   useEffect(() => {
     fetchChats();
     const channel = supabase.channel('list-update')
@@ -47,11 +72,11 @@ export default function Messages() {
   }, []);
 
   const filtered = chats.filter(c =>
-    activeTab === 'Inbox' ? c.senderId !== myId : c.senderId === myId
+    activeTab === 'Inbox' ? c.unreadCount > 0 : c.unreadCount === 0
   );
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: isMobile ? 0 : 90 }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: isMobile ? 56 : 90 }}>
       {/* Tabs */}
       <div style={{ display: 'flex', background: '#1e293b', borderBottom: '1px solid #334155', textAlign: 'center' }}>
         {['Inbox', 'Outbox'].map(t => (
@@ -66,23 +91,23 @@ export default function Messages() {
               transition: 'all 0.2s',
             }}
           >
-            {t}
+            {t === 'Inbox' ? (tx.inbox || 'Inbox') : (tx.outbox || 'Outbox')}
           </div>
         ))}
       </div>
       {/* Chat List */}
       {loading ? (
-        <p style={{ padding: '20px', color: '#64748b', textAlign: 'center' }}>Loading...</p>
+        <p style={{ padding: '20px', color: '#64748b', textAlign: 'center' }}>{tx.loading || 'Loading...'}</p>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
           <div style={{ fontSize: 40, marginBottom: 10 }}>💬</div>
-          <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? 'No incoming messages yet' : 'No outgoing messages yet'}</p>
+          <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? (tx.noIncoming || 'No incoming messages yet') : (tx.noOutgoing || 'No outgoing messages yet')}</p>
         </div>
       ) : (
         filtered.map((c, i) => (
           <div
             key={i}
-            onClick={() => navigate(`/room-chat/${c.roomId}`)}
+            onClick={() => { markAsRead(c.roomId); navigate(`/room-chat/${c.roomId}`); }}
             style={{ display: 'flex', padding: '15px', background: '#1e293b', borderBottom: '1px solid #334155', alignItems: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
             onMouseEnter={(e) => e.currentTarget.style.background = '#334155'}
             onMouseLeave={(e) => e.currentTarget.style.background = '#1e293b'}
@@ -92,7 +117,10 @@ export default function Messages() {
               style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', border: '1px solid #334155' }}
             />
             <div style={{ marginLeft: '15px', flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 'bold', color: '#f1f5f9' }}>{c.user?.username || 'User'}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                <div style={{ fontWeight: 'bold', color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.user?.username || 'User'}</div>
+                <div style={{ fontSize: 11, color: '#475569', flexShrink: 0 }}>{formatTime(c.time)}</div>
+              </div>
               <div style={{ color: '#94a3b8', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.content}</div>
             </div>
             {c.unreadCount > 0 && (

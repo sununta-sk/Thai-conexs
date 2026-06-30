@@ -49,7 +49,7 @@ export default function AffiliateListPage() {
   }
 
   async function handleDelete(id, name) {
-    if (!confirm(`ลบ "${name}" Sign Out?`)) return
+    if (!confirm(`Remove "${name}"?`)) return
     await supabase.from('affiliates').delete().eq('id', id)
     setAffiliates(prev => prev.filter(a => a.id !== id))
     setStats(prev => ({ ...prev, total: prev.total - 1 }))
@@ -59,7 +59,7 @@ export default function AffiliateListPage() {
   async function handleConfirmPayout() {
     if (!detailModal) return
 
-    const amt = prompt('จำนวนเงินที่โอน (EUR):', '30')
+    const amt = prompt('Amount transferred (EUR):', '30')
     if (!amt) return
 
     setConfirming(true)
@@ -97,13 +97,13 @@ export default function AffiliateListPage() {
           amount:         parseFloat(amt),
           currency:       'EUR',
           payment_method: detailModal.payout_method || 'bank_transfer',
-          note:           `ยืนยันโอนเงิน €${amt} ให้ ${detailModal.contact_name}`,
+          note:           `Confirmed transfer of €${amt} to ${detailModal.contact_name}`,
         },
       })
     } catch (e) { console.error('audit log error', e) }
 
     setConfirming(false)
-    alert(`✅ บันทึกแล้ว — โอน €${amt} ให้ ${detailModal.contact_name}`)
+    alert(`✅ Saved — transferred €${amt} to ${detailModal.contact_name}`)
     setDetailModal(null)
     fetchAffiliates()
   }
@@ -278,7 +278,7 @@ export default function AffiliateListPage() {
                 onClick={handleConfirmPayout}
                 disabled={confirming}
                 style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, opacity: confirming ? 0.6 : 1 }}>
-                {confirming ? '⏳ กำลังบันทึก...' : '✅ Transfer confirmed'}
+                {confirming ? '⏳ Saving...' : '✅ Transfer confirmed'}
               </button>
             </div>
           </div>

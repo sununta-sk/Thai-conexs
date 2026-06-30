@@ -42,7 +42,7 @@ export default function TeamPage() {
         .maybeSingle()
 
       if (!profile) {
-        showT('ไม่พบ email นี้ในระบบ — user ต้องสมัครก่อน', 'error')
+        showT('Email not found in the system — user must register first', 'error')
         setAdding(false)
         return
       }
@@ -54,7 +54,7 @@ export default function TeamPage() {
         .maybeSingle()
 
       if (existing) {
-        showT('Email นี้เป็น Admin อยู่แล้ว', 'error')
+        showT('This email is already an Admin', 'error')
         setAdding(false)
         return
       }
@@ -68,7 +68,7 @@ export default function TeamPage() {
       })
 
       if (error) throw error
-      showT('เพิ่ม Admin สำเร็จ ✓')
+      showT('Admin added successfully ✓')
       setShowModal(false)
       setNewEmail(''); setNewDisplay('')
       if (roles.length > 0) setNewRole(roles[0].id)
@@ -162,7 +162,7 @@ export default function TeamPage() {
         <div style={S.overlay} onClick={() => setShowModal(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <h3 style={S.modalTitle}>+ Add Admin</h3>
-            <p style={S.modalSub}>User ต้องสมัครบัญชีก่อน แล้วค่อยเพิ่มเป็น Admin</p>
+            <p style={S.modalSub}>User must create an account first, then be added as Admin</p>
             <form onSubmit={handleAddAdmin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={S.label}>Email *</label>

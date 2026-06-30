@@ -50,11 +50,14 @@ const CustomTooltip = ({ active, payload, label, prefix = '' }) => {
   return (
     <div style={S.tooltip}>
       <div style={S.tooltipLabel}>{label}</div>
-      {payload.map((p, i) => (
-        <div key={i} style={{ color: p.color, fontSize: 13 }}>
-          {p.name}: <strong>{prefix}{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</strong>
-        </div>
-      ))}
+      {payload.map((p, i) => {
+        const symbol = p.name === 'Payout' ? '€' : prefix
+        return (
+          <div key={i} style={{ color: p.color, fontSize: 13 }}>
+            {p.name}: <strong>{symbol}{typeof p.value === 'number' ? p.value.toLocaleString() : p.value}</strong>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -167,7 +170,7 @@ export default function AnalyticsDashboardPage() {
 
         {tab === 'revenue' && (
           <div style={S.chartBoxWide}>
-            <h3 style={S.chartTitle}>Revenue vs Payouts (฿)</h3>
+            <h3 style={S.chartTitle}>Revenue (฿) vs Payouts (€)</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={MOCK_REVENUE} barGap={6}>
                 <CartesianGrid stroke="#1e293b" vertical={false}/>

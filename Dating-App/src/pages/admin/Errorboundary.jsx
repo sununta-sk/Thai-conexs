@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component {
           Something went wrong
         </h2>
         <p style={{ color: '#64748b', margin: 0, fontSize: 14, textAlign: 'center', maxWidth: 400 }}>
-          {this.state.error?.message || 'An error occurredที่ไม่คาดคิด'}
+          {this.state.error?.message || 'An unexpected error occurred'}
         </p>
         <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
           <button

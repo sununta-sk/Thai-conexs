@@ -15,6 +15,9 @@ export default function PayoutListPage() {
   const [rejectModal, setRejectModal] = useState(null)
   const [rejectNote, setRejectNote] = useState('')
   const [selected, setSelected] = useState(new Set())
+  const [detailModal, setDetailModal] = useState(null)
+  const [markPaidModal, setMarkPaidModal] = useState(null)
+  const [paymentRef, setPaymentRef] = useState('')
 
   useEffect(() => { fetchPayouts() }, [statusFilter])
 
@@ -38,9 +41,11 @@ export default function PayoutListPage() {
     setActing(null)
   }
 
-  async function handleMarkPaid(id) {
+  async function handleMarkPaid(id, reference) {
     setActing(id)
-    await supabase.from('affiliate_payouts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
+    await supabase.from('affiliate_payouts').update({ status: 'paid', paid_at: new Date().toISOString(), payment_reference: reference || null }).eq('id', id)
+    setMarkPaidModal(null)
+    setPaymentRef('')
     await fetchPayouts()
     setActing(null)
   }
@@ -67,17 +72,17 @@ export default function PayoutListPage() {
 
   const filtered = payouts.filter(p => {
     if (!search) return true
-    const name = p.affiliate?.users?.name?.toLowerCase() || ''
-    const email = p.affiliate?.users?.email?.toLowerCase() || ''
+    const name = p.affiliate?.contact_name?.toLowerCase() || ''
+    const email = p.affiliate?.contact_email?.toLowerCase() || ''
     const code = p.affiliate?.referral_code?.toLowerCase() || ''
     const q = search.toLowerCase()
     return name.includes(q) || email.includes(q) || code.includes(q)
   })
 
   const pendingCount = payouts.filter(p => p.status === 'pending').length
-  const totalPendingAmt = payouts.filter(p => p.status === 'pending').reduce((s, p) => s + (p.amount || 0), 0)
-  const totalApprovedAmt = payouts.filter(p => p.status === 'approved').reduce((s, p) => s + (p.amount || 0), 0)
-  const totalPaidAmt = payouts.filter(p => p.status === 'paid').reduce((s, p) => s + (p.amount || 0), 0)
+  const totalPendingAmt = payouts.filter(p => p.status === 'pending').reduce((s, p) => s + (p.total_amount || 0), 0)
+  const totalApprovedAmt = payouts.filter(p => p.status === 'approved').reduce((s, p) => s + (p.total_amount || 0), 0)
+  const totalPaidAmt = payouts.filter(p => p.status === 'paid').reduce((s, p) => s + (p.total_amount || 0), 0)
 
   const allSelected = filtered.length > 0 && filtered.every(p => selected.has(p.id))
   const selectedPending = [...selected].filter(id => payouts.find(p => p.id === id && p.status === 'pending'))
@@ -91,16 +96,14 @@ export default function PayoutListPage() {
             <h1 style={S.title}>Payout Management</h1>
             <p style={S.subtitle}>Review and process affiliate withdrawal requests</p>
           </div>
-          <button onClick={() => navigate('/payouts/new')} style={S.btnPink}>
-          </button>
         </div>
 
         {/* Summary Cards */}
         <div style={S.summaryGrid}>
           {[
-            { label: 'Pending Review', value: `$${totalPendingAmt.toFixed(2)}`, count: `${pendingCount} requests`, color: '#fbbf24', bg: '#f59e0b11' },
-            { label: 'Approved (Queued)', value: `$${totalApprovedAmt.toFixed(2)}`, count: 'ready to send', color: '#60a5fa', bg: '#3b82f611' },
-            { label: 'Total Paid Out', value: `$${totalPaidAmt.toFixed(2)}`, count: `${payouts.filter(p => p.status === 'paid').length} processed`, color: '#4ade80', bg: '#16a34a11' },
+            { label: 'Pending Review', value: `€${totalPendingAmt.toFixed(2)}`, count: `${pendingCount} requests`, color: '#fbbf24', bg: '#f59e0b11' },
+            { label: 'Approved (Queued)', value: `€${totalApprovedAmt.toFixed(2)}`, count: 'ready to send', color: '#60a5fa', bg: '#3b82f611' },
+            { label: 'Total Paid Out', value: `€${totalPaidAmt.toFixed(2)}`, count: `${payouts.filter(p => p.status === 'paid').length} processed`, color: '#4ade80', bg: '#16a34a11' },
           ].map(s => (
             <div key={s.label} style={{ ...S.summaryCard, background: s.bg, border: `1px solid ${s.color}33` }}>
               <div style={{ ...S.summaryVal, color: s.color }}>{s.value}</div>
@@ -171,7 +174,7 @@ export default function PayoutListPage() {
                   <tr><td colSpan={8} style={S.emptyCell}>No payouts found</td></tr>
                 )}
                 {filtered.map(p => {
-                  const user = p.affiliate?.users || {}
+                  const user = { name: p.affiliate?.contact_name, email: p.affiliate?.contact_email, avatar_url: null }
                   const isBusy = acting === p.id
                   return (
                     <tr key={p.id} style={{ ...S.tr, ...(selected.has(p.id) ? S.trSelected : {}) }}>
@@ -193,7 +196,6 @@ export default function PayoutListPage() {
                           </div>
                           <div>
                             <div style={S.affiliateName}
-                              onClick={() => navigate(`/affiliates/${p.affiliate?.id}`)}
                               onMouseEnter={e => e.currentTarget.style.color = '#e91e63'}
                               onMouseLeave={e => e.currentTarget.style.color = '#e2e8f0'}>
                               {user.name || '—'}
@@ -204,15 +206,17 @@ export default function PayoutListPage() {
                         </div>
                       </td>
                       <td style={S.td}>
-                        <span style={S.amountText}>${(p.amount || 0).toFixed(2)}</span>
+                        <span style={S.amountText}>€{(p.total_amount || 0).toFixed(2)}</span>
                       </td>
                       <td style={S.td}>
                         <span style={S.methodTag}>{p.payment_method || 'bank'}</span>
                       </td>
                       <td style={S.td}>
-                        <div style={{ fontSize: '13px', color: '#cbd5e1', wordBreak: 'break-all', maxWidth: 200 }}>
-                          {p.payment_detail || <span style={{ color: '#475569' }}>—</span>}
-                        </div>
+                        {p.payment_detail ? (
+                          <button onClick={() => setDetailModal(p)} style={S.btnView}>View</button>
+                        ) : (
+                          <span style={{ color: '#475569' }}>—</span>
+                        )}
                       </td>
                       <td style={S.td}>
                         <span style={{ ...S.statusPill, ...statusStyle(p.status) }}>{p.status}</span>
@@ -235,8 +239,8 @@ export default function PayoutListPage() {
                             </>
                           )}
                           {p.status === 'approved' && (
-                            <button onClick={() => handleMarkPaid(p.id)} disabled={isBusy} style={S.btnPaid}>
-                              {isBusy ? '…' : '$ Mark Paid'}
+                            <button onClick={() => setMarkPaidModal(p)} disabled={isBusy} style={S.btnPaid}>
+                              {isBusy ? '…' : '€ Mark Paid'}
                             </button>
                           )}
                           {(p.status === 'paid' || p.status === 'rejected') && (
@@ -259,7 +263,7 @@ export default function PayoutListPage() {
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <h3 style={S.modalTitle}>Reject Payout Request</h3>
             <p style={S.modalSub}>
-              ${(rejectModal.amount || 0).toFixed(2)} from <strong>{rejectModal.affiliate?.users?.name}</strong>
+              €{(rejectModal.total_amount || 0).toFixed(2)} from <strong>{rejectModal.affiliate?.contact_name}</strong>
             </p>
             <label style={S.modalLabel}>Rejection reason (shown to affiliate)</label>
             <textarea
@@ -273,6 +277,43 @@ export default function PayoutListPage() {
               <button onClick={() => setRejectModal(null)} style={S.btnGhost}>Cancel</button>
               <button onClick={handleRejectConfirm} disabled={acting !== null} style={S.btnRejectConfirm}>
                 {acting ? 'Rejecting…' : 'Confirm Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {detailModal && (
+        <div style={S.modalOverlay} onClick={() => setDetailModal(null)}>
+          <div style={S.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={S.modalTitle}>Payment Detail</h3>
+            <p style={S.modalSub}>{detailModal.affiliate?.contact_name} · {detailModal.payment_method}</p>
+            <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: 16, color: '#f1f5f9', fontSize: 14, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {detailModal.payment_detail}
+            </div>
+            <div style={S.modalFooter}>
+              <button onClick={() => setDetailModal(null)} style={S.btnGhost}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {markPaidModal && (
+        <div style={S.modalOverlay} onClick={() => setMarkPaidModal(null)}>
+          <div style={S.modal} onClick={e => e.stopPropagation()}>
+            <h3 style={S.modalTitle}>Confirm Payment</h3>
+            <p style={S.modalSub}>
+              €{(markPaidModal.total_amount || 0).toFixed(2)} to <strong>{markPaidModal.affiliate?.contact_name}</strong>
+            </p>
+            <label style={S.modalLabel}>Payment reference (optional)</label>
+            <input
+              value={paymentRef}
+              onChange={e => setPaymentRef(e.target.value)}
+              placeholder="e.g. transaction ID, bank ref..."
+              style={S.modalTextarea}
+            />
+            <div style={S.modalFooter}>
+              <button onClick={() => { setMarkPaidModal(null); setPaymentRef('') }} style={S.btnGhost}>Cancel</button>
+              <button onClick={() => handleMarkPaid(markPaidModal.id, paymentRef)} disabled={acting !== null} style={S.btnPaidConfirm}>
+                {acting ? 'Confirming…' : 'Confirm Paid'}
               </button>
             </div>
           </div>
@@ -297,6 +338,7 @@ const S = {
   title: { margin: '0 0 4px', fontSize: '24px', fontWeight: 700 },
   subtitle: { margin: 0, color: '#64748b', fontSize: '14px' },
   btnPink: { background: '#e91e63', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' },
+  btnView: { background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' },
   summaryCard: { borderRadius: '12px', padding: '20px' },
   summaryVal: { fontSize: '28px', fontWeight: 700, display: 'block', marginBottom: '6px' },
@@ -346,4 +388,5 @@ const S = {
   modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' },
   btnGhost: { background: 'none', border: '1px solid #334155', color: '#94a3b8', borderRadius: '8px', padding: '9px 18px', cursor: 'pointer', fontSize: '14px' },
   btnRejectConfirm: { background: '#ef4444', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 18px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 },
+  btnPaidConfirm: { background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 18px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 },
 }

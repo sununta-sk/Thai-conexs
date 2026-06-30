@@ -45,10 +45,10 @@ export default function AuditLogPage() {
   function getDescription(log) {
     const m = log.metadata || {}
     if (log.action_type === 'payout_approve') {
-      return `โอนเงิน €${m.amount || '?'} ให้ ${m.affiliate_name || '?'} (${m.payment_method || ''})`
+      return `Paid €${m.amount || '?'} to ${m.affiliate_name || '?'} (${m.payment_method || ''})`
     }
     if (log.action_type === 'payout_deny') {
-      return `ปฏิเสธ payout ของ ${m.affiliate_name || '?'} — ${m.review_notes || ''}`
+      return `Rejected payout for ${m.affiliate_name || '?'} — ${m.review_notes || ''}`
     }
     if (m.note) return m.note
     if (m.affiliate_name) return m.affiliate_name

@@ -43,8 +43,8 @@ export default function RevenuePage() {
         </div>
         <div style={S.kpiRow}>
           {[
-            { label:'Total Revenue',      value:`$${stats.total.toLocaleString()}`,   color:'#10b981' },
-            { label:'This Month',         value:`$${stats.monthly.toLocaleString()}`, color:'#3b82f6' },
+            { label:'Total Revenue',      value:`€${stats.total.toLocaleString()}`,   color:'#10b981' },
+            { label:'This Month',         value:`€${stats.monthly.toLocaleString()}`, color:'#3b82f6' },
             { label:'Active Subscribers', value:stats.active,                          color:'#8b5cf6' },
           ].map(k => (
             <div key={k.label} style={{...S.kpiCard, borderTop:`3px solid ${k.color}`}}>

@@ -104,7 +104,7 @@ export default function PhotoQueuePage() {
         {/* ── Bulk action bar ── */}
         {activeTab === 'pending' && selected.size > 0 && (
           <div style={S.bulkBar}>
-            <span style={{ color: '#94a3b8', fontSize: 13 }}>Selected <b style={{ color: '#f1f5f9' }}>{selected.size}</b> รูป</span>
+            <span style={{ color: '#94a3b8', fontSize: 13 }}>Selected <b style={{ color: '#f1f5f9' }}>{selected.size}</b> photos</span>
             <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
               <button
                 style={{ ...S.actionBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
@@ -143,7 +143,7 @@ export default function PhotoQueuePage() {
             <div style={{ fontSize: 48, marginBottom: 8 }}>
               {activeTab === 'pending' ? '📭' : activeTab === 'approved' ? '✅' : '🗑️'}
             </div>
-            <div>ไม่มีรูปภาพ {activeTab}</div>
+            <div>No photos in {activeTab}</div>
           </div>
         ) : (
           <div style={S.grid}>
@@ -228,7 +228,7 @@ export default function PhotoQueuePage() {
                   {preview.is_profile_photo && <span style={{ marginLeft: 'auto', ...S.primaryBadge, position: 'static' }}>Primary</span>}
                 </div>
                 <div style={{ color: '#475569', fontSize: 12, marginBottom: 16 }}>
-                  อัปโหลด: {new Date(preview.created_at).toLocaleString('th-TH')}
+                  Uploaded: {new Date(preview.created_at).toLocaleString('th-TH')}
                 </div>
 
                 {/* Actions */}

@@ -27,3 +27,5 @@ dist-ssr
 # Capacitor native
 ios/
 android/
+_archive/
+api-railway-old/

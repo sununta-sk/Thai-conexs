@@ -86,6 +86,10 @@ function inRange(value, range) {
 export default function Discover() {
   const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
   const isMobile = useIsMobile();
+  if (typeof window !== 'undefined') {
+    window.__debugWidth = window.innerWidth;
+    console.log('[DEBUG] window.innerWidth =', window.innerWidth, 'isMobile =', isMobile);
+  }
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
   const [passedIds, setPassedIds] = useState(new Set());
@@ -267,7 +271,7 @@ export default function Discover() {
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
-    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
+    <div style={{ ...S.page, paddingTop: isMobile ? 56 : 90 }}>
       {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} lang={lang} />}
       {!isMobile && (
       <div style={S.searchBar}>
@@ -384,7 +388,6 @@ export default function Discover() {
                 </div>
                 <div style={S.actions}>
                   <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
-                  <button type="button" style={S.btnChat} title="Chat" onClick={e => { e.stopPropagation(); handleStartChat(profile.id); }}>💬</button>
                   <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                 </div>
               </div>

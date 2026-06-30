@@ -250,7 +250,7 @@ export default function CommissionSettingsPage() {
               <div style={S.flowSteps}>
                 {[
                   { icon: '📝', label: 'Request Submitted', sub: 'Affiliate submits payout' },
-                  { icon: '⚡', label: `≤ $${settings.auto_approve_threshold || 100}?`, sub: 'Auto-approve check' },
+                  { icon: '⚡', label: `≤ €${settings.auto_approve_threshold || 100}?`, sub: 'Auto-approve check' },
                   { icon: '✓', label: 'Approved', sub: 'Manual or automatic' },
                   { icon: '💸', label: 'Paid', sub: `Every ${settings.payout_day || 'Monday'}` },
                 ].map((step, i) => (

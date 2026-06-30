@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
+const THAI_BANKS = ['Bangkok Bank', 'Kasikorn Bank (KBank)', 'Siam Commercial Bank (SCB)', 'Krungthai Bank (KTB)', 'Bank of Ayudhya (Krungsri)', 'TMBThanachart Bank (TTB)', 'Government Savings Bank (GSB)', 'CIMB Thai Bank', 'UOB Thailand', 'Other'];
+
 const PAYMENT_METHODS = [
   { value: 'promptpay',      label: 'PromptPay',       icon: '📱', hint: 'เบอร์โทรหรือเลขบัตรประชาชน' },
   { value: 'bank_transfer',  label: 'Bank Transfer',   icon: '🏦', hint: 'เลขบัญชี, ชื่อธนาคาร, ชื่อบัญชี' },
@@ -23,6 +25,7 @@ export default function UserPayoutPage() {
   const [errors, setErrors]         = useState({});
 
   const [method, setMethod]         = useState('promptpay');
+  const [bankName, setBankName]     = useState(THAI_BANKS[0]);
   const [detail, setDetail]         = useState('');
   const [note, setNote]             = useState('');
 
@@ -107,7 +110,7 @@ export default function UserPayoutPage() {
       total_amount:   balance,
       currency:       'EUR',
       payment_method: method,
-      payment_detail: detail.trim() || null,
+      payment_detail: (method === 'bank_transfer' ? bankName + ' | ' + detail.trim() : detail.trim()) || null,
       status:         'pending',
       requested_at:   new Date().toISOString(),
       review_notes:   note || null,
@@ -201,10 +204,19 @@ export default function UserPayoutPage() {
                   {selectedMethod?.hint}
                 </span>
               </h3>
+              {method === 'bank_transfer' && (
+                <select
+                  value={bankName}
+                  onChange={e => setBankName(e.target.value)}
+                  style={{ ...Sx.input, marginBottom: 8 }}
+                >
+                  {THAI_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              )}
               <textarea
                 value={detail}
                 onChange={e => { setDetail(e.target.value); setErrors(ev => ({ ...ev, detail: null })); }}
-                placeholder={selectedMethod?.hint}
+                placeholder={method === 'bank_transfer' ? 'Account number, Account name' : selectedMethod?.hint}
                 rows={3}
                 style={{ ...Sx.input, resize: 'none', marginBottom: 4 }}
               />

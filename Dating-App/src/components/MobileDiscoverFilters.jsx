@@ -36,6 +36,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
   const provinceLabel = (p) => (p?.name && (p.name[lang] || p.name.en)) || p?.id || '';
 
   return (
+    <>
     <div
       className="mobile-discover-filters"
       style={{
@@ -43,8 +44,8 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
         borderBottom: '1px solid #334155',
         padding: 12,
         position: 'sticky',
-        top: 0,
-        zIndex: 50,
+        top: 56,
+        zIndex: 999,
       }}>
       <button
         type="button"
@@ -80,10 +81,11 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
         </span>
         <span style={{ fontSize: 12 }}>{open ? '▲' : '▼'}</span>
       </button>
+    </div>
 
-      {open && (
+    {open && (
         <div style={{
-          marginTop: 10,
+          margin: '10px 12px',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
@@ -161,6 +163,6 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 }

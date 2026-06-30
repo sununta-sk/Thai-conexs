@@ -4,9 +4,9 @@ import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabase'
 
 const TABS = [
-  { key: 'pending',  label: '⏳ รอตรวจ' },
-  { key: 'approved', label: '✅ ผ่านแล้ว' },
-  { key: 'rejected', label: '❌ ปฏิเสธแล้ว' },
+  { key: 'pending',  label: '⏳ Pending' },
+  { key: 'approved', label: '✅ Approved' },
+  { key: 'rejected', label: '❌ Rejected' },
 ]
 
 export default function VideoModerationPage() {
@@ -121,12 +121,12 @@ export default function VideoModerationPage() {
             <video src={selected.public_url} style={S.panelVideo} controls muted playsInline />
 
             <div style={S.panelMeta}>
-              <MetaRow label="ผู้ใช้"    value={selected.profiles?.display_name} />
-              <MetaRow label="ขนาดไฟล์"  value={`${selected.file_size_mb} MB`} />
-              <MetaRow label="อัปโหลด"   value={new Date(selected.created_at).toLocaleString('en-GB')} />
-              <MetaRow label="สถานะ"     value={selected.status} />
+              <MetaRow label="User"    value={selected.profiles?.display_name} />
+              <MetaRow label="File Size"  value={`${selected.file_size_mb} MB`} />
+              <MetaRow label="Uploaded"   value={new Date(selected.created_at).toLocaleString('en-GB')} />
+              <MetaRow label="Status"     value={selected.status} />
               {selected.rejection_reason && (
-                <MetaRow label="เหตุผล"  value={selected.rejection_reason} />
+                <MetaRow label="Reason"  value={selected.rejection_reason} />
               )}
             </div>
 
@@ -134,7 +134,7 @@ export default function VideoModerationPage() {
               <div style={S.panelActions}>
                 <input
                   style={S.reasonInput}
-                  placeholder="เหตุผลถ้าจะปฏิเสธ (ไม่บังคับ)"
+                  placeholder="Reason if rejecting (optional)"
                   value={rejectReason}
                   onChange={e => setRejectReason(e.target.value)}
                 />
@@ -144,14 +144,14 @@ export default function VideoModerationPage() {
                     onClick={() => moderate(selected.id, 'approved')}
                     disabled={processing}
                   >
-                    ✅ อนุมัติ
+                    ✅ Approve
                   </button>
                   <button
                     style={{ ...S.actionBtn, ...S.rejectBtn }}
                     onClick={() => moderate(selected.id, 'rejected')}
                     disabled={processing}
                   >
-                    ❌ ปฏิเสธ
+                    ❌ Reject
                   </button>
                 </div>
               </div>
@@ -173,7 +173,7 @@ export default function VideoModerationPage() {
                 onClick={() => moderate(selected.id, 'approved')}
                 disabled={processing}
               >
-                ✅ อนุมัติใหม่
+                ✅ Re-approve
               </button>
             )}
           </div>

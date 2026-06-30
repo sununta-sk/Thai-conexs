@@ -70,8 +70,8 @@ const T = {
   // MESSAGES PAGE
   // ─────────────────────────────────────────────
   messages: {
-    th: { title:'ข้อความ', noConversations:'ยังไม่มีการสนทนา', typeMessage:'พิมพ์ข้อความ...', you:'คุณ', },
-    en: { title:'Messages', noConversations:'No conversations yet', typeMessage:'Type a message...', you:'You', },
+    th: { title:'ข้อความ', noConversations:'ยังไม่มีการสนทนา', typeMessage:'พิมพ์ข้อความ...', you:'คุณ', inbox:'กล่องข้อความ', outbox:'ข้อความที่ส่ง', noIncoming:'ยังไม่มีข้อความเข้า', noOutgoing:'ยังไม่มีข้อความที่ส่ง', loading:'กำลังโหลด...', },
+    en: { title:'Messages', noConversations:'No conversations yet', typeMessage:'Type a message...', you:'You', inbox:'Inbox', outbox:'Outbox', noIncoming:'No incoming messages yet', noOutgoing:'No outgoing messages yet', loading:'Loading...', },
     zh: { title:'消息', noConversations:'还没有对话', typeMessage:'输入消息...', you:'你', },
     ja: { title:'メッセージ', noConversations:'会話はまだありません', typeMessage:'メッセージを入力...', you:'あなた', },
     ko: { title:'메시지', noConversations:'아직 대화가 없습니다', typeMessage:'메시지 입력...', you:'나', },

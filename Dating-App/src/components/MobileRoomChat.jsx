@@ -515,12 +515,12 @@ export default function MobileRoomChat() {
 
 // ── Styles ──
 const S = {
-  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", top: 0, left: 0, right: 0 },
+  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", top: 0, left: 0, right: 0, bottom: 0 },
   loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", minHeight: "100dvh", background: "#0f172a", gap: 8 },
   dot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
 
   // Header — sticky top, 64px, #0f172a bg, border-bottom
-  header: { display: "flex", alignItems: "center", gap: 10, padding: "0 12px 0 8px", background: "#0f172a", borderBottom: "1px solid #334155", height: 64, flexShrink: 0, position: "relative", zIndex: 20 },
+  header: { display: "flex", alignItems: "center", gap: 10, padding: "calc(env(safe-area-inset-top) + 10px) 12px 10px 8px", background: "#0f172a", borderBottom: "1px solid #334155", minHeight: 64, flexShrink: 0, position: "relative", zIndex: 20 },
   backBtn: { background: "none", border: "none", cursor: "pointer", color: "#e91e63", fontSize: 22, padding: "4px 6px", flexShrink: 0, display: "flex", alignItems: "center", lineHeight: 1 },
   avatarWrap: { position: "relative", cursor: "pointer", flexShrink: 0 },
   avatar: { width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid #334155", display: "block" },
@@ -552,7 +552,7 @@ const S = {
   gifWrap: { position: "absolute", bottom: 70, left: 8, right: 8, zIndex: 50 },
 
   // Input bar — #0f172a bg, border-top
-  inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px 14px", background: "#0f172a", borderTop: "1px solid #334155", flexShrink: 0 },
+  inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px calc(env(safe-area-inset-bottom) + 10px)", background: "#0f172a", borderTop: "1px solid #334155", flexShrink: 0 },
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s", borderRadius: 8 },
   inputWrap: { flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
   textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
