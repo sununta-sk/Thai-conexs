@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const PLAN_COLORS = {
   free:    { bg: '#1e293b', color: '#64748b' },
@@ -12,6 +13,7 @@ const PLAN_COLORS = {
 
 export default function UserListPage() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [users, setUsers]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
@@ -81,6 +83,29 @@ export default function UserListPage() {
             <div style={S.empty}>Loading...</div>
           ) : users.length === 0 ? (
             <div style={S.empty}>No users found</div>
+          ) : isMobile ? (
+            <div style={S.cardList}>
+              {users.map(u => {
+                const plan = u.subscription_plan?.toLowerCase() || 'free';
+                const pc   = PLAN_COLORS[plan] || PLAN_COLORS.free;
+                return (
+                  <div key={u.id} style={S.userCard} onClick={() => navigate(`/admin/users/${u.id}`)}>
+                    <img
+                      src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>')}
+                      style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1e293b', flexShrink: 0 }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.username || 'Anonymous'}</div>
+                      <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: pc.bg, color: pc.color, textTransform: 'uppercase' }}>
+                        {plan}
+                      </span>
+                    </div>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{u.is_verified ? '✅' : '❌'}</span>
+                    <div style={{ color: '#334155', fontSize: 18, flexShrink: 0 }}>›</div>
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={S.table}>
@@ -194,6 +219,8 @@ const S = {
   filterBtn:   { padding: '8px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#64748b', fontSize: 12, fontWeight: 600, cursor: 'pointer' },
   filterBtnActive: { background: '#e91e6322', color: '#e91e63', borderColor: '#e91e6344' },
   tableCard:   { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
+  cardList:    { display: 'flex', flexDirection: 'column' },
+  userCard:    { display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid #0f172a', cursor: 'pointer' },
   table:       { width: '100%', borderCollapse: 'collapse' },
   th:          { padding: '12px 16px', textAlign: 'left', color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },
   tr:          { borderBottom: '1px solid #0f172a' },

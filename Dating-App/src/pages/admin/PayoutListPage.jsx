@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const STATUS_TABS = ['all', 'pending', 'approved', 'paid', 'rejected']
 
 export default function PayoutListPage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [payouts, setPayouts] = useState([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('all')
@@ -156,6 +158,46 @@ export default function PayoutListPage() {
         <div style={S.tableWrap}>
           {loading ? (
             <div style={S.loadingMsg}>Loading payouts…</div>
+          ) : isMobile ? (
+            <div style={S.cardList}>
+              {filtered.length === 0 ? (
+                <div style={S.emptyCell}>No payouts found</div>
+              ) : filtered.map(p => {
+                const isBusy = acting === p.id
+                return (
+                  <div key={p.id} style={S.payoutCard}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={S.affiliateName}>{p.affiliate?.contact_name || '—'}</div>
+                        <div style={S.affiliateCode}>Code: {p.affiliate?.referral_code}</div>
+                      </div>
+                      <span style={{ ...S.statusPill, ...statusStyle(p.status) }}>{p.status}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                      <span style={S.amountText}>€{(p.total_amount || 0).toFixed(2)}</span>
+                      {p.payment_detail && (
+                        <button onClick={() => setDetailModal(p)} style={S.btnView}>View Detail</button>
+                      )}
+                    </div>
+                    {p.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                        <button onClick={() => handleApprove(p.id)} disabled={isBusy} style={{ ...S.btnApprove, flex: 1 }}>
+                          {isBusy ? '…' : '✓ Approve'}
+                        </button>
+                        <button onClick={() => setRejectModal(p)} disabled={isBusy} style={{ ...S.btnReject, flex: 1 }}>
+                          ✗ Reject
+                        </button>
+                      </div>
+                    )}
+                    {p.status === 'approved' && (
+                      <button onClick={() => setMarkPaidModal(p)} disabled={isBusy} style={{ ...S.btnPaid, width: '100%', marginTop: 10 }}>
+                        {isBusy ? '…' : '€ Mark Paid'}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           ) : (
             <table style={S.table}>
               <thead>
@@ -353,6 +395,8 @@ const S = {
   bulkBar: { display: 'flex', alignItems: 'center', gap: '10px', background: '#1e293b', border: '1px solid #e91e6333', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px' },
   bulkBtn: { background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 },
   tableWrap: { background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', overflow: 'hidden' },
+  cardList: { display: 'flex', flexDirection: 'column' },
+  payoutCard: { padding: '14px 16px', borderBottom: '1px solid #0f172a' },
   loadingMsg: { padding: '60px', textAlign: 'center', color: '#475569' },
   table: { width: '100%', borderCollapse: 'collapse' },
   theadRow: { background: '#0f172a' },

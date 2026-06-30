@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const TIER_DEFAULTS = [
   { tier: 'standard', label: 'Standard', description: 'Default for all new affiliates', color: '#64748b' },
@@ -16,6 +17,7 @@ export default function CommissionSettingsPage() {
   const [saving, setSaving] = useState(false)
   const [savedMsg, setSavedMsg] = useState('')
   const [activeTab, setActiveTab] = useState('general')
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchAll() }, [])
 
@@ -99,7 +101,7 @@ export default function CommissionSettingsPage() {
           <div style={S.card}>
             <h2 style={S.cardTitle}>General Commission Settings</h2>
 
-            <div style={S.formGrid}>
+            <div style={{ ...S.formGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
               <SettingField
                 label="Default Commission Rate"
                 hint="Applied to all new affiliates (Standard tier)"
@@ -162,7 +164,7 @@ export default function CommissionSettingsPage() {
               <h2 style={S.cardTitle}>Commission Tiers</h2>
               <p style={S.cardSub}>Higher tiers earn more commission. Affiliates auto-upgrade when they hit referral milestones.</p>
             </div>
-            <div style={S.tiersGrid}>
+            <div style={{ ...S.tiersGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
               {tiers.map((tier, i) => {
                 const meta = TIER_DEFAULTS.find(d => d.tier === tier.tier) || TIER_DEFAULTS[i] || {}
                 return (
@@ -212,7 +214,7 @@ export default function CommissionSettingsPage() {
           <div style={S.card}>
             <h2 style={S.cardTitle}>Payout Rules</h2>
 
-            <div style={S.formGrid}>
+            <div style={{ ...S.formGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
               <SettingField label="Minimum Payout Amount" hint="Affiliates cannot request less than this amount" suffix="USD">
                 <input type="number" min={1}
                   value={settings.min_payout || ''}
@@ -228,7 +230,7 @@ export default function CommissionSettingsPage() {
               </SettingField>
             </div>
 
-            <div style={S.formGrid}>
+            <div style={{ ...S.formGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
               <SettingField label="Payout Processing Day" hint="Day of the week when payouts are sent">
                 <select value={settings.payout_day || 'Monday'} onChange={e => setField('payout_day', e.target.value)} style={S.select}>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(d =>
@@ -272,7 +274,7 @@ export default function CommissionSettingsPage() {
         {activeTab === 'tracking' && (
           <div style={S.card}>
             <h2 style={S.cardTitle}>Tracking & Attribution</h2>
-            <div style={S.formGrid}>
+            <div style={{ ...S.formGrid, ...(isMobile ? { gridTemplateColumns: '1fr' } : {}) }}>
               <SettingField label="Cookie Duration" hint="How long referral attribution lasts" suffix="days">
                 <input type="number" min={1} max={365}
                   value={settings.cookie_duration_days || 30}

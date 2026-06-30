@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 export default function TeamPage() {
   const [members, setMembers] = useState([])
@@ -13,6 +14,7 @@ export default function TeamPage() {
   const [newRole, setNewRole]     = useState('')
   const [newDisplay, setNewDisplay] = useState('')
   const [adding, setAdding]       = useState(false)
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchAll() }, [])
 
@@ -104,7 +106,7 @@ export default function TeamPage() {
           </div>
         </div>
 
-        <div style={S.rolesRow}>
+        <div style={{ ...S.rolesRow, ...(isMobile ? { flexWrap: 'wrap' } : {}) }}>
           {roles.map(r => {
             const c = roleColors[r.name] || '#475569'
             return (
@@ -119,7 +121,37 @@ export default function TeamPage() {
         <div style={S.card}>
           {loading ? <div style={S.empty}>Loading...</div>
           : members.length === 0 ? <div style={S.empty}>No team members</div>
-          : (
+          : isMobile ? (
+            <div style={S.cardList}>
+              {members.map(m => {
+                const c = roleColors[m.admin_roles?.name] || '#475569'
+                return (
+                  <div key={m.id} style={{ ...S.memberCard, opacity: m.is_active ? 1 : 0.5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14 }}>{m.display_name}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{m.email}</div>
+                      </div>
+                      <span style={{ ...S.statusBadge, background: m.is_active ? '#10b98122' : '#ef444422', color: m.is_active ? '#10b981' : '#ef4444' }}>
+                        {m.is_active ? 'Active' : 'Suspended'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                      <span style={{ ...S.roleBadge, background: `${c}22`, color: c, border: `1px solid ${c}44` }}>
+                        {m.admin_roles?.name || '—'}
+                      </span>
+                      <span style={{ color: '#475569', fontSize: 11 }}>
+                        {m.last_login_at ? new Date(m.last_login_at).toLocaleString('en-GB') : 'Never'}
+                      </span>
+                    </div>
+                    <button onClick={() => toggleActive(m)} style={{ ...S.actionBtn, width: '100%', marginTop: 10, color: m.is_active ? '#ef4444' : '#10b981', borderColor: m.is_active ? '#ef444444' : '#10b98144' }}>
+                      {m.is_active ? 'Suspend' : 'Activate'}
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
             <table style={S.table}>
               <thead>
                 <tr>{['Admin', 'Role', 'Last Login', 'Status', 'Action'].map(h => <th key={h} style={S.th}>{h}</th>)}</tr>
@@ -202,6 +234,8 @@ const S = {
   rolesRow: { display: 'flex', gap: 12, marginBottom: 24 },
   roleCard: { flex: 1, background: '#1e293b', borderRadius: 12, padding: '16px 20px', border: '1px solid #334155' },
   card: { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
+  cardList: { display: 'flex', flexDirection: 'column' },
+  memberCard: { padding: '14px 16px', borderBottom: '1px solid #0f172a' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { padding: '12px 16px', textAlign: 'left', color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid #334155' },
   tr: { borderBottom: '1px solid #0f172a' },

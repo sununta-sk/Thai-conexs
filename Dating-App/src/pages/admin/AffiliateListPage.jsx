@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const STATUS_TABS = ['all', 'approved', 'inactive']
 
 export default function AffiliateListPage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const [affiliates, setAffiliates]     = useState([])
   const [loading, setLoading]           = useState(true)
@@ -172,6 +174,18 @@ export default function AffiliateListPage() {
             <div style={S.empty}>Loading...</div>
           ) : filtered.length === 0 ? (
             <div style={S.empty}>No affiliates found</div>
+          ) : isMobile ? (
+            <div style={S.cardList}>
+              {filtered.map(a => (
+                <div key={a.id} style={S.affiliateCard}>
+                  <div style={S.avatar}>{(a.contact_name || 'A')[0].toUpperCase()}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.contact_name || '—'}</div>
+                  </div>
+                  <button onClick={() => openDetail(a)} style={S.btnDetail}>📄 Details</button>
+                </div>
+              ))}
+            </div>
           ) : (
             <table style={S.table}>
               <thead>
@@ -333,6 +347,8 @@ const S = {
   tabActive:   { background: '#1e293b', color: '#f1f5f9' },
   searchInput: { background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '9px 14px', color: '#f1f5f9', fontSize: 14, width: 280, outline: 'none' },
   tableWrap:   { background: '#1e293b', border: '1px solid #334155', borderRadius: 12, overflow: 'hidden' },
+  cardList:    { display: 'flex', flexDirection: 'column' },
+  affiliateCard: { display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #0f172a' },
   table:       { width: '100%', borderCollapse: 'collapse' },
   theadRow:    { background: '#0f172a' },
   th:          { padding: '12px 16px', textAlign: 'left', fontSize: 11, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #334155', fontWeight: 600 },

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 export default function AuditLogPage() {
   const [logs, setLogs]     = useState([])
@@ -9,6 +10,7 @@ export default function AuditLogPage() {
   const [filter, setFilter] = useState('')
   const [page, setPage]     = useState(0)
   const PAGE_SIZE = 50
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchLogs() }, [page])
 
@@ -87,6 +89,36 @@ export default function AuditLogPage() {
             <div style={S.empty}>No audit log data</div>
           ) : (
             <>
+              {isMobile ? (
+                <div style={S.cardList}>
+                  {filtered.map((l, i) => {
+                    const c = ACTION_COLOR[l.action_type] || '#64748b'
+                    return (
+                      <div key={l.id ?? i} style={S.logCard}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                          <span style={{ ...S.badge, background: `${c}22`, color: c }}>
+                            {l.action_type ?? '—'}
+                          </span>
+                          <span style={{ color: '#475569', fontSize: 10, whiteSpace: 'nowrap' }}>
+                            {l.created_at ? new Date(l.created_at).toLocaleString('en-GB') : '—'}
+                          </span>
+                        </div>
+                        <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 13, marginTop: 6 }}>
+                          {l.admin_users?.display_name ?? 'Admin'}
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: 12, marginTop: 4 }}>
+                          {getDescription(l)}
+                        </div>
+                        {l.target_type && (
+                          <div style={{ color: '#475569', fontSize: 10, fontFamily: 'monospace', marginTop: 4 }}>
+                            {l.target_type}{l.target_id ? `: ${String(l.target_id).slice(0, 8)}...` : ''}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
               <table style={S.table}>
                 <thead>
                   <tr>
@@ -136,6 +168,7 @@ export default function AuditLogPage() {
                   })}
                 </tbody>
               </table>
+              )}
 
               <div style={S.pager}>
                 <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={S.pageBtn}>← Prev</button>
@@ -157,6 +190,8 @@ const S = {
   sub:     { color: '#64748b', fontSize: 13, margin: 0 },
   search:  { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '10px 16px', color: '#f1f5f9', fontSize: 13, width: 280, outline: 'none' },
   card:    { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
+  cardList:{ display: 'flex', flexDirection: 'column' },
+  logCard: { padding: '12px 16px', borderBottom: '1px solid #0f172a' },
   table:   { width: '100%', borderCollapse: 'collapse' },
   th:      { padding: '12px 16px', textAlign: 'left', color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },
   tr:      { borderBottom: '1px solid #0f172a' },
