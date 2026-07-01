@@ -189,12 +189,12 @@ export default function AdminLayout({ children }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* ── View App ── */}
-            <a href="/discover" target="_blank" rel="noopener noreferrer"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, textDecoration: 'none', fontSize: 12, fontWeight: 700, background: '#10b98118', color: '#34d399', border: '1px solid #10b98140' }}
+            <button onClick={() => navigate('/discover')}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: '1px solid #10b98140', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: '#10b98118', color: '#34d399' }}
               onMouseEnter={e => e.currentTarget.style.background = '#10b98130'}
               onMouseLeave={e => e.currentTarget.style.background = '#10b98118'}>
               ↗ View App
-            </a>
+            </button>
 
             {/* ── Role + Name ── */}
             <span style={{ ...S.roleBadge, background: `${roleColor}22`, color: roleColor, border: `1px solid ${roleColor}44` }}>

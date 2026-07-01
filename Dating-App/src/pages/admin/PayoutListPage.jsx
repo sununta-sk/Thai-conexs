@@ -116,9 +116,9 @@ export default function PayoutListPage() {
         </div>
 
         {/* Toolbar */}
-        <div style={S.toolbar}>
+        <div style={{ ...S.toolbar, ...(isMobile ? { flexDirection: 'column', alignItems: 'stretch' } : {}) }}>
           {/* Status Tabs */}
-          <div style={S.statusTabs}>
+          <div style={{ ...S.statusTabs, ...(isMobile ? { flexWrap: 'wrap' } : {}) }}>
             {STATUS_TABS.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 style={{ ...S.statusTab, ...(statusFilter === s ? S.statusTabActive : {}) }}>
@@ -135,7 +135,7 @@ export default function PayoutListPage() {
             placeholder="Search affiliate name, email, code…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={S.searchInput}
+            style={{ ...S.searchInput, ...(isMobile ? { width: '100%', boxSizing: 'border-box' } : {}) }}
           />
         </div>
 

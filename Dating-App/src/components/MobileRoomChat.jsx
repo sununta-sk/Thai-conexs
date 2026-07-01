@@ -219,12 +219,12 @@ export default function MobileRoomChat() {
   useEffect(() => {
     if (!session || !chatId) return;
     const fetch_ = async () => {
-      const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).range(0, 99);
+      const { data, error } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: true }).range(0, 99);
       if (!error) setMessages(data || []);
       setLoading(false);
     };
     fetch_();
-    supabase.from("messages").update({ is_read: true }).eq("chat_id", chatId).neq("sender_id", session.user.id);
+    supabase.from("messages").update({ is_read: true }).or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).neq("sender_id", session.user.id);
     const channel = supabase.channel(`room:${chatId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
         (payload) => {
@@ -235,7 +235,7 @@ export default function MobileRoomChat() {
         })
       .subscribe();
     const poll = setInterval(async () => {
-      const { data } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true }).range(0, 99);
+      const { data } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: true }).range(0, 99);
       if (data) setMessages(data);
     }, 1000);
     return () => { supabase.removeChannel(channel); clearInterval(poll); };
