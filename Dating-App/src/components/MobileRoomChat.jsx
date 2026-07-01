@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { optimizeImage } from "../lib/imageUtils";
+import officialLogo from "../lib/LotusConnexs-full.jpeg";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -307,7 +308,8 @@ export default function MobileRoomChat() {
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const extractedAvatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
   const allPhotos = [...(extractedAvatarUrl ? [extractedAvatarUrl] : []), ...photoUrls.filter(u => u !== extractedAvatarUrl)];
-  const avatarUrl = allPhotos[0] || null;
+  const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
+  const avatarUrl = otherUserId === OFFICIAL_ID ? officialLogo : (allPhotos[0] || null);
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
@@ -515,7 +517,7 @@ export default function MobileRoomChat() {
 
 // ── Styles ──
 const S = {
-  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "fixed", top: 0, left: 0, right: 0, bottom: 0 },
+  root: { display: "flex", flexDirection: "column", height: "100dvh", minHeight: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", position: "fixed", top: 0, left: 0, right: 0, bottom: 0 },
   loadingWrap: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", minHeight: "100dvh", background: "#0f172a", gap: 8 },
   dot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
 
