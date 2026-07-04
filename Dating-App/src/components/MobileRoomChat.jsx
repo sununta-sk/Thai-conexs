@@ -1,5 +1,7 @@
 // src/components/MobileRoomChat.jsx — ThaiFriendly-style mobile chat (v5b-2)
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { Keyboard } from "@capacitor/keyboard";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
@@ -158,6 +160,8 @@ export default function MobileRoomChat() {
   const gifRef = useRef(null);
   const menuRef = useRef(null);
   const audioChunks = useRef([]);
+  const rootRef = useRef(null);
+  const [vp, setVp] = useState({ height: null, offsetTop: 0 });
 
   // Outside-click dismissal
   useEffect(() => {
@@ -245,6 +249,26 @@ export default function MobileRoomChat() {
   // Auto-scroll
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  useEffect(() => {
+    if (!window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => setVp({ height: vv.height, offsetTop: vv.offsetTop });
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
+    return () => {
+      Keyboard.setAccessoryBarVisible({ isVisible: true }).catch(() => {});
+    };
+  }, []);
+
   // sendMessage — identical to RoomChat
   const sendMessage = useCallback(async (content_override) => {
     const content = (content_override || newMessage).trim();
@@ -324,7 +348,14 @@ export default function MobileRoomChat() {
   }
 
   return (
-    <div style={S.root}>
+    <div
+      ref={rootRef}
+      style={{
+        ...S.root,
+        ...(vp.height ? { height: `${vp.height}px`, minHeight: `${vp.height}px` } : {}),
+        transform: vp.offsetTop ? `translateY(${vp.offsetTop}px)` : undefined,
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
@@ -481,7 +512,7 @@ export default function MobileRoomChat() {
       </div>
 
       {/* ── Report Modal ── */}
-      {showReport && (
+      {showReport && createPortal(
         <div style={S.modalOverlay} onClick={() => setShowReport(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <div style={S.modalTitle}>Report User</div>
@@ -493,23 +524,25 @@ export default function MobileRoomChat() {
             ))}
             <button onClick={submitReport} style={S.submitBtn}>Send Report</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Ticket Modal ── */}
-      {showTicket && (
+      {showTicket && createPortal(
         <div style={S.modalOverlay} onClick={() => setShowTicket(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={S.modalTitle}>Support Ticket</div>
+      lTitle}>Support Ticket</div>
             <textarea
               value={ticketMsg}
               onChange={e => setTicketMsg(e.target.value)}
               placeholder="อธิบายปัญหา…"
               style={{ width: "100%", height: 100, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#f1f5f9", padding: 8, fontSize: 14, resize: "none" }}
             />
-            <button onClick={submitTicket} style={S.submitBtn}>Send Ticket</button>
+            <button onClick={submitTicket} style={</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
