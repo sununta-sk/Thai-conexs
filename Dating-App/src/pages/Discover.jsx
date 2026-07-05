@@ -6,10 +6,12 @@ import { useOnline } from '../context/OnlineContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileDiscoverFilters from '../components/MobileDiscoverFilters';
 import { useTranslation } from '../hooks/useTranslation';
+import officialLogo from '../lib/LotusConnexs-full.jpeg';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
+const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function BanScreen({ bannedUntil, banReason }) {
   const isPermanent = !bannedUntil;
@@ -229,6 +231,7 @@ export default function Discover() {
     else navigate('/profile/' + targetUserId);
   };
   const getMainPhoto = (profile) => {
+    if (profile.id === OFFICIAL_ID) return officialLogo;
     const raw = profile.avatar_url;
     if (!raw) return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
     if (typeof raw === 'string') return raw;

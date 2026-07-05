@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
 import { supabase } from "../lib/supabaseClient";
+import officialLogo from "../lib/LotusConnexs-full.jpeg";
+const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function formatTime(iso) {
   if (!iso) return '';
@@ -45,6 +47,7 @@ export default function Messages() {
       const rid = m.room_id || m.chat_id;
       const otherId = rid.split('_').find(id => id !== uid);
       const { data: prof } = await supabase.from('profiles').select('username, avatar_url').eq('id', otherId).maybeSingle();
+      if (prof && otherId === OFFICIAL_ID) prof.avatar_url = officialLogo;
       const unreadCount = msgs.filter(x => (x.room_id || x.chat_id) === rid && x.sender_id !== uid && !x.is_read).length;
       return { roomId: rid, content: m.content, time: m.created_at, user: prof, senderId: m.sender_id, unreadCount };
     }));
