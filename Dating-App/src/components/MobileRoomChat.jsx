@@ -252,7 +252,14 @@ export default function MobileRoomChat() {
   useEffect(() => {
     if (!window.visualViewport) return;
     const vv = window.visualViewport;
-    const update = () => setVp({ height: vv.height, offsetTop: vv.offsetTop });
+    const update = () => {
+      const keyboardOpen = window.innerHeight - vv.height > 100;
+      if (keyboardOpen) {
+        setVp({ height: vv.height, offsetTop: vv.offsetTop });
+      } else {
+        setVp({ height: null, offsetTop: 0 });
+      }
+    };
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     update();
