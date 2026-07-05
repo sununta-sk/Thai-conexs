@@ -9,7 +9,7 @@ import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
-const TOP_H = 56;
+const TOP_H = 68;
 const BOTTOM_H = 64;
 
 function MenuItem({ onClick, color = '#f1f5f9', children }) {
@@ -115,8 +115,8 @@ export default function MobileNavbar() {
         height: `calc(${TOP_H}px + env(safe-area-inset-top))`,
         background: '#0f172a',
         display: 'flex', alignItems: 'flex-end', padding: '0 6px', gap: 4,
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 0,
+        paddingTop: 'calc(env(safe-area-inset-top) + 6px)',
+        paddingBottom: 6,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
         boxSizing: 'border-box',
