@@ -7,9 +7,11 @@ import { supabase } from '../lib/supabaseClient';
 import ReportModal from '../components/ReportModal';
 
 import { optimizeImage } from '../lib/imageUtils';
+import officialLogo from '../lib/LotusConnexs-full.jpeg';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
+const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function timeAgo(dateStr) {
   if (!dateStr) return null;
@@ -213,7 +215,7 @@ export default function UserProfilePage() {
 
   const rawPhotos = Array.isArray(profile.photos) ? profile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
-  const avatar    = profile.avatar_url || null;
+  const avatar    = profile.id === OFFICIAL_ID ? officialLogo : (profile.avatar_url || null);
   const allPhotos = avatar ? [avatar, ...photoUrls.filter(u => u !== avatar)] : photoUrls;
 
   const displayCity  = profile.city || profile.location || '';
