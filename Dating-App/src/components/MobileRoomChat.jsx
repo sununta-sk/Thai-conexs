@@ -119,7 +119,7 @@ function GifPicker({ onSelect }) {
 }
 const GP = {
   wrap: { width: "100%", background: "#1e293b", border: "1px solid #334155", borderRadius: "16px 16px 0 0", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: 280 },
-  input: { margin: 10, padding: "8px 12px", borderRadius: 20, border: "1px solid #334155", fontSize: 14, outline: "none", background: "#0f172a", color: "#f1f5f9", width: "calc(100% - 20px)" },
+  input: { margin: 10, padding: "8px 12px", borderRadius: 20, border: "1px solid #334155", fontSize: 16, outline: "none", background: "#0f172a", color: "#f1f5f9", width: "calc(100% - 20px)" },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4, padding: "0 10px 8px", maxHeight: 200, overflowY: "auto" },
   gif: { width: "100%", borderRadius: 8, cursor: "pointer", objectFit: "cover", aspectRatio: "1/1" },
   loading: { gridColumn: "1/-1", textAlign: "center", color: "#64748b", fontSize: 13, padding: 20 },
