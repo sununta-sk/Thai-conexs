@@ -532,14 +532,14 @@ export default function MobileRoomChat() {
       {showTicket && createPortal(
         <div style={S.modalOverlay} onClick={() => setShowTicket(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
-      lTitle}>Support Ticket</div>
+            <div style={S.modalTitle}>Support Ticket</div>
             <textarea
               value={ticketMsg}
               onChange={e => setTicketMsg(e.target.value)}
               placeholder="อธิบายปัญหา…"
               style={{ width: "100%", height: 100, borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#f1f5f9", padding: 8, fontSize: 14, resize: "none" }}
             />
-            <button onClick={submitTicket} style={</button>
+            <button onClick={submitTicket} style={S.submitBtn}>Send Ticket</button>
           </div>
         </div>,
         document.body
