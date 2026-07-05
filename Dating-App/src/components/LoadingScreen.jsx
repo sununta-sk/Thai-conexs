@@ -1,4 +1,4 @@
-import logoImg from '../lib/LotusConnexs.jpeg';
+import logoImg from '../lib/LotusConnexs-full.jpeg';
 
 export default function LoadingScreen({ message = 'Loading...' }) {
   return (
@@ -13,7 +13,6 @@ export default function LoadingScreen({ message = 'Loading...' }) {
       <div style={S.logoWrap}>
         <img src={logoImg} alt="Lotus ConeXs" style={S.logo} />
       </div>
-      <div style={S.spinnerRing} />
       <div style={S.text}>{message}</div>
     </div>
   );
@@ -48,16 +47,6 @@ const S = {
     filter: 'drop-shadow(0 0 24px rgba(233, 30, 99, 0.6))',
     mixBlendMode: 'screen',
     opacity: 0.95,
-  },
-  spinnerRing: {
-    position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: '50%',
-    border: '3px solid transparent',
-    borderTopColor: '#e91e63',
-    borderRightColor: 'rgba(233, 30, 99, 0.4)',
-    animation: 'spin 1s linear infinite',
   },
   text: {
     color: '#94a3b8',
