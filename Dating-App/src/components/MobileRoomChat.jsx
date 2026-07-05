@@ -597,7 +597,7 @@ const S = {
   inputBar: { display: "flex", alignItems: "center", gap: 6, padding: "10px 10px calc(env(safe-area-inset-bottom) + 10px)", background: "#0f172a", borderTop: "1px solid #334155", flexShrink: 0 },
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s", borderRadius: 8 },
   inputWrap: { flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
-  textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
+  textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 16, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
   sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
 
   // Modals
