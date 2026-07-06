@@ -29,3 +29,6 @@ ios/
 android/
 _archive/
 api-railway-old/
+.env
+.env.local
+.env.*.local
