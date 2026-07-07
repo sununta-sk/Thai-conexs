@@ -39,15 +39,27 @@ function UserPhotoGrid() {
   const [profiles, setProfiles] = useState([]);
 
   useEffect(() => {
-    supabase
-      .from('profiles')
-      .select('id, username, avatar_url, details')
-      .not('avatar_url', 'is', null)
-      .neq('avatar_url', '')
-      .limit(40)
-      .then(({ data }) => {
-        if (data) setProfiles(data.filter(p => p.avatar_url));
-      });
+    let active = true;
+    const fetchProfiles = () => {
+      supabase
+        .from('profiles')
+        .select('id, username, avatar_url, details')
+        .not('avatar_url', 'is', null)
+        .neq('avatar_url', '')
+        .limit(40)
+        .then(({ data }) => {
+          if (!active || !data) return;
+          const filtered = data.filter(p => p.avatar_url);
+          for (let i = filtered.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+          }
+          setProfiles(filtered);
+        });
+    };
+    fetchProfiles();
+    const interval = setInterval(fetchProfiles, 45000);
+    return () => { active = false; clearInterval(interval); };
   }, []);
 
   const fallbackColors = ['#334155','#1e293b','#475569','#64748b','#e91e63','#334155','#1e293b','#475569'];
