@@ -43,7 +43,8 @@ function UserPhotoGrid() {
       .from('profiles')
       .select('id, username, avatar_url, details')
       .not('avatar_url', 'is', null)
-      .limit(20)
+      .neq('avatar_url', '')
+      .limit(40)
       .then(({ data }) => {
         if (data) setProfiles(data.filter(p => p.avatar_url));
       });
@@ -73,7 +74,11 @@ function UserPhotoGrid() {
                 <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
               )}
             </div>
-          ))
+          )).concat(
+            Array.from({ length: Math.max(0, 16 - Math.min(profiles.length, 16)) }).map((_, i) => (
+              <div key={`empty-${i}`} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
+            ))
+          )
         ) : (
           Array.from({ length: 12 }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />

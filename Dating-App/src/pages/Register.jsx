@@ -43,7 +43,8 @@ function UserPhotoGrid() {
       .from('profiles')
       .select('id, username, avatar_url, details')
       .not('avatar_url', 'is', null)
-      .limit(20)
+      .neq('avatar_url', '')
+      .limit(40)
       .then(({ data }) => {
         if (data) setProfiles(data.filter(p => p.avatar_url));
       });
@@ -61,19 +62,25 @@ function UserPhotoGrid() {
       </div>
       <div style={G.grid}>
         {profiles.length > 0 ? (
-          profiles.slice(0, 16).map((p, i) => (
-            <div key={p.id} style={G.cell}>
-              <img
-                src={p.avatar_url}
-                alt={p.username}
-                style={G.img}
-                onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
-              />
-              {p.details?.gender && (
-                <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
-              )}
-            </div>
-          ))
+          Array.from({ length: 16 }).map((_, i) => {
+            const p = profiles[i];
+            if (!p) {
+              return <div key={`empty-${i}`} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />;
+            }
+            return (
+              <div key={p.id} style={G.cell}>
+                <img
+                  src={p.avatar_url}
+                  alt={p.username}
+                  style={G.img}
+                  onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
+                />
+                {p.details?.gender && (
+                  <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
+                )}
+              </div>
+            );
+          })
         ) : (
           Array.from({ length: 12 }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
@@ -87,6 +94,7 @@ function UserPhotoGrid() {
 const G = {
   wrap: {
     width: '100%',
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -149,6 +157,17 @@ const G = {
   },
 };
 
+// ── useIsMobile hook ─────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
 // ── Main Register Component ───────────────────────────────────
 export default function Register() {
   const [email, setEmail]       = useState('');
@@ -156,6 +175,7 @@ export default function Register() {
   const [confirm, setConfirm]   = useState('');
   const [loading, setLoading]   = useState(false);
   const navigate = useNavigate();
+  const isMobile  = useIsMobile();
 
   const { tx, lang } = useTranslation(['auth']);
 
@@ -178,6 +198,68 @@ export default function Register() {
 
   const c = CONTENT[lang] || CONTENT.en;
 
+  // ── MOBILE LAYOUT ────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+
+        {/* 1. Register Form */}
+        <div style={M.section}>
+          <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
+          <form onSubmit={handleRegister} style={M.form}>
+            <input type="email" placeholder={tx.email || 'Email'} value={email}
+              onChange={e => setEmail(e.target.value)} style={M.input} required />
+            <input type="password" placeholder={tx.passwordMin || 'Password (min 6 chars)'} value={password}
+              onChange={e => setPassword(e.target.value)} style={M.input} required minLength={6} />
+            <input type="password" placeholder={tx.confirmPassword || 'Confirm Password'} value={confirm}
+              onChange={e => setConfirm(e.target.value)} style={M.input} required />
+            <button type="submit" disabled={loading} style={{ ...M.btnPink, opacity: loading ? 0.7 : 1 }}>
+              {loading ? '...' : (tx.register || 'Sign Up')}
+            </button>
+          </form>
+          <div style={M.loginRow}>
+            <p style={M.loginText}>{tx.hasAccount || 'Already have an account?'}</p>
+            <Link to="/login" style={M.loginBtn}>{tx.login || 'Log In'}</Link>
+          </div>
+        </div>
+
+        {/* 2. Online Members */}
+        <div style={{ background: '#1e293b', borderTop: '1px solid #334155', borderBottom: '1px solid #334155' }}>
+          <UserPhotoGrid />
+          <div style={M.joinWrap}>
+            <Link to="/register" style={M.joinBtn}>
+              <span style={M.joinBtnMain}>{c.cta}</span>
+              <span style={M.joinBtnPrize}>🎁 {c.ctaPrize}</span>
+            </Link>
+            <p style={M.joinSubtext}>{tx.noCredit || 'No credit card required • Free to join'}</p>
+          </div>
+        </div>
+
+        {/* 3. About Section */}
+        <div style={M.about}>
+          <h2 style={M.aboutTitle}>{c.title}</h2>
+          <div style={M.photoGrid}>
+            <div style={M.photoCard}><img src={imgConversation} alt="conversation" style={M.photoImg} /></div>
+            <div style={M.photoCard}><img src={imgSongkran} alt="songkran" style={M.photoImg} /></div>
+            <div style={M.photoCard}><img src={imgThaifood} alt="thai food" style={M.photoImg} /></div>
+          </div>
+          {c.paragraphs.map((p, i) => (
+            <p key={i} style={M.aboutText}>{p}</p>
+          ))}
+          <div style={M.footerLinks}>
+            <a href="#" style={M.footerLink}>Privacy Policy</a>
+            <a href="#" style={M.footerLink}>Terms of Service</a>
+            <a href="#" style={M.footerLink}>Community Guidelines</a>
+            <a href="#" style={M.footerLink}>Contact Us</a>
+          </div>
+          <p style={M.copyright}>© 2026 Lotus ConneXs. All rights reserved.</p>
+        </div>
+
+      </div>
+    );
+  }
+
+  // ── DESKTOP LAYOUT (เหมือนเดิมทุกอย่าง) ─────────────────
   return (
     <div style={{ background: '#0f172a', position: 'relative', minHeight: '100vh' }}>
 
@@ -250,6 +332,32 @@ export default function Register() {
     </div>
   );
 }
+
+// ── Mobile Styles ────────────────────────────────────────────
+const M = {
+  section: { padding: '40px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#0f172a' },
+  logo: { width: '80%', maxWidth: 280, height: 'auto', objectFit: 'contain', borderRadius: 12, marginBottom: 32, boxShadow: '0 6px 24px rgba(233,30,99,0.3)' },
+  form: { display: 'flex', flexDirection: 'column', gap: 16, width: '100%' },
+  input: { padding: '15px 16px', borderRadius: 14, border: '1px solid #334155', fontSize: 16, background: '#1e293b', color: '#f1f5f9', outline: 'none', width: '100%', boxSizing: 'border-box' },
+  btnPink: { padding: '16px', borderRadius: 30, border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: 17, cursor: 'pointer' },
+  loginRow: { marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' },
+  loginText: { margin: 0, color: '#94a3b8', fontSize: 14 },
+  loginBtn: { display: 'block', width: '100%', padding: '15px', borderRadius: 30, border: '2px solid #e91e63', background: 'transparent', color: '#e91e63', fontWeight: 800, fontSize: 16, textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box' },
+  joinWrap: { padding: '8px 24px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
+  joinBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: '100%', padding: '18px 24px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', borderRadius: 32, textDecoration: 'none', boxShadow: '0 10px 32px rgba(233,30,99,0.5)', textAlign: 'center' },
+  joinBtnMain: { color: '#fff', fontWeight: 800, fontSize: 18 },
+  joinBtnPrize: { color: '#fde68a', fontWeight: 700, fontSize: 13 },
+  joinSubtext: { color: '#94a3b8', fontSize: 12, fontWeight: 600, margin: 0, textAlign: 'center' },
+  about: { background: '#0f172a', padding: '40px 20px 40px' },
+  aboutTitle: { fontSize: 24, fontWeight: 800, color: '#f1f5f9', textAlign: 'center', marginBottom: 24 },
+  photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 28 },
+  photoCard: { borderRadius: 12, overflow: 'hidden', aspectRatio: '4/3', border: '1px solid #334155' },
+  photoImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  aboutText: { fontSize: 15, lineHeight: 1.8, color: '#94a3b8', marginBottom: 16 },
+  footerLinks: { display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center', marginTop: 28, marginBottom: 12 },
+  footerLink: { color: '#e91e63', fontSize: 13, textDecoration: 'none' },
+  copyright: { textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 8 },
+};
 
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
