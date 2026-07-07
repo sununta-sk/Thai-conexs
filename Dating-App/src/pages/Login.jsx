@@ -87,6 +87,7 @@ function UserPhotoGrid() {
 const G = {
   wrap: {
     width: '100%',
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -123,6 +124,7 @@ const G = {
     gap: 6,
     width: '100%',
     maxWidth: 360,
+    margin: '0 auto',
   },
   cell: {
     position: 'relative',
