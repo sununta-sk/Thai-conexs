@@ -26,15 +26,21 @@ function NavbarDesktop() {
   const isActive = (path) => location.pathname === path;
 
   useEffect(() => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
 
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('auth_user_id', session.user.id)
-        .eq('is_active', true)
-        .maybeSingle();
+      let adminData = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('auth_user_id', session.user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (!error) { adminData = data; break; }
+        if (attempt < 2) await sleep(500 * (attempt + 1));
+      }
       setIsAdmin(!!adminData);
 
       const { data: profileData } = await supabase

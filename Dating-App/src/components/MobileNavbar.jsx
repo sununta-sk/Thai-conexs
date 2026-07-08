@@ -57,15 +57,21 @@ export default function MobileNavbar() {
   // Fetch admin + avatar (mirror Navbar.jsx logic)
   useEffect(() => {
     let cancelled = false;
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session || cancelled) return;
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('auth_user_id', session.user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-      if (cancelled) return;
+      let adminData = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('auth_user_id', session.user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!error) { adminData = data; break; }
+        if (attempt < 2) await sleep(500 * (attempt + 1));
+      }
       setIsAdmin(!!adminData);
       const { data: profile } = await supabase
         .from('profiles')
