@@ -101,16 +101,16 @@ export default function PayoutListPage() {
         </div>
 
         {/* Summary Cards */}
-        <div style={S.summaryGrid}>
+        <div style={isMobile ? S.summaryGridMobile : S.summaryGrid}>
           {[
             { label: 'Pending Review', value: `€${totalPendingAmt.toFixed(2)}`, count: `${pendingCount} requests`, color: '#fbbf24', bg: '#f59e0b11' },
             { label: 'Approved (Queued)', value: `€${totalApprovedAmt.toFixed(2)}`, count: 'ready to send', color: '#60a5fa', bg: '#3b82f611' },
             { label: 'Total Paid Out', value: `€${totalPaidAmt.toFixed(2)}`, count: `${payouts.filter(p => p.status === 'paid').length} processed`, color: '#4ade80', bg: '#16a34a11' },
           ].map(s => (
-            <div key={s.label} style={{ ...S.summaryCard, background: s.bg, border: `1px solid ${s.color}33` }}>
-              <div style={{ ...S.summaryVal, color: s.color }}>{s.value}</div>
-              <div style={S.summaryLabel}>{s.label}</div>
-              <div style={S.summaryCount}>{s.count}</div>
+            <div key={s.label} style={{ ...(isMobile ? S.summaryCardMobile : S.summaryCard), background: s.bg, border: `1px solid ${s.color}33` }}>
+              <div style={{ ...(isMobile ? S.summaryValMobile : S.summaryVal), color: s.color }}>{s.value}</div>
+              <div style={isMobile ? S.summaryLabelMobile : S.summaryLabel}>{s.label}</div>
+              <div style={isMobile ? S.summaryCountMobile : S.summaryCount}>{s.count}</div>
             </div>
           ))}
         </div>
@@ -382,6 +382,11 @@ const S = {
   btnPink: { background: '#e91e63', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' },
   btnView: { background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' },
+  summaryGridMobile: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '20px' },
+  summaryCardMobile: { borderRadius: '10px', padding: '10px 6px' },
+  summaryValMobile: { fontSize: '15px', fontWeight: 700, display: 'block', marginBottom: '2px' },
+  summaryLabelMobile: { fontSize: '9px', color: '#94a3b8', display: 'block', marginBottom: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  summaryCountMobile: { fontSize: '8px', color: '#475569', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   summaryCard: { borderRadius: '12px', padding: '20px' },
   summaryVal: { fontSize: '28px', fontWeight: 700, display: 'block', marginBottom: '6px' },
   summaryLabel: { fontSize: '13px', color: '#94a3b8', display: 'block', marginBottom: '2px' },
