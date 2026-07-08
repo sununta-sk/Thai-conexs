@@ -2,10 +2,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 const STATUS_TABS = ['pending', 'approved', 'rejected'];
+const MOBILE_PAGE_SIZE = 40;
 
 export default function PhotoQueuePage() {
+  const isMobile = useIsMobile();
+  const [mobilePage,    setMobilePage]    = useState(0);
   const [photos,        setPhotos]        = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [activeTab,     setActiveTab]     = useState('pending');
@@ -25,7 +29,7 @@ export default function PhotoQueuePage() {
       `)
       .eq('status', activeTab)
       .order('created_at', { ascending: true })
-      .limit(60);
+      .limit(300);
     setPhotos(data || []);
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map(p => p.user_id))];
@@ -67,6 +71,8 @@ export default function PhotoQueuePage() {
   const toggleSelect  = id => setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleAll     = () => setSelected(selected.size === photos.length ? new Set() : new Set(photos.map(p => p.id)));
   const selectedArr   = [...selected];
+  const displayedPhotos = isMobile ? photos.slice(mobilePage * MOBILE_PAGE_SIZE, (mobilePage + 1) * MOBILE_PAGE_SIZE) : photos;
+  const mobileTotalPages = Math.ceil(photos.length / MOBILE_PAGE_SIZE);
 
   return (
     <AdminLayout>
@@ -85,7 +91,7 @@ export default function PhotoQueuePage() {
           {STATUS_TABS.map(tab => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); setMobilePage(0); }}
               style={{ ...S.tab, ...(activeTab === tab ? S.tabActive : {}) }}
             >
               <span style={{ ...S.tabDot, background: TAB_COLOR[tab] }} />
@@ -133,7 +139,7 @@ export default function PhotoQueuePage() {
 
         {/* ── Grid ── */}
         {loading ? (
-          <div style={S.grid}>
+          <div style={{ ...S.grid, gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : S.grid.gridTemplateColumns }}>
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} style={S.skeleton} />
             ))}
@@ -146,8 +152,8 @@ export default function PhotoQueuePage() {
             <div>No photos in {activeTab}</div>
           </div>
         ) : (
-          <div style={S.grid}>
-            {photos.map(photo => (
+          <div style={{ ...S.grid, gridTemplateColumns: isMobile ? 'repeat(4, 1fr)' : S.grid.gridTemplateColumns }}>
+            {displayedPhotos.map(photo => (
               <div
                 key={photo.id}
                 style={{
@@ -204,6 +210,23 @@ export default function PhotoQueuePage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Mobile Pagination ── */}
+        {isMobile && !loading && photos.length > MOBILE_PAGE_SIZE && (
+          <div style={S.mobilePagination}>
+            <button
+              onClick={() => setMobilePage(p => Math.max(0, p - 1))}
+              disabled={mobilePage === 0}
+              style={{ ...S.pageBtn, opacity: mobilePage === 0 ? 0.4 : 1 }}
+            >← Prev</button>
+            <span style={{ color: '#64748b', fontSize: 13 }}>Page {mobilePage + 1} / {mobileTotalPages}</span>
+            <button
+              onClick={() => setMobilePage(p => Math.min(mobileTotalPages - 1, p + 1))}
+              disabled={mobilePage >= mobileTotalPages - 1}
+              style={{ ...S.pageBtn, opacity: mobilePage >= mobileTotalPages - 1 ? 0.4 : 1 }}
+            >Next →</button>
           </div>
         )}
 
@@ -273,7 +296,7 @@ const S = {
   pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
 
-  tabs: { display: 'flex', gap: 8, marginBottom: 20 },
+  tabs: { display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
   tab:  {
     display: 'flex', alignItems: 'center', gap: 8,
     padding: '8px 16px', borderRadius: 10,
@@ -299,6 +322,8 @@ const S = {
     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
     gap: 12,
   },
+  mobilePagination: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '16px 0' },
+  pageBtn: { padding: '6px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   card: {
     background: '#1e293b', borderRadius: 12,
     overflow: 'hidden', position: 'relative',
