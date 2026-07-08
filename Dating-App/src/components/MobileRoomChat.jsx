@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Keyboard } from "@capacitor/keyboard";
+import { Capacitor } from "@capacitor/core";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import Picker from "@emoji-mart/react";
@@ -250,6 +251,7 @@ export default function MobileRoomChat() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   useEffect(() => {
+    if (Capacitor.getPlatform() === 'android') return;
     if (!window.visualViewport) return;
     const vv = window.visualViewport;
     const update = () => {
@@ -270,6 +272,7 @@ export default function MobileRoomChat() {
   }, []);
 
   useEffect(() => {
+    if (Capacitor.getPlatform() === 'android') return;
     Keyboard.setAccessoryBarVisible({ isVisible: false }).catch(() => {});
     return () => {
       Keyboard.setAccessoryBarVisible({ isVisible: true }).catch(() => {});
