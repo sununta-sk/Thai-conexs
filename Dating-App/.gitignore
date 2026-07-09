@@ -32,3 +32,4 @@ api-railway-old/
 .env
 .env.local
 .env.*.local
+.DS_Store
