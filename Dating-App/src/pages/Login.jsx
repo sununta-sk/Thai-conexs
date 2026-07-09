@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
@@ -194,8 +196,25 @@ export default function Login() {
     else alert(error.message);
   };
 
-  // Google login — hidden for now, re-enable later
-  // const handleGoogleLogin = async () => { ... };
+  const handleGoogleLogin = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'com.lotusconnexs.app://login-callback',
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) { alert(error.message); return; }
+      if (data?.url) await Browser.open({ url: data.url });
+    } else {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/discover' },
+      });
+      if (error) alert(error.message);
+    }
+  };
 
   const c = CONTENT[lang] || CONTENT.en;
 
@@ -213,6 +232,12 @@ export default function Login() {
             <input type="password" placeholder={tx.password || 'Password'} value={password}
               onChange={e => setPassword(e.target.value)} style={M.input} required />
             <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
+            <div style={M.divider}><hr style={M.hr} /><span style={M.orText}>OR</span><hr style={M.hr} /></div>
+            <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+              <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
+              Continue with Google
+            </button>
+            <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
             <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
           </form>
           <div style={M.signupRow}>
@@ -275,12 +300,12 @@ export default function Login() {
               <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
               <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
 
-              {/* Google login — hidden until fixed */}
-              {/* <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
-              <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
+              <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
+              <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
                 <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
                 Continue with Google
-              </button> */}
+              </button>
+              <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
             </form>
             <div style={S.signupRow}>
               <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
@@ -347,6 +372,10 @@ const M = {
     boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
   },
   form: { display: 'flex', flexDirection: 'column', gap: 16, width: '100%' },
+  divider: { display: 'flex', alignItems: 'center', margin: '2px 0' },
+  hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
+  orText: { padding: '0 14px', color: '#64748b', fontSize: '13px' },
+  btnGoogle: { padding: '15px 16px', borderRadius: 14, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', boxSizing: 'border-box' },
   input: {
     padding: '15px 16px',
     borderRadius: 14,

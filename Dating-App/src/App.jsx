@@ -2,6 +2,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './lib/supabaseClient';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { OnlineProvider } from './context/OnlineContext';
 import BanModal from './components/BanModal';
 import WelcomeModal from './components/WelcomeModal';
@@ -207,7 +209,29 @@ function AppContent() {
       if (event === 'SIGNED_OUT') setSession(null);
       else if (s) setSession(s);
     });
-    return () => subscription.unsubscribe();
+
+    let urlListener;
+    if (Capacitor.isNativePlatform()) {
+      CapacitorApp.addListener('appUrlOpen', async ({ url }) => {
+        if (url.includes('login-callback')) {
+          const hashIndex = url.indexOf('#');
+          if (hashIndex >= 0) {
+            const hash = url.substring(hashIndex + 1);
+            const params = new URLSearchParams(hash);
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+            if (access_token && refresh_token) {
+              await supabase.auth.setSession({ access_token, refresh_token });
+            }
+          }
+        }
+      }).then(listener => { urlListener = listener; });
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      if (urlListener) urlListener.remove();
+    };
   }, []);
 
   const hideNavbar =
