@@ -61,7 +61,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
         <img
           key={current}
-          src={optimizeImage(photos[current], { width: 1000, quality: 80 })}
+          src={photos[current]}
           alt={`photo-${current}`}
           style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
         />
