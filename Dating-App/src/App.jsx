@@ -149,7 +149,7 @@ const ProtectedRoute = ({ children }) => {
       {children}
       {banInfo && <BanModal bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />}
       {!banInfo && warnInfo && <WarnModal expiresAt={warnInfo.expiresAt} reason={warnInfo.reason} message={warnInfo.message} />}
-      {!banInfo && !warnInfo && usernameNotice && <UsernameChangedModal id={usernameNotice.id} oldUsername={usernameNotice.oldUsername} newUsername={session?.user?.user_metadata?.username || ''} reason={usernameNotice.reason} />}
+      {!banInfo && !warnInfo && usernameNotice && <UsernameChangedModal id={usernameNotice.id} userId={session?.user?.id} oldUsername={usernameNotice.oldUsername} reason={usernameNotice.reason} />}
     </>
   );
 };
