@@ -59,6 +59,7 @@ const ProtectedRoute = ({ children }) => {
   const [session, setSession] = useState(undefined);
   const [banInfo, setBanInfo] = useState(undefined);
   const [warnInfo, setWarnInfo] = useState(undefined);
+  const [usernameNotice, setUsernameNotice] = useState(undefined);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -115,6 +116,27 @@ const ProtectedRoute = ({ children }) => {
         });
       });
   }, [session]);
+  useEffect(() => {
+    if (session === undefined) return;
+    if (!session) { setUsernameNotice(null); return; }
+    supabase
+      .from('user_moderation_actions')
+      .select('id, reason, message_to_user, action_type')
+      .eq('target_user_id', session.user.id)
+      .eq('action_type', 'edit_username')
+      .is('acknowledged_at', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { setUsernameNotice(null); return; }
+        setUsernameNotice({
+          id: data.id,
+          reason: data.reason,
+          oldUsername: data.message_to_user,
+        });
+      });
+  }, [session]);
 
   if (session === undefined) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
@@ -126,6 +148,7 @@ const ProtectedRoute = ({ children }) => {
       {children}
       {banInfo && <BanModal bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />}
       {!banInfo && warnInfo && <WarnModal expiresAt={warnInfo.expiresAt} reason={warnInfo.reason} message={warnInfo.message} />}
+      {!banInfo && !warnInfo && usernameNotice && <UsernameChangedModal id={usernameNotice.id} oldUsername={usernameNotice.oldUsername} newUsername={session?.user?.user_metadata?.username || ''} reason={usernameNotice.reason} />}
     </>
   );
 };

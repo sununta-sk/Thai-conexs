@@ -13,6 +13,7 @@ const ACTION_CONFIG = {
   restore: { label: 'Restore', icon: '✅', color: '#10b981', desc: 'Restore account to active status' },
   note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
   verify:  { label: 'Verify',  icon: '✓',  color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
+  editUsername: { label: 'Edit Username', icon: 'EDIT', color: '#0891b2', desc: 'Change the username (user will be notified)' },
 };
 
 export default function UserDetailPage() {
@@ -99,6 +100,44 @@ export default function UserDetailPage() {
         .eq('auth_user_id', user.id)
         .maybeSingle();
       if (adminErr || !adminRow) throw new Error('Admin record not found for current user');
+
+      if (modal.action === 'editUsername') {
+        const trimmed = newUsername.trim();
+        const BLOCKLIST = ['freelance'];
+        const lower = trimmed.toLowerCase();
+        const hasBlockedWord = BLOCKLIST.some(w => lower.includes(w));
+        if (hasBlockedWord) {
+          setUsernameError('This username contains a prohibited word.');
+          setSubmitting(false);
+          return;
+        }
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('username', trimmed)
+          .neq('id', userId)
+          .maybeSingle();
+        if (existing) {
+          setUsernameError('This username is already taken.');
+          setSubmitting(false);
+          return;
+        }
+        const oldUsername = profile.username || '';
+        const { error: updateErr } = await supabase.from('profiles').update({ username: trimmed }).eq('id', userId);
+        if (updateErr) throw updateErr;
+        const { error: logErr2 } = await supabase.from('user_moderation_actions').insert({
+          target_user_id: userId,
+          admin_user_id: adminRow.id,
+          action_type: 'edit_username',
+          reason: reason.trim() || 'Inappropriate or prohibited username',
+          message_to_user: oldUsername,
+        });
+        if (logErr2) throw logErr2;
+        showToast('Username changed successfully', 'success');
+        closeModal();
+        fetchAll();
+        return;
+      }
 
       let expiresAt = null;
       if (modal.action === 'suspend') {
@@ -194,6 +233,7 @@ export default function UserDetailPage() {
             {!profile.is_verified && (
               <ActionBtn cfg={ACTION_CONFIG.verify} onClick={() => openModal('verify')} />
             )}
+            <ActionBtn cfg={ACTION_CONFIG.editUsername} onClick={() => { setNewUsername(profile.username || ''); setUsernameError(''); openModal('editUsername'); }} />
             <ActionBtn cfg={ACTION_CONFIG.note} onClick={() => openModal('note')} />
           </div>
         </div>
@@ -327,6 +367,23 @@ export default function UserDetailPage() {
               </div>
             </div>
 
+            {modal.action === 'editUsername' && (
+              <div style={S.formGroup}>
+                <label style={S.label}>New username</label>
+                <input
+                  value={newUsername}
+                  onChange={e => { setNewUsername(e.target.value); setUsernameError(''); }}
+                  style={{ ...S.input, borderColor: usernameError ? '#ef4444' : '#334155' }}
+                  placeholder="Enter new username..."
+                />
+                {usernameError && (
+                  <div style={{ color: '#ef4444', fontSize: 12, marginTop: 6, fontWeight: 600 }}>
+                    * {usernameError}
+                  </div>
+                )}
+              </div>
+            )}
+
             {modal.action === 'verify' && (
               <div style={{ background: '#4fc3f711', border: '1px solid #4fc3f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#4fc3f7', margin: '0 20px 16px' }}>
                 Verify <strong>{profile.username}</strong> — they will receive a ✓ badge next to their name
@@ -385,8 +442,8 @@ export default function UserDetailPage() {
               <button onClick={closeModal} style={S.cancelBtn} disabled={submitting}>Cancel</button>
               <button
                 onClick={submitAction}
-                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify')}
-                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify')) ? 0.5 : 1 }}>
+                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')}
+                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')) ? 0.5 : 1 }}>
                 {submitting ? 'Processing...' : `Confirm ${ACTION_CONFIG[modal.action].label}`}
               </button>
             </div>
