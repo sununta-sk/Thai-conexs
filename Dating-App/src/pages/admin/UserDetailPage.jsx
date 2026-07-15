@@ -30,6 +30,8 @@ export default function UserDetailPage() {
   const [reason, setReason]       = useState('');
   const [msgToUser, setMsgToUser] = useState('');
   const [suspendDays, setSuspendDays] = useState(7);
+  const [newUsername, setNewUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const [submitting, setSubmitting]   = useState(false);
   const [toast, setToast]         = useState(null);
 
