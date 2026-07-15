@@ -8,6 +8,7 @@ import { OnlineProvider } from './context/OnlineContext';
 import BanModal from './components/BanModal';
 import WelcomeModal from './components/WelcomeModal';
 import WarnModal from './components/WarnModal';
+import UsernameChangedModal from './components/UsernameChangedModal';
 
 import Login        from './pages/Login';
 import Register     from './pages/Register';
