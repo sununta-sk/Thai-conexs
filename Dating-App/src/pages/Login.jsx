@@ -361,7 +361,7 @@ export default function Login() {
       {/* Hero */}
       <div style={S.page}>
         {/* Form side */}
-        <div style={{ ...S.formWrap, position: 'relative', flexDirection: 'column' }}>
+        <div style={{ ...S.formWrap, position: 'relative', flexDirection: 'column', alignItems: 'center' }}>
           <LanguageToggle lang={lang} setLang={setLang} />
           <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
           <div style={S.formInner}>
