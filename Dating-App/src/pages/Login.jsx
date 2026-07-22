@@ -567,7 +567,7 @@ const M = {
 
 // ── Desktop Styles (เหมือนเดิมทุกอย่าง) ────────────────────
 const W = {
-  wrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', padding: '12px 0' },
+  wrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', maxWidth: '460px', padding: '12px 0' },
   avatar: { width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e91e63', boxShadow: '0 6px 20px rgba(233,30,99,0.4)' },
   avatarFallback: { width: 96, height: 96, borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, fontWeight: 800, color: '#f1f5f9', border: '3px solid #e91e63' },
   welcomeText: { color: '#f1f5f9', fontSize: 18, fontWeight: 700, margin: 0, textAlign: 'center' },
@@ -580,24 +580,25 @@ const S = {
   heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 15, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
   formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
-  formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
+  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
   logoBig: {
     display: 'block',
     width: '100%',
+    maxWidth: '460px',
     height: 'auto',
     objectFit: 'contain',
     margin: '0 auto 48px',
     borderRadius: '14px',
     boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
   },
-  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' },
+  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', maxWidth: '460px' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
   divider: { display: 'flex', alignItems: 'center', margin: '6px 0' },
   hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
   orText: { padding: '0 14px', color: '#64748b', fontSize: '14px' },
   btnGoogle: { padding: '16px', borderRadius: '30px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-  signupRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' },
+  signupRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '460px' },
   signupText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   signupBtn: {
     display: 'block',
