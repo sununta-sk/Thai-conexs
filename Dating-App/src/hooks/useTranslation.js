@@ -25,13 +25,17 @@ export function useTranslation(pages = ['common']) {
         if (!user) { setReady(true); return; }
         const { data } = await supabase
           .from('profiles')
-          .select('preferred_lang')
+          .select('preferred_lang, avatar_url, username')
           .eq('id', user.id)
           .maybeSingle();
         const userLang = data?.preferred_lang || 'en';
         setLangState(userLang);
         setTx(getTMany(pages, userLang));
         try { localStorage.setItem('app_lang', userLang); } catch {}
+        try {
+          if (data?.avatar_url) localStorage.setItem('cached_avatar_url', data.avatar_url);
+          if (data?.username) localStorage.setItem('cached_username', data.username);
+        } catch {}
       } catch {
         // fallback to 'en'
       } finally {

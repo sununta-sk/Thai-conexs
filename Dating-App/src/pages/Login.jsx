@@ -182,12 +182,47 @@ function useIsMobile() {
 }
 
 // ── Main Login Component ─────────────────────────────────────
+function LanguageToggle({ lang, setLang }) {
+  return (
+    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden', zIndex: 20 }}>
+      <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+      <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+    </div>
+  );
+}
+
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const navigate  = useNavigate();
   const isMobile  = useIsMobile();
-  const { tx, lang } = useTranslation(['auth']);
+  const { tx, lang, setLang } = useTranslation(['auth']);
+
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [returningUser, setReturningUser] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      const session = data?.session;
+      if (session) {
+        let cachedAvatar = null, cachedUsername = null;
+        try {
+          cachedAvatar = localStorage.getItem('cached_avatar_url');
+          cachedUsername = localStorage.getItem('cached_username');
+        } catch {}
+        if (cachedAvatar || cachedUsername) {
+          setReturningUser({ avatar_url: cachedAvatar, username: cachedUsername || '' });
+        }
+      }
+      setCheckingSession(false);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const handleContinueSession = () => navigate('/discover');
+  const handleUseDifferentAccount = () => setReturningUser(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -218,32 +253,58 @@ export default function Login() {
 
   const c = CONTENT[lang] || CONTENT.en;
 
+  if (checkingSession) {
+    return <div style={{ background: '#0f172a', minHeight: '100vh' }} />;
+  }
+
   // ── MOBILE LAYOUT ────────────────────────────────────────
   if (isMobile) {
     return (
       <div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
         {/* 1. Login Form */}
-        <div style={M.section}>
+        <div style={{ ...M.section, position: 'relative' }}>
+          <LanguageToggle lang={lang} setLang={setLang} />
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
-          <form onSubmit={handleLogin} style={M.form}>
-            <input type="email" placeholder={tx.email || 'Email'} value={email}
-              onChange={e => setEmail(e.target.value)} style={M.input} required />
-            <input type="password" placeholder={tx.password || 'Password'} value={password}
-              onChange={e => setPassword(e.target.value)} style={M.input} required />
-            <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
-            <div style={M.divider}><hr style={M.hr} /><span style={M.orText}>OR</span><hr style={M.hr} /></div>
-            <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
-              <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
-              Continue with Google
-            </button>
-            <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
-            <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
-          </form>
-          <div style={M.signupRow}>
-            <p style={M.signupText}>{tx.noAccount || "Don't have an account?"}</p>
-            <Link to="/register" style={M.signupBtn}>{tx.signUpFree || 'Sign Up Free'}</Link>
-          </div>
+          {returningUser ? (
+            <div style={W.wrap}>
+              {returningUser.avatar_url ? (
+                <img src={returningUser.avatar_url} alt="" style={W.avatar} />
+              ) : (
+                <div style={W.avatarFallback}>{(returningUser.username || '?').charAt(0).toUpperCase()}</div>
+              )}
+              <p style={W.welcomeText}>
+                {tx.welcomeBack || 'Welcome back'}{returningUser.username ? `, ${returningUser.username}` : ''}!
+              </p>
+              <button type="button" onClick={handleContinueSession} style={{ ...M.btnPink, width: '100%', boxSizing: 'border-box' }}>
+                {tx.login || 'Log In'}
+              </button>
+              <button type="button" onClick={handleUseDifferentAccount} style={W.switchLink}>
+                {tx.useDifferentAccount || 'Use a different account'}
+              </button>
+            </div>
+          ) : (
+            <>
+              <form onSubmit={handleLogin} style={M.form}>
+                <input type="email" placeholder={tx.email || 'Email'} value={email}
+                  onChange={e => setEmail(e.target.value)} style={M.input} required />
+                <input type="password" placeholder={tx.password || 'Password'} value={password}
+                  onChange={e => setPassword(e.target.value)} style={M.input} required />
+                <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
+                <div style={M.divider}><hr style={M.hr} /><span style={M.orText}>OR</span><hr style={M.hr} /></div>
+                <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                  <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
+                  Continue with Google
+                </button>
+                <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
+                <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
+              </form>
+              <div style={M.signupRow}>
+                <p style={M.signupText}>{tx.noAccount || "Don't have an account?"}</p>
+                <Link to="/register" style={M.signupBtn}>{tx.signUpFree || 'Sign Up Free'}</Link>
+              </div>
+            </>
+          )}
         </div>
 
         {/* 2. Online Members */}
@@ -289,28 +350,50 @@ export default function Login() {
       {/* Hero */}
       <div style={S.page}>
         {/* Form side */}
-        <div style={S.formWrap}>
+        <div style={{ ...S.formWrap, position: 'relative' }}>
+          <LanguageToggle lang={lang} setLang={setLang} />
           <div style={S.formInner}>
             <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
-            <form onSubmit={handleLogin} style={S.form}>
-              <input type="email" placeholder={tx.email || 'Email'} value={email}
-                onChange={e => setEmail(e.target.value)} style={S.input} required />
-              <input type="password" placeholder={tx.password || 'Password'} value={password}
-                onChange={e => setPassword(e.target.value)} style={S.input} required />
-              <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
-              <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
+            {returningUser ? (
+              <div style={W.wrap}>
+                {returningUser.avatar_url ? (
+                  <img src={returningUser.avatar_url} alt="" style={W.avatar} />
+                ) : (
+                  <div style={W.avatarFallback}>{(returningUser.username || '?').charAt(0).toUpperCase()}</div>
+                )}
+                <p style={W.welcomeText}>
+                  {tx.welcomeBack || 'Welcome back'}{returningUser.username ? `, ${returningUser.username}` : ''}!
+                </p>
+                <button type="button" onClick={handleContinueSession} style={{ ...S.btnPink, width: '100%', boxSizing: 'border-box' }}>
+                  {tx.login || 'Log In'}
+                </button>
+                <button type="button" onClick={handleUseDifferentAccount} style={W.switchLink}>
+                  {tx.useDifferentAccount || 'Use a different account'}
+                </button>
+              </div>
+            ) : (
+              <>
+                <form onSubmit={handleLogin} style={S.form}>
+                  <input type="email" placeholder={tx.email || 'Email'} value={email}
+                    onChange={e => setEmail(e.target.value)} style={S.input} required />
+                  <input type="password" placeholder={tx.password || 'Password'} value={password}
+                    onChange={e => setPassword(e.target.value)} style={S.input} required />
+                  <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
+                  <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
 
-              <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
-              <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
-                <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
-                Continue with Google
-              </button>
-              <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
-            </form>
-            <div style={S.signupRow}>
-              <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
-              <Link to="/register" style={S.signupBtn}>{tx.register || 'Sign Up'}</Link>
-            </div>
+                  <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
+                  <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                    <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
+                    Continue with Google
+                  </button>
+                  <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
+                </form>
+                <div style={S.signupRow}>
+                  <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
+                  <Link to="/register" style={S.signupBtn}>{tx.register || 'Sign Up'}</Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -464,6 +547,14 @@ const M = {
 };
 
 // ── Desktop Styles (เหมือนเดิมทุกอย่าง) ────────────────────
+const W = {
+  wrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%', padding: '12px 0' },
+  avatar: { width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e91e63', boxShadow: '0 6px 20px rgba(233,30,99,0.4)' },
+  avatarFallback: { width: 96, height: 96, borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, fontWeight: 800, color: '#f1f5f9', border: '3px solid #e91e63' },
+  welcomeText: { color: '#f1f5f9', fontSize: 18, fontWeight: 700, margin: 0, textAlign: 'center' },
+  switchLink: { background: 'none', border: 'none', color: '#94a3b8', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', marginTop: 4 },
+};
+
 const S = {
   page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
   formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a' },
