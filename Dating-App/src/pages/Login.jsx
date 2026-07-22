@@ -648,7 +648,7 @@ const S = {
   joinBtnPrize: { color: '#fde68a', fontWeight: 700, fontSize: '13px', letterSpacing: '0.3px' },
   joinSubtext: { color: '#94a3b8', fontSize: 13, fontWeight: 600, margin: 0, textAlign: 'center' },
   about: { width: '100%', display: 'flex', justifyContent: 'center', padding: '32px 20px 60px', boxSizing: 'border-box' },
-  aboutInner: { width: '100%', maxWidth: '800px', margin: '0 auto', background: '#1e293b', borderRadius: '24px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', padding: '48px 40px', boxSizing: 'border-box' },
+  aboutInner: { width: '100%', maxWidth: '900px', margin: '0 auto', background: '#1e293b', borderRadius: '24px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', padding: '48px 40px', boxSizing: 'border-box' },
   aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center', marginBottom: '32px' },
   photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' },
   photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', aspectRatio: '4/3', border: '1px solid #334155' },
