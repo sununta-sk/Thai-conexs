@@ -14,9 +14,9 @@ const CONTENT = {
     title: 'Thai Dating',
     paragraphs: [
       "Lotus ConneXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
-      "Unlike many dating apps, Lotus ConneXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
-      "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.",
-      "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
+      "Unlike many dating apps, Lotus ConneXs lets you start conversations instantly no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
+      "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited introduction services.",
+      "The platform also supports Thai language, making it easy for local members even those with limited English to take part and connect comfortably.",
       "Lotus ConneXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
     cta: "Join now — it's Free",
@@ -38,8 +38,8 @@ const CONTENT = {
 
 // ── User Photo Grid ──────────────────────────────────────────
 const HERO_TEXT_EN = [
-  "Lotus ConneXs is Thailand's newest dating platform with people from all over the country looking to connect with foreign friends.",
-  "Our aim is to have this site free for Thai women and the LGBT community.",
+  "Lotus ConneXs is Thailand's newest dating platform with people from all over the Kingdom looking to connect with foreign friends.",
+  "Our aim is to have this site free for Thai women and the Thai LGBT community.",
   "Join now and start your search today!",
 ];
 
