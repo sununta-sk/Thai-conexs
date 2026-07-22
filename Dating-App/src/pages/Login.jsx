@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
@@ -13,9 +13,11 @@ const CONTENT = {
   en: {
     title: 'Thai Dating',
     paragraphs: [
-      "Lotus ConneXs is Thailand's newest dating platform with people from all over the country looking to connect with foreign friends.",
-      "Our aim is to have this site free for Thai women and the LGBT community.",
-      "Join now and start your search today!",
+      "Lotus ConneXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
+      "Unlike many dating apps, Lotus ConneXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
+      "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.",
+      "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
+      "Lotus ConneXs is all about creating a relaxed, open environment where meeting new people feels natural.",
     ],
     cta: "Join now — it's Free",
     ctaPrize: "And enter monthly prize for 2,000 THB",
@@ -35,6 +37,12 @@ const CONTENT = {
 };
 
 // ── User Photo Grid ──────────────────────────────────────────
+const HERO_TEXT_EN = [
+  "Lotus ConneXs is Thailand's newest dating platform with people from all over the country looking to connect with foreign friends.",
+  "Our aim is to have this site free for Thai women and the LGBT community.",
+  "Join now and start your search today!",
+];
+
 function UserPhotoGrid({ isMobile }) {
   const [profiles, setProfiles] = useState([]); const cols = isMobile ? 4 : 8; const total = isMobile ? 16 : 32;
 
@@ -264,6 +272,11 @@ export default function Login() {
         <div style={{ ...M.section, position: 'relative' }}>
           <LanguageToggle lang={lang} setLang={setLang} />
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
+          <div style={M.heroText}>
+            <p style={M.heroLine}>{HERO_TEXT_EN[0]}</p>
+            <p style={M.heroLine}>{HERO_TEXT_EN[1]}</p>
+            <p style={M.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+          </div>
           {returningUser ? (
             <div style={W.wrap}>
               {returningUser.avatar_url ? (
@@ -352,6 +365,11 @@ export default function Login() {
           <LanguageToggle lang={lang} setLang={setLang} />
           <div style={S.formInner}>
             <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
+            <div style={S.heroText}>
+              <p style={S.heroLine}>{HERO_TEXT_EN[0]}</p>
+              <p style={S.heroLine}>{HERO_TEXT_EN[1]}</p>
+              <p style={S.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+            </div>
             {returningUser ? (
               <div style={W.wrap}>
                 {returningUser.avatar_url ? (
@@ -436,6 +454,9 @@ export default function Login() {
 
 // ── Mobile Styles ────────────────────────────────────────────
 const M = {
+  heroText: { textAlign: 'center', marginBottom: 24, width: '100%' },
+  heroLine: { color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, margin: '0 0 8px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 14, margin: 0 },
   section: {
     padding: '40px 24px 32px',
     display: 'flex',
@@ -554,6 +575,9 @@ const W = {
 };
 
 const S = {
+  heroText: { textAlign: 'center', marginBottom: 28, width: '100%', maxWidth: 440 },
+  heroLine: { color: '#cbd5e1', fontSize: 15, lineHeight: 1.7, margin: '0 0 10px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 15, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
   formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
   formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
