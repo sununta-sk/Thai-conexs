@@ -361,10 +361,10 @@ export default function Login() {
       {/* Hero */}
       <div style={S.page}>
         {/* Form side */}
-        <div style={{ ...S.formWrap, position: 'relative' }}>
+        <div style={{ ...S.formWrap, position: 'relative', flexDirection: 'column' }}>
           <LanguageToggle lang={lang} setLang={setLang} />
+          <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
           <div style={S.formInner}>
-            <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
             <div style={S.heroText}>
               <p style={S.heroLine}>{HERO_TEXT_EN[0]}</p>
               <p style={S.heroLine}>{HERO_TEXT_EN[1]}</p>
@@ -576,8 +576,8 @@ const W = {
 
 const S = {
   heroText: { textAlign: 'center', marginBottom: 28, width: '100%', maxWidth: 440 },
-  heroLine: { color: '#cbd5e1', fontSize: 15, lineHeight: 1.7, margin: '0 0 10px' },
-  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 15, margin: 0 },
+  heroLine: { color: '#cbd5e1', fontSize: 17, lineHeight: 1.8, margin: '0 0 12px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
   formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
   formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
