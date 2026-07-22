@@ -13,11 +13,9 @@ const CONTENT = {
   en: {
     title: 'Thai Dating',
     paragraphs: [
-      "Lotus ConneXs is a modern dating platform connecting people from around the world with Thai singles who are genuinely interested in friendship, romance, and real connections. With new members joining every week, there's always someone new to discover in a community inspired by Thailand's warm and welcoming spirit.",
-      "Unlike many dating apps, Lotus ConneXs lets you start conversations instantly — no matching required. You can use the platform for free, or upgrade to unlock added features that boost your visibility and improve your chances of getting noticed.",
-      "We don't operate like a traditional agency, and we don't handpick or screen every profile. Instead, we focus on giving you access to a wide and active network, offering far more variety than smaller, limited-introduction services.",
-      "The platform also supports Thai language, making it easy for local members — even those with limited English — to take part and connect comfortably.",
-      "Lotus ConneXs is all about creating a relaxed, open environment where meeting new people feels natural.",
+      "Lotus ConneXs is Thailand's newest dating platform with people from all over the country looking to connect with foreign friends.",
+      "Our aim is to have this site free for Thai women and the LGBT community.",
+      "Join now and start your search today!",
     ],
     cta: "Join now — it's Free",
     ctaPrize: "And enter monthly prize for 2,000 THB",
@@ -37,8 +35,8 @@ const CONTENT = {
 };
 
 // ── User Photo Grid ──────────────────────────────────────────
-function UserPhotoGrid() {
-  const [profiles, setProfiles] = useState([]);
+function UserPhotoGrid({ isMobile }) {
+  const [profiles, setProfiles] = useState([]); const cols = isMobile ? 4 : 8; const total = isMobile ? 16 : 32;
 
   useEffect(() => {
     let active = true;
@@ -74,9 +72,9 @@ function UserPhotoGrid() {
           {profiles.length > 0 ? `${profiles.length}+ members online now` : 'Join thousands of members'}
         </span>
       </div>
-      <div style={G.grid}>
+      <div style={{ ...G.grid, gridTemplateColumns: `repeat(${cols}, 1fr)`, maxWidth: isMobile ? 360 : 900 }}>
         {profiles.length > 0 ? (
-          profiles.slice(0, 16).map((p, i) => (
+          profiles.slice(0, total).map((p, i) => (
             <div key={p.id} style={G.cell}>
               <img
                 src={p.avatar_url}
@@ -89,12 +87,12 @@ function UserPhotoGrid() {
               )}
             </div>
           )).concat(
-            Array.from({ length: Math.max(0, 16 - Math.min(profiles.length, 16)) }).map((_, i) => (
+            Array.from({ length: Math.max(0, total - Math.min(profiles.length, total)) }).map((_, i) => (
               <div key={`empty-${i}`} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
             ))
           )
         ) : (
-          Array.from({ length: 12 }).map((_, i) => (
+          Array.from({ length: isMobile ? 12 : 24 }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
           ))
         )}
@@ -309,7 +307,7 @@ export default function Login() {
 
         {/* 2. Online Members */}
         <div style={{ background: '#1e293b', borderTop: '1px solid #334155', borderBottom: '1px solid #334155' }}>
-          <UserPhotoGrid />
+          <UserPhotoGrid isMobile={isMobile} />
           <div style={M.joinWrap}>
             <Link to="/register" style={M.joinBtn}>
               <span style={M.joinBtnMain}>{c.cta}</span>
@@ -399,7 +397,7 @@ export default function Login() {
 
         {/* Photo grid side */}
         <div style={S.cardsWrap}>
-          <UserPhotoGrid />
+          <UserPhotoGrid isMobile={isMobile} />
           <div style={S.joinWrap}>
             <Link to="/register" style={S.joinBtn}>
               <span style={S.joinBtnMain}>{c.cta}</span>
