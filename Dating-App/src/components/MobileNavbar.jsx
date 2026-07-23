@@ -1,4 +1,4 @@
-// src/components/MobileNavbar.jsx
+﻿// src/components/MobileNavbar.jsx
 // Mobile-optimized navbar: compact top + fixed bottom nav.
 // Used by Navbar wrapper when useIsMobile() returns true.
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -100,8 +100,8 @@ export default function MobileNavbar() {
   const adminActive = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
+    // ไม่เพิกถอน session จริง - แค่พาไปหน้า login เพื่อให้ welcome-back quick login ใช้ได้
     setShowMenu(false);
-    await supabase.auth.signOut();
     navigate('/login');
   };
 

@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+﻿// src/components/Navbar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -75,7 +75,7 @@ function NavbarDesktop() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    // ไม่เพิกถอน session จริง - แค่พาไปหน้า login เพื่อให้ welcome-back quick login ใช้ได้
     setShowProfileMenu(false);
     navigate('/login');
   };
