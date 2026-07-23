@@ -470,8 +470,8 @@ export default function Login() {
 // ── Mobile Styles ────────────────────────────────────────────
 const M = {
   heroText: { textAlign: 'center', marginBottom: 28, width: '100%' },
-  heroLine: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, lineHeight: 1.3, margin: '0 0 16px' },
-  heroLineBold: { color: '#94a3b8', fontWeight: 400, fontSize: 16, lineHeight: 1.6, margin: 0 },
+  heroLine: { color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, margin: '0 0 10px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 15, margin: 0 },
   section: {
     padding: '48px 24px 40px',
     display: 'flex',
@@ -591,8 +591,8 @@ const W = {
 
 const S = {
   heroText: { textAlign: 'center', marginBottom: 24, width: '100%', maxWidth: 520 },
-  heroLine: { color: '#f1f5f9', fontSize: 32, fontWeight: 800, lineHeight: 1.25, margin: '0 0 20px' },
-  heroLineBold: { color: '#94a3b8', fontWeight: 400, fontSize: 16, lineHeight: 1.6, margin: 0 },
+  heroLine: { color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: '0 0 12px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
   formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
   formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '48px 48px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
