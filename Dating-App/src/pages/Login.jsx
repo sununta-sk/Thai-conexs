@@ -206,6 +206,7 @@ export default function Login() {
 
   const [checkingSession, setCheckingSession] = useState(true);
   const [returningUser, setReturningUser] = useState(null);
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -296,20 +297,27 @@ export default function Login() {
             </div>
           ) : (
             <>
-              <form onSubmit={handleLogin} style={M.form}>
-                <input type="email" placeholder={tx.email || 'Email'} value={email}
-                  onChange={e => setEmail(e.target.value)} style={M.input} required />
-                <input type="password" placeholder={tx.password || 'Password'} value={password}
-                  onChange={e => setPassword(e.target.value)} style={M.input} required />
-                <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
-                <div style={M.divider}><hr style={M.hr} /><span style={M.orText}>OR</span><hr style={M.hr} /></div>
-                <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
-                  <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
-                  Continue with Google
-                </button>
-                <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
-                <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
-              </form>
+              {!showEmailForm ? (
+                <div style={M.form}>
+                  <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                    <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
+                    Continue with Google
+                  </button>
+                  <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
+                  <button type="button" onClick={() => setShowEmailForm(true)} style={M.btnPink}>
+                    {tx.continueWithEmail || 'Continue with Email'}
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleLogin} style={M.form}>
+                  <input type="email" placeholder={tx.email || 'Email'} value={email}
+                    onChange={e => setEmail(e.target.value)} style={M.input} required />
+                  <input type="password" placeholder={tx.password || 'Password'} value={password}
+                    onChange={e => setPassword(e.target.value)} style={M.input} required />
+                  <button type="submit" style={M.btnPink}>{tx.login || 'Log In'}</button>
+                  <Link to="/forgot-password" style={M.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
+                </form>
+              )}
               <div style={M.signupRow}>
                 <p style={M.signupText}>{tx.noAccount || "Don't have an account?"}</p>
                 <Link to="/register" style={M.signupBtn}>{tx.signUpFree || 'Sign Up Free'}</Link>
@@ -389,21 +397,27 @@ export default function Login() {
               </div>
             ) : (
               <>
-                <form onSubmit={handleLogin} style={S.form}>
-                  <input type="email" placeholder={tx.email || 'Email'} value={email}
-                    onChange={e => setEmail(e.target.value)} style={S.input} required />
-                  <input type="password" placeholder={tx.password || 'Password'} value={password}
-                    onChange={e => setPassword(e.target.value)} style={S.input} required />
-                  <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
-                  <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
-
-                  <div style={S.divider}><hr style={S.hr} /><span style={S.orText}>OR</span><hr style={S.hr} /></div>
-                  <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
-                    <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
-                    Continue with Google
-                  </button>
-                  <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
-                </form>
+                {!showEmailForm ? (
+                  <div style={S.form}>
+                    <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                      <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
+                      Continue with Google
+                    </button>
+                    <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
+                    <button type="button" onClick={() => setShowEmailForm(true)} style={S.btnPink}>
+                      {tx.continueWithEmail || 'Continue with Email'}
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleLogin} style={S.form}>
+                    <input type="email" placeholder={tx.email || 'Email'} value={email}
+                      onChange={e => setEmail(e.target.value)} style={S.input} required />
+                    <input type="password" placeholder={tx.password || 'Password'} value={password}
+                      onChange={e => setPassword(e.target.value)} style={S.input} required />
+                    <button type="submit" style={S.btnPink}>{tx.login || 'Log In'}</button>
+                    <Link to="/forgot-password" style={S.forgotLink}>{tx.forgotPassword || 'Forgot password?'}</Link>
+                  </form>
+                )}
                 <div style={S.signupRow}>
                   <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
                   <Link to="/register" style={S.signupBtn}>{tx.register || 'Sign Up'}</Link>
