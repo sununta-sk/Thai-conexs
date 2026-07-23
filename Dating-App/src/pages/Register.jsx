@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
@@ -35,8 +35,8 @@ const CONTENT = {
 };
 
 // ── User Photo Grid ──────────────────────────────────────────
-function UserPhotoGrid() {
-  const [profiles, setProfiles] = useState([]);
+function UserPhotoGrid({ isMobile }) {
+  const [profiles, setProfiles] = useState([]); const cols = isMobile ? 4 : 8; const total = isMobile ? 16 : 32;
 
   useEffect(() => {
     let active = true;
@@ -72,9 +72,9 @@ function UserPhotoGrid() {
           {profiles.length > 0 ? `${profiles.length}+ members online now` : 'Join thousands of members'}
         </span>
       </div>
-      <div style={G.grid}>
+      <div style={{ ...G.grid, gridTemplateColumns: 'repeat(' + cols + ', 1fr)', maxWidth: isMobile ? 360 : 900 }}>
         {profiles.length > 0 ? (
-          Array.from({ length: 16 }).map((_, i) => {
+          Array.from({ length: total }).map((_, i) => {
             const p = profiles[i];
             if (!p) {
               return <div key={`empty-${i}`} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />;
@@ -94,7 +94,7 @@ function UserPhotoGrid() {
             );
           })
         ) : (
-          Array.from({ length: 12 }).map((_, i) => (
+          Array.from({ length: isMobile ? 12 : 24 }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
           ))
         )}
@@ -170,6 +170,12 @@ const G = {
 };
 
 // ── useIsMobile hook ─────────────────────────────────────────
+const HERO_TEXT_EN = [
+  "Lotus ConneXs is Thailand's newest dating platform with people from all over the Kingdom looking to connect with foreign friends.",
+  "Our aim is to have this site free for Thai women and the Thai LGBT community.",
+  "Join now and start your search today!",
+];
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   useEffect(() => {
@@ -181,6 +187,15 @@ function useIsMobile() {
 }
 
 // ── Main Register Component ───────────────────────────────────
+function LanguageToggle({ lang, setLang }) {
+  return (
+    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden', zIndex: 20 }}>
+      <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
+      <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+    </div>
+  );
+}
+
 export default function Register() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -189,7 +204,7 @@ export default function Register() {
   const navigate = useNavigate();
   const isMobile  = useIsMobile();
 
-  const { tx, lang } = useTranslation(['auth']);
+  const { tx, lang, setLang } = useTranslation(['auth']);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -216,8 +231,14 @@ export default function Register() {
       <div style={{ background: '#0f172a', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
         {/* 1. Register Form */}
-        <div style={M.section}>
+        <div style={{ ...M.section, position: 'relative' }}>
+          <LanguageToggle lang={lang} setLang={setLang} />
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
+          <div style={M.heroText}>
+            <p style={M.heroLine}>{HERO_TEXT_EN[0]}</p>
+            <p style={M.heroLine}>{HERO_TEXT_EN[1]}</p>
+            <p style={M.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+          </div>
           <form onSubmit={handleRegister} style={M.form}>
             <input type="email" placeholder={tx.email || 'Email'} value={email}
               onChange={e => setEmail(e.target.value)} style={M.input} required />
@@ -237,7 +258,7 @@ export default function Register() {
 
         {/* 2. Online Members */}
         <div style={{ background: '#1e293b', borderTop: '1px solid #334155', borderBottom: '1px solid #334155' }}>
-          <UserPhotoGrid />
+          <UserPhotoGrid isMobile={isMobile} />
           <div style={M.joinWrap}>
             <Link to="/register" style={M.joinBtn}>
               <span style={M.joinBtnMain}>{c.cta}</span>
@@ -278,9 +299,15 @@ export default function Register() {
       {/* Hero */}
       <div style={S.page}>
         {/* Form side */}
-        <div style={S.formWrap}>
+        <div style={{ ...S.formWrap, position: 'relative', flexDirection: 'column', alignItems: 'center' }}>
+          <LanguageToggle lang={lang} setLang={setLang} />
+          <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
           <div style={S.formInner}>
-            <img src={logoFull} alt="Lotus ConneXs" style={S.logoBig} />
+            <div style={S.heroText}>
+              <p style={S.heroLine}>{HERO_TEXT_EN[0]}</p>
+              <p style={S.heroLine}>{HERO_TEXT_EN[1]}</p>
+              <p style={S.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+            </div>
             <form onSubmit={handleRegister} style={S.form}>
               <input type="email" placeholder={tx.email || 'Email'} value={email}
                 onChange={e => setEmail(e.target.value)} style={S.input} required />
@@ -301,7 +328,7 @@ export default function Register() {
 
         {/* Photo grid side + BIG Join button under it */}
         <div style={S.cardsWrap}>
-          <UserPhotoGrid />
+          <UserPhotoGrid isMobile={isMobile} />
 
           {/* Big Join CTA — same as Login but redirects to top of form */}
           <div style={S.joinWrap}>
@@ -347,6 +374,9 @@ export default function Register() {
 
 // ── Mobile Styles ────────────────────────────────────────────
 const M = {
+  heroText: { textAlign: 'center', marginBottom: 24, width: '100%' },
+  heroLine: { color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, margin: '0 0 8px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 14, margin: 0 },
   section: { padding: '40px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#0f172a' },
   logo: { width: '80%', maxWidth: 280, height: 'auto', objectFit: 'contain', borderRadius: 12, marginBottom: 32, boxShadow: '0 6px 24px rgba(233,30,99,0.3)' },
   form: { display: 'flex', flexDirection: 'column', gap: 16, width: '100%' },
@@ -372,12 +402,16 @@ const M = {
 };
 
 const S = {
-  page: { display: 'flex', minHeight: '100vh', background: '#0f172a' },
-  formWrap: { flex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a' },
-  formInner: { width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  heroText: { textAlign: 'center', marginBottom: 28, width: '100%', maxWidth: 440 },
+  heroLine: { color: '#cbd5e1', fontSize: 17, lineHeight: 1.8, margin: '0 0 12px' },
+  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
+  page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
+  formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
+  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
   logoBig: {
     display: 'block',
     width: '100%',
+    maxWidth: '460px',
     height: 'auto',
     objectFit: 'contain',
     margin: '0 auto 48px',
@@ -386,10 +420,10 @@ const S = {
   },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
   subheading: { margin: '0 0 28px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%' },
+  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', maxWidth: '460px' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
-  loginRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' },
+  loginRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '460px' },
   loginText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   loginBtn: {
     display: 'block',
@@ -408,9 +442,9 @@ const S = {
     transition: 'all 0.15s',
   },
 
-  cardsWrap: { width: '460px', flexShrink: 0, background: '#1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '90px 0 40px' },
+  cardsWrap: { width: '100%', maxWidth: '900px', background: '#1e293b', borderRadius: '24px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '40px 32px', margin: '32px 20px 0', boxSizing: 'border-box' },
 
-  joinWrap: { width: '100%', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
+  joinWrap: { width: '100%', maxWidth: '460px', padding: '20px 32px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, boxSizing: 'border-box' },
   joinBtn: {
     display: 'flex',
     flexDirection: 'column',
@@ -441,8 +475,8 @@ const S = {
   },
   joinSubtext: { color: '#94a3b8', fontSize: 13, fontWeight: 600, margin: 0, textAlign: 'center' },
 
-  about: { background: '#0f172a', borderTop: '1px solid #334155', padding: '60px 20px 40px' },
-  aboutInner: { maxWidth: '800px', margin: '0 auto' },
+  about: { width: '100%', display: 'flex', justifyContent: 'center', padding: '32px 20px 60px', boxSizing: 'border-box' },
+  aboutInner: { width: '100%', maxWidth: '900px', margin: '0 auto', background: '#1e293b', borderRadius: '24px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', padding: '48px 40px', boxSizing: 'border-box' },
   aboutTitle: { fontSize: '30px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center', marginBottom: '32px' },
   photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '40px' },
   photoCard: { borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', aspectRatio: '4/3', border: '1px solid #334155' },
