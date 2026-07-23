@@ -38,8 +38,7 @@ const CONTENT = {
 
 // ── User Photo Grid ──────────────────────────────────────────
 const HERO_TEXT_EN = [
-  "Lotus ConneXs is Thailand's newest dating platform with people from all over the Kingdom looking to connect with foreign friends.",
-  "Our aim is to have this site free for Thai women and the Thai LGBT community.",
+  "Lotus ConneXs is Thailand's newest dating platform with people from all over the Kingdom looking to connect with foreign friends. Our aim is to have this site free for Thai women and the Thai LGBT community.",
   "Join now and start your search today!",
 ];
 
@@ -275,8 +274,7 @@ export default function Login() {
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
           <div style={M.heroText}>
             <p style={M.heroLine}>{HERO_TEXT_EN[0]}</p>
-            <p style={M.heroLine}>{HERO_TEXT_EN[1]}</p>
-            <p style={M.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+            <p style={M.heroLineBold}>{HERO_TEXT_EN[1]}</p>
           </div>
           {returningUser ? (
             <div style={W.wrap}>
@@ -305,7 +303,7 @@ export default function Login() {
                   </button>
                   <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
                   <button type="button" onClick={() => setShowEmailForm(true)} style={M.btnPink}>
-                    {tx.continueWithEmail || 'Continue with Email'}
+                    {tx.logInWithEmail || 'Log in with email'}
                   </button>
                 </div>
               ) : (
@@ -320,7 +318,9 @@ export default function Login() {
               )}
               <div style={M.signupRow}>
                 <p style={M.signupText}>{tx.noAccount || "Don't have an account?"}</p>
-                <Link to="/register" style={M.signupBtn}>{tx.signUpFree || 'Sign Up Free'}</Link>
+                <Link to="/register" style={M.joinBtn}>
+                  <span style={M.joinBtnMain}>{c.cta}</span>
+                </Link>
               </div>
             </>
           )}
@@ -375,8 +375,7 @@ export default function Login() {
           <div style={S.formInner}>
             <div style={S.heroText}>
               <p style={S.heroLine}>{HERO_TEXT_EN[0]}</p>
-              <p style={S.heroLine}>{HERO_TEXT_EN[1]}</p>
-              <p style={S.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+              <p style={S.heroLineBold}>{HERO_TEXT_EN[1]}</p>
             </div>
             {returningUser ? (
               <div style={W.wrap}>
@@ -405,7 +404,7 @@ export default function Login() {
                     </button>
                     <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
                     <button type="button" onClick={() => setShowEmailForm(true)} style={S.btnPink}>
-                      {tx.continueWithEmail || 'Continue with Email'}
+                      {tx.logInWithEmail || 'Log in with email'}
                     </button>
                   </div>
                 ) : (
@@ -420,7 +419,9 @@ export default function Login() {
                 )}
                 <div style={S.signupRow}>
                   <p style={S.signupText}>{tx.noAccount || "Don't have an account?"}</p>
-                  <Link to="/register" style={S.signupBtn}>{tx.register || 'Sign Up'}</Link>
+                  <Link to="/register" style={S.joinBtn}>
+                    <span style={S.joinBtnMain}>{c.cta}</span>
+                  </Link>
                 </div>
               </>
             )}
@@ -589,23 +590,23 @@ const W = {
 };
 
 const S = {
-  heroText: { textAlign: 'center', marginBottom: 28, width: '100%', maxWidth: 440 },
+  heroText: { textAlign: 'center', marginBottom: 14, width: '100%', maxWidth: 440 },
   heroLine: { color: '#cbd5e1', fontSize: 17, lineHeight: 1.8, margin: '0 0 12px' },
   heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
-  formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
-  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
+  formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
+  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '24px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
   logoBig: {
     display: 'block',
     width: '100%',
     maxWidth: '460px',
     height: 'auto',
     objectFit: 'contain',
-    margin: '0 auto 48px',
+    margin: '0 auto 20px',
     borderRadius: '14px',
     boxShadow: '0 6px 24px rgba(233,30,99,0.3)',
   },
-  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', maxWidth: '460px' },
+  form: { display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '460px' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
   btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
   divider: { display: 'flex', alignItems: 'center', margin: '6px 0' },
