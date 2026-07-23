@@ -6,3 +6,4 @@ Dating-App/.env
 api/.env
 .vercel
 .env*.local
+.env*

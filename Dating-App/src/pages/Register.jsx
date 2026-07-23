@@ -236,8 +236,8 @@ export default function Register() {
           <img src={logoFull} alt="Lotus ConneXs" style={M.logo} />
           <div style={M.heroText}>
             <p style={M.heroLine}>{HERO_TEXT_EN[0]}</p>
-            <p style={M.heroLine}>{HERO_TEXT_EN[1]}</p>
-            <p style={M.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+            <p style={M.heroSubtext}>{HERO_TEXT_EN[1]}</p>
+            <p style={M.heroSubtext}>{HERO_TEXT_EN[2]}</p>
           </div>
           <form onSubmit={handleRegister} style={M.form}>
             <input type="email" placeholder={tx.email || 'Email'} value={email}
@@ -305,8 +305,8 @@ export default function Register() {
           <div style={S.formInner}>
             <div style={S.heroText}>
               <p style={S.heroLine}>{HERO_TEXT_EN[0]}</p>
-              <p style={S.heroLine}>{HERO_TEXT_EN[1]}</p>
-              <p style={S.heroLineBold}>{HERO_TEXT_EN[2]}</p>
+              <p style={S.heroSubtext}>{HERO_TEXT_EN[1]}</p>
+              <p style={S.heroSubtext}>{HERO_TEXT_EN[2]}</p>
             </div>
             <form onSubmit={handleRegister} style={S.form}>
               <input type="email" placeholder={tx.email || 'Email'} value={email}
@@ -374,19 +374,19 @@ export default function Register() {
 
 // ── Mobile Styles ────────────────────────────────────────────
 const M = {
-  heroText: { textAlign: 'center', marginBottom: 24, width: '100%' },
-  heroLine: { color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, margin: '0 0 8px' },
-  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 14, margin: 0 },
-  section: { padding: '40px 24px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#0f172a' },
+  heroText: { textAlign: 'center', marginBottom: 28, width: '100%' },
+  heroLine: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, lineHeight: 1.3, margin: '0 0 16px' },
+  heroSubtext: { color: '#94a3b8', fontWeight: 400, fontSize: 16, lineHeight: 1.6, margin: '0 0 8px' },
+  section: { padding: '48px 24px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#0f172a' },
   logo: { width: '80%', maxWidth: 280, height: 'auto', objectFit: 'contain', borderRadius: 12, marginBottom: 32, boxShadow: '0 6px 24px rgba(233,30,99,0.3)' },
-  form: { display: 'flex', flexDirection: 'column', gap: 16, width: '100%' },
+  form: { display: 'flex', flexDirection: 'column', gap: 18, width: '100%' },
   input: { padding: '15px 16px', borderRadius: 14, border: '1px solid #334155', fontSize: 16, background: '#1e293b', color: '#f1f5f9', outline: 'none', width: '100%', boxSizing: 'border-box' },
-  btnPink: { padding: '16px', borderRadius: 30, border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: 17, cursor: 'pointer' },
-  loginRow: { marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%' },
+  btnPink: { padding: '16px', borderRadius: 14, border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: 17, cursor: 'pointer' },
+  loginRow: { marginTop: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: '100%' },
   loginText: { margin: 0, color: '#94a3b8', fontSize: 14 },
-  loginBtn: { display: 'block', width: '100%', padding: '15px', borderRadius: 30, border: '2px solid #e91e63', background: 'transparent', color: '#e91e63', fontWeight: 800, fontSize: 16, textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box' },
+  loginBtn: { display: 'block', width: '100%', padding: '15px', borderRadius: 14, border: '2px solid #e91e63', background: 'transparent', color: '#e91e63', fontWeight: 800, fontSize: 16, textDecoration: 'none', textAlign: 'center', boxSizing: 'border-box' },
   joinWrap: { padding: '8px 24px 28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
-  joinBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: '100%', padding: '18px 24px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', borderRadius: 32, textDecoration: 'none', boxShadow: '0 10px 32px rgba(233,30,99,0.5)', textAlign: 'center' },
+  joinBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: '100%', padding: '18px 24px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', borderRadius: 14, textDecoration: 'none', boxShadow: '0 10px 32px rgba(233,30,99,0.5)', textAlign: 'center' },
   joinBtnMain: { color: '#fff', fontWeight: 800, fontSize: 18 },
   joinBtnPrize: { color: '#fde68a', fontWeight: 700, fontSize: 13 },
   joinSubtext: { color: '#94a3b8', fontSize: 12, fontWeight: 600, margin: 0, textAlign: 'center' },
@@ -402,12 +402,12 @@ const M = {
 };
 
 const S = {
-  heroText: { textAlign: 'center', marginBottom: 28, width: '100%', maxWidth: 440 },
-  heroLine: { color: '#cbd5e1', fontSize: 17, lineHeight: 1.8, margin: '0 0 12px' },
-  heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
+  heroText: { textAlign: 'center', marginBottom: 24, width: '100%', maxWidth: 520 },
+  heroLine: { color: '#f1f5f9', fontSize: 32, fontWeight: 800, lineHeight: 1.25, margin: '0 0 20px' },
+  heroSubtext: { color: '#94a3b8', fontWeight: 400, fontSize: 16, lineHeight: 1.6, margin: '0 0 8px' },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
   formWrap: { width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '90px 48px 40px', background: '#0f172a', boxSizing: 'border-box' },
-  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '40px 36px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
+  formInner: { width: '100%', maxWidth: '900px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#1e293b', borderRadius: '24px', padding: '48px 48px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', boxSizing: 'border-box' },
   logoBig: {
     display: 'block',
     width: '100%',
@@ -420,16 +420,16 @@ const S = {
   },
   heading: { margin: '0 0 6px', fontSize: '32px', fontWeight: 800, color: '#f1f5f9', textAlign: 'center' },
   subheading: { margin: '0 0 28px', color: '#94a3b8', fontSize: '16px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '28px', width: '100%', maxWidth: '460px' },
+  form: { display: 'flex', flexDirection: 'column', gap: '18px', width: '100%', maxWidth: '460px' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
-  btnPink: { padding: '17px', borderRadius: '30px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
-  loginRow: { marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '460px' },
+  btnPink: { padding: '17px', borderRadius: '14px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
+  loginRow: { marginTop: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '460px' },
   loginText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   loginBtn: {
     display: 'block',
     width: '100%',
     padding: '15px',
-    borderRadius: '30px',
+    borderRadius: '14px',
     border: '2px solid #e91e63',
     background: 'transparent',
     color: '#e91e63',
@@ -455,7 +455,7 @@ const S = {
     padding: '18px 24px',
     background: 'linear-gradient(135deg, #e91e63, #c2185b)',
     color: '#fff',
-    borderRadius: '32px',
+    borderRadius: '14px',
     textDecoration: 'none',
     boxShadow: '0 10px 32px rgba(233,30,99,0.5), 0 0 0 1px rgba(233,30,99,0.3)',
     textAlign: 'center',
