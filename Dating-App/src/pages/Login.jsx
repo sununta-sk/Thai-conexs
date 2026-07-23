@@ -492,7 +492,7 @@ const M = {
   divider: { display: 'flex', alignItems: 'center', margin: '2px 0' },
   hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
   orText: { padding: '0 14px', color: '#64748b', fontSize: '13px' },
-  btnGoogle: { padding: '15px 16px', borderRadius: 14, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', boxSizing: 'border-box' },
+  btnGoogle: { padding: '12px 16px', borderRadius: 10, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', boxSizing: 'border-box' },
   input: {
     padding: '15px 16px',
     borderRadius: 14,
@@ -505,13 +505,13 @@ const M = {
     boxSizing: 'border-box',
   },
   btnPink: {
-    padding: '16px',
-    borderRadius: 14,
+    padding: '13px',
+    borderRadius: 10,
     border: 'none',
     background: '#e91e63',
     color: '#fff',
     fontWeight: 700,
-    fontSize: 17,
+    fontSize: 15,
     cursor: 'pointer',
   },
   forgotLink: {
@@ -590,7 +590,7 @@ const W = {
 };
 
 const S = {
-  heroText: { textAlign: 'center', marginBottom: 24, width: '100%', maxWidth: 520 },
+  heroText: { textAlign: 'center', marginBottom: 24, width: '100%', maxWidth: 720 },
   heroLine: { color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: '0 0 12px' },
   heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
@@ -608,11 +608,11 @@ const S = {
   },
   form: { display: 'flex', flexDirection: 'column', gap: '18px', width: '100%', maxWidth: '460px' },
   input: { padding: '16px 18px', borderRadius: '14px', border: '1px solid #334155', fontSize: '17px', background: '#1e293b', color: '#f1f5f9', outline: 'none' },
-  btnPink: { padding: '17px', borderRadius: '14px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '17px', cursor: 'pointer', marginTop: '4px' },
+  btnPink: { padding: '13px', borderRadius: '10px', border: 'none', background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: '15px', cursor: 'pointer', marginTop: '4px' },
   divider: { display: 'flex', alignItems: 'center', margin: '6px 0' },
   hr: { flex: 1, border: 'none', borderTop: '1px solid #334155' },
   orText: { padding: '0 14px', color: '#64748b', fontSize: '14px' },
-  btnGoogle: { padding: '16px', borderRadius: '14px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
+  btnGoogle: { padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
   signupRow: { marginTop: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '460px' },
   signupText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
   signupBtn: {
