@@ -590,7 +590,7 @@ const W = {
 };
 
 const S = {
-  heroText: { textAlign: 'center', marginBottom: 24, width: '100%', maxWidth: 720 },
+  heroText: { textAlign: 'center', marginBottom: 24, width: '100%' },
   heroLine: { color: '#cbd5e1', fontSize: 16, lineHeight: 1.7, margin: '0 0 12px' },
   heroLineBold: { color: '#e91e63', fontWeight: 700, fontSize: 18, margin: 0 },
   page: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', background: '#0f172a' },
