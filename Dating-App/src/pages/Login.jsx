@@ -297,11 +297,10 @@ export default function Login() {
             <>
               {!showEmailForm ? (
                 <div style={M.form}>
-                  <button type="button" disabled style={{ ...M.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                  <button type="button" onClick={handleGoogleLogin} style={M.btnGoogle}>
                     <img src="https://www.google.com/favicon.ico" width="18" alt="google" />
                     Continue with Google
                   </button>
-                  <p style={{ color: '#ef4444', fontSize: 12, textAlign: 'center', margin: '-8px 0 0' }}>Google login coming soon</p>
                   <button type="button" onClick={() => setShowEmailForm(true)} style={M.btnPink}>
                     {tx.logInWithEmail || 'Log in with email'}
                   </button>
@@ -398,11 +397,10 @@ export default function Login() {
               <>
                 {!showEmailForm ? (
                   <div style={S.form}>
-                    <button type="button" disabled style={{ ...S.btnGoogle, opacity: 0.5, cursor: 'not-allowed' }}>
+                    <button type="button" onClick={handleGoogleLogin} style={S.btnGoogle}>
                       <img src="https://www.google.com/favicon.ico" width="20" alt="google" />
                       Continue with Google
                     </button>
-                    <p style={{ color: '#ef4444', fontSize: 13, textAlign: 'center', margin: '-10px 0 0' }}>Google login coming soon</p>
                     <button type="button" onClick={() => setShowEmailForm(true)} style={S.btnPink}>
                       {tx.logInWithEmail || 'Log in with email'}
                     </button>
