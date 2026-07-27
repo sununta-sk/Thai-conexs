@@ -530,7 +530,7 @@ const M = {
     gap: 16,
     width: '100%',
   },
-  signupText: { margin: 0, color: '#94a3b8', fontSize: 14 },
+  signupText: { margin: 0, color: '#f1f5f9', fontSize: 14 },
   signupBtn: {
     display: 'block',
     width: '100%',
@@ -614,7 +614,7 @@ const S = {
   orText: { padding: '0 14px', color: '#64748b', fontSize: '14px' },
   btnGoogle: { padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
   signupRow: { marginTop: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', maxWidth: '460px' },
-  signupText: { margin: 0, textAlign: 'center', color: '#94a3b8', fontSize: '15px' },
+  signupText: { margin: 0, textAlign: 'center', color: '#f1f5f9', fontSize: '15px' },
   signupBtn: {
     display: 'block',
     width: '100%',
