@@ -5,21 +5,21 @@ import { useNavigate } from 'react-router-dom';
 const CONTENT = {
   en: {
     title: 'Community Rules',
-    subtitle: 'Please read carefully before using Thai Conexns',
+    subtitle: 'Please read carefully before using Lotus ConneXs',
     lastUpdated: 'Last updated: May 2026',
     back: 'Back',
-    agree: 'By using Thai Conexns you agree to follow these rules.',
+    agree: 'By using Lotus ConneXs you agree to follow these rules.',
     sections: [
       {
         heading: '1. The Most Important Rule — No Commercial Sex Work',
         items: [
-          'Thai Conexns is a dating platform for genuine connections — NOT a marketplace for sex. Selling, advertising, soliciting, or arranging paid sexual services in any form (in your profile, photos, or chat messages) is strictly forbidden. Violators are PERMANENTLY BANNED immediately, with no warning, no appeal, and no refund.',
+          'Lotus ConneXs is a dating platform for genuine connections — NOT a marketplace for sex. Selling, advertising, soliciting, or arranging paid sexual services in any form (in your profile, photos, or chat messages) is strictly forbidden. Violators are PERMANENTLY BANNED immediately, with no warning, no appeal, and no refund.',
         ],
       },
       {
         heading: '2. Account & Identity',
         items: [
-          'You must be 18 years or older to use Thai Conexns.',
+          'You must be 18 years or older to use Lotus ConneXs.',
           'One account per person. Duplicate accounts will be removed.',
           'Profile photos must be of you — real, recent, and unedited beyond minor filters.',
           'Stolen photos, celebrities, or AI-generated faces are not allowed.',
@@ -93,21 +93,21 @@ const CONTENT = {
   },
   th: {
     title: 'กฎของชุมชน',
-    subtitle: 'กรุณาอ่านอย่างละเอียดก่อนใช้งาน Thai Conexns',
+    subtitle: 'กรุณาอ่านอย่างละเอียดก่อนใช้งาน Lotus ConneXs',
     lastUpdated: 'อัปเดตล่าสุด: พฤษภาคม 2026',
     back: 'ย้อนกลับ',
-    agree: 'การใช้ Thai Conexns ถือว่าคุณยอมรับและจะปฏิบัติตามกฎเหล่านี้',
+    agree: 'การใช้ Lotus ConneXs ถือว่าคุณยอมรับและจะปฏิบัติตามกฎเหล่านี้',
     sections: [
       {
         heading: '1. กฎสำคัญที่สุด — ห้ามค้าประเวณี',
         items: [
-          'Thai Conexns เป็นเว็บหาคู่เพื่อความสัมพันธ์จริง ไม่ใช่ตลาดขายบริการทางเพศ ห้ามขาย โฆษณา ชักชวน หรือนัดแลกเปลี่ยนเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ในรูปแบบใดๆ (ในโปรไฟล์ รูป หรือแชท) ผู้ฝ่าฝืนจะถูกแบนถาวรทันที ไม่มีเตือน ไม่มีอุทธรณ์ และไม่คืนเงิน',
+          'Lotus ConneXs เป็นเว็บหาคู่เพื่อความสัมพันธ์จริง ไม่ใช่ตลาดขายบริการทางเพศ ห้ามขาย โฆษณา ชักชวน หรือนัดแลกเปลี่ยนเซ็กส์กับเงิน/ของขวัญ/ผลประโยชน์ในรูปแบบใดๆ (ในโปรไฟล์ รูป หรือแชท) ผู้ฝ่าฝืนจะถูกแบนถาวรทันที ไม่มีเตือน ไม่มีอุทธรณ์ และไม่คืนเงิน',
         ],
       },
       {
         heading: '2. บัญชีและตัวตน',
         items: [
-          'ต้องมีอายุ 18 ปีขึ้นไปจึงจะใช้ Thai Conexns ได้',
+          'ต้องมีอายุ 18 ปีขึ้นไปจึงจะใช้ Lotus ConneXs ได้',
           'หนึ่งคนต่อหนึ่งบัญชี บัญชีซ้ำจะถูกลบ',
           'รูปโปรไฟล์ต้องเป็นรูปของคุณจริง ถ่ายมาไม่นาน ไม่ตัดต่อหนัก',
           'ห้ามใช้รูปคนอื่น รูปดารา หรือรูปที่สร้างจาก AI',

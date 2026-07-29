@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
+import logoFull from '../lib/LotusConnexs-full.jpeg';
 
 const COPY = {
   en: {
@@ -117,7 +118,7 @@ export default function BanModal({ bannedUntil, banReason }) {
     <div style={S.backdrop}>
       <div style={S.modal}>
         <div style={S.iconWrap}>
-          <div style={S.icon}>{isPermanent ? '\u26D4' : '\u23F1'}</div>
+          <img src={logoFull} alt="Lotus ConneXs" style={S.logoIcon} />
         </div>
 
         <h2 style={S.title}>{t.greeting}</h2>
@@ -203,6 +204,12 @@ const S = {
   },
   icon: {
     fontSize: 36,
+  },
+  logoIcon: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    borderRadius: '50%',
   },
   title: {
     fontSize: 24,
