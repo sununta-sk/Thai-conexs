@@ -85,7 +85,7 @@ const CONTENT = {
       {
         heading: '9. Contact',
         items: [
-          'Questions or appeals: support@thai-conexns.com',
+          'Questions or appeals: contact our team via the Official Account chat in the app.',
           'Appeals must include your account email and a clear explanation.',
         ],
       },
@@ -173,7 +173,7 @@ const CONTENT = {
       {
         heading: '9. ติดต่อ',
         items: [
-          'คำถามหรืออุทธรณ์: support@thai-conexns.com',
+          'คำถามหรืออุทธรณ์: ติดต่อทีมงานผ่านการแชทกับ Official Account ในแอป',
           'การอุทธรณ์ต้องระบุอีเมลบัญชีและเหตุผลให้ชัดเจน',
         ],
       },
