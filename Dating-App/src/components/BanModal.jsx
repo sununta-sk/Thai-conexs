@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -15,6 +15,7 @@ const COPY = {
     readRules: 'Read Rules',
     signOut: 'Sign out',
     footnote: 'You will regain access automatically when the time expires.',
+    agreeRestore: 'I Understand - Restore My Account',
     days: 'd',
     hours: 'h',
     minutes: 'm',
@@ -71,6 +72,14 @@ export default function BanModal({ bannedUntil, banReason }) {
     return () => clearInterval(id);
   }, [bannedUntil, isPermanent]);
 
+  const handleAgreeAndRestore = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase.from('profiles').update({ banned_until: null, ban_reason: null }).eq('id', user.id);
+    if (error) { alert(error.message); return; }
+    window.location.reload();
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     window.location.href = '/login';
@@ -122,6 +131,12 @@ export default function BanModal({ bannedUntil, banReason }) {
             <button style={S.primaryBtn} onClick={handleReadRules}>
               {t.readRules}
             </button>
+
+            {!isPermanent && (
+              <button style={{ ...S.primaryBtn, background: '#10b981', marginBottom: 8 }} onClick={handleAgreeAndRestore}>
+                {t.agreeRestore || 'I Understand - Restore My Account'}
+              </button>
+            )}
 
             <button style={S.secondaryBtn} onClick={handleSignOut}>
               {t.signOut}
