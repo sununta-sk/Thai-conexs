@@ -1,3 +1,4 @@
+﻿import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 
@@ -184,6 +185,20 @@ export default function RulesPage() {
   const { lang, setLang } = useTranslation(['common']);
   const navigate = useNavigate();
   const c = CONTENT[lang === 'th' ? 'th' : 'en'];
+  const [reachedEnd, setReachedEnd] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const atBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 60;
+      if (atBottom) {
+        setReachedEnd(true);
+        try { localStorage.setItem('rules_read_ack', String(Date.now())); } catch {}
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div style={S.page}>
@@ -243,6 +258,11 @@ export default function RulesPage() {
 
         <div style={S.footer}>
           <p style={S.footerText}>{c.agree}</p>
+          {reachedEnd && (
+            <p style={{ ...S.footerText, color: '#16a34a', fontWeight: 700, marginTop: 8 }}>
+              You've read to the end. You can close this tab now.
+            </p>
+          )}
         </div>
       </div>
     </div>

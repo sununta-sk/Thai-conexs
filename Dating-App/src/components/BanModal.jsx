@@ -44,6 +44,17 @@ export default function BanModal({ bannedUntil, banReason }) {
   const isPermanent = !bannedUntil;
   const [timeLeft, setTimeLeft] = useState(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [rulesRead, setRulesRead] = useState(() => {
+    try { return !!localStorage.getItem('rules_read_ack'); } catch { return false; }
+  });
+
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'rules_read_ack' && e.newValue) setRulesRead(true);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   useEffect(() => {
     if (isPermanent) return;
@@ -86,6 +97,7 @@ export default function BanModal({ bannedUntil, banReason }) {
   };
 
   const handleReadRules = () => {
+    try { localStorage.removeItem('rules_read_ack'); } catch {}
     window.open('/rules', '_blank');
   };
 
@@ -133,7 +145,11 @@ export default function BanModal({ bannedUntil, banReason }) {
             </button>
 
             {!isPermanent && (
-              <button style={{ ...S.primaryBtn, background: '#10b981', marginBottom: 8 }} onClick={handleAgreeAndRestore}>
+              <button
+                disabled={!rulesRead}
+                style={{ ...S.primaryBtn, background: rulesRead ? '#10b981' : '#9ca3af', cursor: rulesRead ? 'pointer' : 'not-allowed', marginBottom: 8 }}
+                onClick={rulesRead ? handleAgreeAndRestore : undefined}
+              >
                 {t.agreeRestore || 'I Understand - Restore My Account'}
               </button>
             )}
