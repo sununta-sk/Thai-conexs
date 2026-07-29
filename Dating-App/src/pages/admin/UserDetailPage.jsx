@@ -159,7 +159,7 @@ export default function UserDetailPage() {
         target_user_id: userId,
         admin_user_id:  adminRow.id,
         action_type:    modal.action,
-        reason:         reason.trim() || null,
+        reason:         reason.trim() || (ACTION_CONFIG[modal.action]?.label || modal.action) + ' by admin',
         message_to_user: msgToUser.trim() || null,
         expires_at:     expiresAt,
       });
