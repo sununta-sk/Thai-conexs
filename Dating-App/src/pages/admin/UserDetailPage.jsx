@@ -1,4 +1,4 @@
-// src/pages/admin/UserDetailPage.jsx
+﻿// src/pages/admin/UserDetailPage.jsx
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
@@ -168,9 +168,20 @@ export default function UserDetailPage() {
 
       if (modal.action !== 'note') {
         const statusMap = { warn: 'active', suspend: 'suspended', ban: 'banned', restore: 'active' };
+        const updates = { account_status: statusMap[modal.action] };
+        if (modal.action === 'ban') {
+          updates.banned_until = '2099-01-01T00:00:00Z';
+          updates.ban_reason = reason || 'Banned by admin';
+        } else if (modal.action === 'suspend') {
+          updates.banned_until = new Date(Date.now() + suspendDays * 86400000).toISOString();
+          updates.ban_reason = reason || 'Suspended by admin';
+        } else if (modal.action === 'restore') {
+          updates.banned_until = null;
+          updates.ban_reason = null;
+        }
         const { error: profileErr } = await supabase
           .from('profiles')
-          .update({ account_status: statusMap[modal.action] })
+          .update(updates)
           .eq('id', userId);
         if (profileErr) throw profileErr;
       }
