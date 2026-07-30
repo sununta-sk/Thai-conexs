@@ -14,6 +14,7 @@ const ACTION_CONFIG = {
   note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
   verify:  { label: 'Verify',  icon: '✓',  color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
   editUsername: { label: 'Edit Username', icon: 'EDIT', color: '#0891b2', desc: 'Change the username (user will be notified)' },
+  deleteAccount: { label: 'Delete Account', icon: 'DEL', color: '#dc2626', desc: 'Permanently delete this account and all associated data. This cannot be undone.' },
 };
 
 export default function UserDetailPage() {
@@ -31,6 +32,8 @@ export default function UserDetailPage() {
   const [msgToUser, setMsgToUser] = useState('');
   const [suspendDays, setSuspendDays] = useState(7);
   const [newUsername, setNewUsername] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [submitting, setSubmitting]   = useState(false);
   const [toast, setToast]         = useState(null);
@@ -76,6 +79,27 @@ export default function UserDetailPage() {
   function closeModal() {
     if (submitting) return;
     setModal(null);
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== 'DELETE') { showToast('Type DELETE to confirm', 'error'); return; }
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session?.access_token },
+        body: JSON.stringify({ userId }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Delete failed');
+      showToast('Account permanently deleted', 'success');
+      closeModal();
+      navigate('/admin/users');
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+    setDeleting(false);
   }
 
   async function submitAction() {
@@ -248,6 +272,7 @@ export default function UserDetailPage() {
             )}
             <ActionBtn cfg={ACTION_CONFIG.editUsername} onClick={() => { setNewUsername(profile.username || ''); setUsernameError(''); openModal('editUsername'); }} />
             <ActionBtn cfg={ACTION_CONFIG.note} onClick={() => openModal('note')} />
+            <ActionBtn cfg={ACTION_CONFIG.deleteAccount} onClick={() => { setDeleteConfirmText(''); openModal('deleteAccount'); }} />
           </div>
         </div>
 
@@ -451,14 +476,33 @@ export default function UserDetailPage() {
               </div>
             )}
 
+            {modal.action === 'deleteAccount' && (
+              <div style={S.formGroup}>
+                <div style={{ background: '#dc262611', border: '1px solid #dc262633', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#f87171', marginBottom: 12 }}>
+                  This will permanently delete <strong>{profile.username}</strong>'s profile, photos, chats, likes, and login access. This action cannot be undone.
+                </div>
+                <label style={S.label}>Type <strong>DELETE</strong> to confirm</label>
+                <input value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)} style={S.input} placeholder="DELETE" />
+              </div>
+            )}
+
             <div style={S.modalFooter}>
-              <button onClick={closeModal} style={S.cancelBtn} disabled={submitting}>Cancel</button>
+              <button onClick={closeModal} style={S.cancelBtn} disabled={submitting || deleting}>Cancel</button>
+              {modal.action === 'deleteAccount' ? (
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting || deleteConfirmText !== 'DELETE'}
+                  style={{ ...S.confirmBtn, background: '#dc2626', opacity: (deleting || deleteConfirmText !== 'DELETE') ? 0.5 : 1 }}>
+                  {deleting ? 'Deleting...' : 'Confirm Delete Account'}
+                </button>
+              ) : (
               <button
                 onClick={submitAction}
                 disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')}
                 style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')) ? 0.5 : 1 }}>
                 {submitting ? 'Processing...' : `Confirm ${ACTION_CONFIG[modal.action].label}`}
               </button>
+              )}
             </div>
           </div>
         </div>
