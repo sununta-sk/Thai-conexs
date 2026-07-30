@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
 import { useNavigate } from 'react-router-dom';
@@ -274,7 +274,7 @@ export default function Discover() {
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
-    <div style={{ ...S.page, paddingTop: isMobile ? 56 : 90 }}>
+    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
       {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} lang={lang} />}
       {!isMobile && (
       <div style={S.searchBar}>
