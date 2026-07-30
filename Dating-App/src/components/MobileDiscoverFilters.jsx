@@ -1,4 +1,4 @@
-// src/components/MobileDiscoverFilters.jsx
+﻿// src/components/MobileDiscoverFilters.jsx
 // Mobile filter dropdown for Discover page (desktop search bar is not rendered on mobile).
 import { useState } from 'react';
 import { PROVINCES } from '../data/thaiLocations';
@@ -44,7 +44,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
         borderBottom: '1px solid #334155',
         padding: 12,
         position: 'sticky',
-        top: 56,
+        top: 0,
         zIndex: 999,
       }}>
       <button
