@@ -1,4 +1,4 @@
-// src/pages/admin/AnnouncementsPage.jsx
+﻿// src/pages/admin/AnnouncementsPage.jsx
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
@@ -12,7 +12,13 @@ export default function AnnouncementsPage() {
   const [toast, setToast]   = useState(null)
   const [form, setF]        = useState({ title: '', body: '', type: 'info', active: true })
 
-  const { logAction } = useAuditLogger() // ← เพิ่ม
+  const { logAction } = useAuditLogger()
+
+  const [mode, setMode] = useState('public');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userQuery, setUserQuery] = useState('');
+  const [userResults, setUserResults] = useState([]);
+  const [searching, setSearching] = useState(false); // ← เพิ่ม
 
   useEffect(() => { loadList() }, [])
 
@@ -25,10 +31,40 @@ export default function AnnouncementsPage() {
     setLoad(false)
   }
 
+  async function searchUsers(q) {
+    setUserQuery(q);
+    if (!q.trim()) { setUserResults([]); return; }
+    setSearching(true);
+    const { data } = await supabase.from('profiles').select('id, username, avatar_url').ilike('username', '%' + q.trim() + '%').limit(8);
+    setUserResults(data || []);
+    setSearching(false);
+  }
+
   async function save() {
     if (!form.title.trim() || !form.body.trim()) { showT('Please fill in all fields', 'error'); return }
     setSaving(true)
     try {
+      if (mode === 'private') {
+        if (!selectedUser) { showT('Please select a user', 'error'); setSaving(false); return; }
+        const OFFICIAL_ID = '00000000-0000-0000-0000-000000000001'
+        const announceEmoji = String.fromCodePoint(0x1F4E2)
+        const content = announceEmoji + ' ' + form.title + '\n\n' + form.body
+        const chat_id = [selectedUser.id, OFFICIAL_ID].sort().join('_')
+        const { error: msgErr } = await supabase.from('messages').insert({ chat_id, room_id: chat_id, sender_id: OFFICIAL_ID, content })
+        if (msgErr) { showT('Error', 'error'); setSaving(false); return; }
+        await logAction({
+          action_type: 'announcement_publish',
+          target_type: 'user',
+          target_id: selectedUser.id,
+          metadata: { title: form.title, private: true, to_username: selectedUser.username },
+        }).catch(console.error)
+        showT('Sent to ' + selectedUser.username)
+        setF({ title: '', body: '', type: 'info', active: true })
+        setSelectedUser(null); setUserQuery(''); setUserResults([])
+        setForm(false)
+        setSaving(false)
+        return
+      }
       const { data, error } = await supabase
         .from('announcements')
         .insert({ title: form.title, body: form.body, announcement_type: form.type || 'banner', target_audience: 'all', status: form.active ? 'active' : 'draft', created_by: await (async () => {
@@ -111,6 +147,36 @@ export default function AnnouncementsPage() {
 
         {showForm && (
           <div style={S.formCard}>
+            <div style={S.field}>
+              <label style={S.lbl}>Audience</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" onClick={() => { setMode('public'); setSelectedUser(null); }} style={{ ...S.actionBtn, padding: '8px 16px', background: mode === 'public' ? '#e91e63' : 'transparent', color: mode === 'public' ? '#fff' : '#94a3b8', borderColor: mode === 'public' ? '#e91e63' : '#334155' }}>Public (all users)</button>
+                <button type="button" onClick={() => setMode('private')} style={{ ...S.actionBtn, padding: '8px 16px', background: mode === 'private' ? '#e91e63' : 'transparent', color: mode === 'private' ? '#fff' : '#94a3b8', borderColor: mode === 'private' ? '#e91e63' : '#334155' }}>Private (select user)</button>
+              </div>
+            </div>
+            {mode === 'private' && (
+              <div style={S.field}>
+                <label style={S.lbl}>Send to</label>
+                {selectedUser ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '8px 14px' }}>
+                    <span style={{ color: '#f1f5f9', fontWeight: 700, flex: 1 }}>{selectedUser.username}</span>
+                    <button type="button" onClick={() => { setSelectedUser(null); setUserQuery(''); }} style={{ ...S.actionBtn, padding: '4px 10px' }}>Change</button>
+                  </div>
+                ) : (
+                  <div>
+                    <input value={userQuery} onChange={e => searchUsers(e.target.value)} style={S.input} placeholder="Search username..." />
+                    {searching && <div style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>Searching...</div>}
+                    {userResults.length > 0 && (
+                      <div style={{ marginTop: 6, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
+                        {userResults.map(u => (
+                          <div key={u.id} onClick={() => { setSelectedUser(u); setUserResults([]); }} style={{ padding: '8px 14px', color: '#f1f5f9', cursor: 'pointer', borderBottom: '1px solid #1e293b' }}>{u.username}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <div style={S.field}><label style={S.lbl}>Title</label>
               <input value={form.title} onChange={e => setF(p => ({ ...p, title: e.target.value }))} style={S.input} placeholder="Title..." /></div>
             <div style={S.field}><label style={S.lbl}>Message</label>
