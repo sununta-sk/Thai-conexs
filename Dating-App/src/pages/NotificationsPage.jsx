@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 const TYPE_ICON = {
   new_match: "🎉",
@@ -48,6 +49,7 @@ function Toggle({ value, onChange }) {
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { notifications, unreadCount, loading, preferences, markAsRead, markAllAsRead, deleteNotification, updatePreferences, requestPermission } = useNotifications();
 
   const [tab, setTab] = useState("all");
@@ -77,8 +79,8 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0f172a", paddingBottom: 80, paddingTop: 90 }}>
-      <div style={{ background: "#1e293b", padding: "16px 16px 0", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", position: "sticky", top: 90, zIndex: 100, borderBottom: "1px solid #334155" }}>
+    <div style={{ minHeight: "100vh", background: "#0f172a", paddingBottom: 80, paddingTop: isMobile ? 0 : 90 }}>
+      <div style={{ background: "#1e293b", padding: "16px 16px 0", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", position: "sticky", top: isMobile ? 0 : 90, zIndex: 100, borderBottom: "1px solid #334155" }}>
         <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
           <button onClick={() => navigate(-1)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: "#e91e63", marginRight: 10 }}>〈</button>
           <h2 style={{ margin: 0, fontSize: 18, fontWeight: "bold", flex: 1, color: "#f1f5f9" }}>

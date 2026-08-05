@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "../../hooks/useSubscription";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 // price: { yearly, sixMonth? } in EUR. billingOptions lists which of those
 // keys this plan actually offers (Gold has both; Free/Platinum have one).
@@ -80,6 +81,7 @@ export default function SubscriptionPage() {
   const [billingByPlan, setBillingByPlan] = useState({ gold: "yearly" });
   const { currentPlan } = useSubscription();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Checkout isn't wired up yet — Mike hasn't created the Stripe account, so
   // there are no real Price IDs to charge against. Subscribe is disabled
@@ -90,7 +92,7 @@ export default function SubscriptionPage() {
   const publicPlans = PLANS.filter((p) => p.audience !== "affiliate");
 
   return (
-    <div style={styles.page}>
+    <div style={{ ...styles.page, paddingTop: isMobile ? 0 : 90 }}>
       <div style={styles.bgOrbs}>
         <div style={{ ...styles.orb, top: "-10%", left: "-5%", background: "radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%)", width: 600, height: 600 }} />
         <div style={{ ...styles.orb, bottom: "10%", right: "-10%", background: "radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)", width: 500, height: 500 }} />

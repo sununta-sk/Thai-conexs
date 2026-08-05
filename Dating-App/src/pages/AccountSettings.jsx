@@ -208,7 +208,7 @@ export default function AccountSettings() {
   );
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: 90, paddingBottom: 60 }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingTop: isDesktop ? 90 : 0, paddingBottom: 60 }}>
       <div style={S.pageHeader}>
         <h1 style={S.pageTitle}>Account Settings</h1>
         <p style={S.pageSubtitle}>Manage your account, email, and notification preferences</p>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const FAQ_ITEMS = [
   {
@@ -51,6 +52,7 @@ const SUBJECT_OPTIONS = [
 ];
 
 export default function HelpPage() {
+  const isMobile = useIsMobile();
   const [openIdx, setOpenIdx] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState(null);
@@ -112,7 +114,7 @@ export default function HelpPage() {
     : FAQ_ITEMS;
 
   return (
-    <div style={S.page}>
+    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
       <div style={S.wrap}>
         <h1 style={S.title}>Help & Support</h1>
         <p style={S.subtitle}>Find answers to common questions or contact our support team</p>

@@ -893,7 +893,7 @@ export default function ProfileSetup() {
   // RENDER
   // ──────────────────────────────────────────────
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: '90px' }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '90px' : '0px' }}>
       <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
         {isDesktop ? (
           <>
