@@ -167,7 +167,7 @@ export default function UserProfilePage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified')
+        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified, subscription_plan')
         .eq('id', userId)
         .maybeSingle();
 
@@ -276,6 +276,7 @@ export default function UserProfilePage() {
           <span style={S.name}>{profile.username || '—'}</span>
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
+          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
         </div>
 
         <div style={S.subRow}>
@@ -373,6 +374,7 @@ const S = {
   name: { fontSize: 24, fontWeight: 800, color: '#f1f5f9' },
   ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
   verifiedBadge: { background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
+  vipBadge: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },

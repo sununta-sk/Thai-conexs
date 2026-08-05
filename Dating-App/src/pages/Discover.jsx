@@ -47,6 +47,10 @@ function BanScreen({ bannedUntil, banReason }) {
   );
 }
 
+function isVipProfile(p) {
+  return p.subscription_plan === 'gold' || p.subscription_plan === 'platinum';
+}
+
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -133,7 +137,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -204,6 +208,18 @@ export default function Discover() {
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
     }
+
+    // VIP users (active paid subscription) surface above everyone else,
+    // shuffled among themselves fresh each time this recomputes; non-VIP
+    // users keep whatever order the block above produced.
+    const vip = result.filter(isVipProfile);
+    const nonVip = result.filter(p => !isVipProfile(p));
+    for (let i = vip.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [vip[i], vip[j]] = [vip[j], vip[i]];
+    }
+    result = [...vip, ...nonVip];
+
     return result;
   }, [profiles, filters, onlineUsers, currentUserProfile]);
 
@@ -415,6 +431,7 @@ export default function Discover() {
                 <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                   {profile.is_verified && <div style={S.verifiedBadge}>V</div>}
+                  {isVipProfile(profile) && <div style={S.vipBadge}>VIP</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
                 </div>
                 <div style={S.info}>
@@ -514,6 +531,7 @@ const S = {
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  vipBadge: { position: 'absolute', bottom: 5, left: 5, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
   info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },

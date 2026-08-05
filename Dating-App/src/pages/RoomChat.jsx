@@ -190,6 +190,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
         <div style={DS.nameRow}>
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
           {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
+          {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && <span style={DS.vip}>VIP</span>}
         </div>
 
         <div style={DS.statusRow}>
@@ -229,6 +230,7 @@ const DS = {
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
   verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
+  vip: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
@@ -390,7 +392,7 @@ function RoomChatDesktop() {
 
   useEffect(() => {
     if (!otherUserId || !session) return;
-    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio").eq("id", otherUserId).single()
+    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan").eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
     // Track profile view when opening chat (so the other user gets a toast notification)
     supabase.from('profile_views').insert({
@@ -529,6 +531,7 @@ function RoomChatDesktop() {
           <div style={S.nameGenderRow}>
             <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
             {profileGender && <span style={S.genderBadge}>{profileGender}</span>}
+            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
           <div style={S.onlineRow}>
@@ -702,6 +705,7 @@ const S = {
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
   headerName: { fontSize: 16, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap" },
   genderBadge: { fontSize: 11, fontWeight: 700, color: "#e91e63", background: "rgba(233, 30, 99, 0.15)", border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
+  vipBadge: { fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
   headerMeta: { fontSize: 12, color: "#94a3b8", fontWeight: 600 },
   onlineRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 1 },
   onlineDot: { width: 7, height: 7, borderRadius: "50%" },
