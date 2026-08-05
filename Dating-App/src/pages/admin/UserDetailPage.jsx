@@ -149,6 +149,8 @@ export default function UserDetailPage() {
           return;
         }
         const oldUsername = profile.username || '';
+        // Note: admin changes intentionally do NOT touch last_self_username_change_at —
+        // that field only tracks the user's own 60-day self-service cooldown.
         const { error: updateErr } = await supabase.from('profiles').update({ username: trimmed }).eq('id', userId);
         if (updateErr) throw updateErr;
         const { error: logErr2 } = await supabase.from('user_moderation_actions').insert({
@@ -159,6 +161,12 @@ export default function UserDetailPage() {
           message_to_user: oldUsername,
         });
         if (logErr2) throw logErr2;
+        await supabase.from('username_history').insert({
+          user_id: userId,
+          old_username: oldUsername,
+          new_username: trimmed,
+          changed_by: adminRow.id,
+        });
         showToast('Username changed successfully', 'success');
         closeModal();
         fetchAll();

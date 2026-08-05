@@ -20,6 +20,7 @@ export default function AccountSettings() {
   const [user, setUser] = useState(null);
   const [oldUsername, setOldUsername] = useState('');
   const [newUsername, setNewUsername] = useState('');
+  const [lastSelfChangeAt, setLastSelfChangeAt] = useState(null);
   const [email, setEmail] = useState('');
   const [memberSince, setMemberSince] = useState('');
   const [isPremium, setIsPremium] = useState(false);
@@ -49,13 +50,14 @@ export default function AccountSettings() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, subscription_plan, email_preferences')
+        .select('username, subscription_plan, email_preferences, last_self_username_change_at')
         .eq('id', u.id)
         .maybeSingle();
 
       if (profile) {
         setOldUsername(profile.username || '');
         setIsPremium(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum');
+        setLastSelfChangeAt(profile.last_self_username_change_at || null);
         if (profile.email_preferences) {
           setPrefs(prev => ({ ...prev, ...profile.email_preferences }));
         }
@@ -65,12 +67,30 @@ export default function AccountSettings() {
     load();
   }, [navigate]);
 
+  const USERNAME_COOLDOWN_DAYS = 60;
+  const cooldownDaysRemaining = (() => {
+    if (!lastSelfChangeAt) return 0;
+    const daysSince = (Date.now() - new Date(lastSelfChangeAt).getTime()) / 86400000;
+    return Math.max(0, Math.ceil(USERNAME_COOLDOWN_DAYS - daysSince));
+  })();
+
   const handleChangeUsername = async () => {
     if (!isPremium) { alert('Username change is for Premium members only.'); return; }
+    if (cooldownDaysRemaining > 0) { alert(`You can change your username again in ${cooldownDaysRemaining} day(s).`); return; }
     if (!newUsername.trim()) { alert('Please enter a new username'); return; }
     if (newUsername.trim() === oldUsername) { alert('New username is the same'); return; }
     setSavingUsername(true);
-    const { error } = await supabase.from('profiles').update({ username: newUsername.trim() }).eq('id', user.id);
+    const trimmed = newUsername.trim();
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('profiles').update({ username: trimmed, last_self_username_change_at: now }).eq('id', user.id);
+    if (!error) {
+      await supabase.from('username_history').insert({
+        user_id: user.id,
+        old_username: oldUsername,
+        new_username: trimmed,
+        changed_by: 'self',
+      });
+    }
     setSavingUsername(false);
     if (error) alert('Error: ' + error.message);
     else {
@@ -131,11 +151,14 @@ export default function AccountSettings() {
         </div>
         <div style={S.row}>
           <label style={S.rowLabel}>New username:</label>
-          <input value={newUsername} onChange={e => setNewUsername(e.target.value)} placeholder="Enter new username here" disabled={!isPremium} style={{ ...S.input, opacity: isPremium ? 1 : 0.5 }} />
+          <input value={newUsername} onChange={e => setNewUsername(e.target.value)} placeholder="Enter new username here" disabled={!isPremium || cooldownDaysRemaining > 0} style={{ ...S.input, opacity: (isPremium && cooldownDaysRemaining === 0) ? 1 : 0.5 }} />
         </div>
-        <button onClick={handleChangeUsername} disabled={!isPremium || savingUsername} style={{ ...S.btnPrimary, opacity: isPremium ? 1 : 0.5, cursor: isPremium ? 'pointer' : 'not-allowed' }}>
+        <button onClick={handleChangeUsername} disabled={!isPremium || savingUsername || cooldownDaysRemaining > 0} style={{ ...S.btnPrimary, opacity: (isPremium && cooldownDaysRemaining === 0) ? 1 : 0.5, cursor: (isPremium && cooldownDaysRemaining === 0) ? 'pointer' : 'not-allowed' }}>
           {savingUsername ? 'Changing...' : 'Change username'}
         </button>
+        {cooldownDaysRemaining > 0 && (
+          <p style={{ ...S.note, color: '#f59e0b' }}>You can change your username again in {cooldownDaysRemaining} day{cooldownDaysRemaining === 1 ? '' : 's'}.</p>
+        )}
         <p style={S.note}>If the name change is successful you will be logged out and need to log in with the new username.</p>
       </div>
 
