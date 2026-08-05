@@ -1,7 +1,7 @@
 ﻿// src/components/MobileDiscoverFilters.jsx
 // Mobile filter dropdown for Discover page (desktop search bar is not rendered on mobile).
 import { useState } from 'react';
-import { PROVINCES } from '../data/thaiLocations';
+import { COUNTRY_LIST } from '../data/countryList';
 
 const AGE_RANGES = [
   { value: '18-24', label: '18-24' },
@@ -24,16 +24,15 @@ const sel = {
   cursor: 'pointer',
 };
 
-export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, lang = 'en' }) {
+export default function MobileDiscoverFilters({ filters, updateFilter, updateCountryFilter, provinceOptions = [], tx = {} }) {
   const [open, setOpen] = useState(false);
 
   const activeCount =
     (filters?.gender && filters.gender !== 'all' ? 1 : 0) +
     (filters?.ageRange && filters.ageRange !== 'all' ? 1 : 0) +
+    (filters?.country && filters.country !== 'all' ? 1 : 0) +
     (filters?.province && filters.province !== 'all' ? 1 : 0) +
     (filters?.ignoreAgePref ? 1 : 0);
-
-  const provinceLabel = (p) => (p?.name && (p.name[lang] || p.name.en)) || p?.id || '';
 
   return (
     <>
@@ -104,6 +103,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
             <option value="all">{tx.genderAll || 'Guys & Girls'}</option>
             <option value="male">{tx.genderMale || 'Guys'}</option>
             <option value="female">{tx.genderFemale || 'Girls'}</option>
+            <option value="transgender">{tx.genderTransgender || 'Transgender'}</option>
             <option value="other">{tx.genderOther || 'Other'}</option>
           </select>
 
@@ -121,6 +121,19 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
           </select>
 
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
+            {tx.country || 'Country'}
+          </label>
+          <select
+            value={filters?.country || 'all'}
+            onChange={e => (updateCountryFilter ? updateCountryFilter(e.target.value) : updateFilter('country', e.target.value))}
+            style={sel}>
+            <option value="all">{tx.allCountries || 'All countries'}</option>
+            {COUNTRY_LIST.map(c => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+
+          <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
             {tx.province || 'Province'}
           </label>
           <select
@@ -128,8 +141,8 @@ export default function MobileDiscoverFilters({ filters, updateFilter, tx = {}, 
             onChange={e => updateFilter('province', e.target.value)}
             style={sel}>
             <option value="all">{tx.allProvinces || 'All provinces'}</option>
-            {PROVINCES.map(p => (
-              <option key={p.id} value={p.id}>{provinceLabel(p)}</option>
+            {provinceOptions.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
 

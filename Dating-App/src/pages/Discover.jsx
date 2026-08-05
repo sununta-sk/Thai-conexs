@@ -1,6 +1,8 @@
 ﻿import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
+import { getStatesForCountryName } from '../data/worldLocations';
+import { COUNTRY_LIST } from '../data/countryList';
 import { useNavigate } from 'react-router-dom';
 import { useOnline } from '../context/OnlineContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -57,6 +59,7 @@ function formatLastSeen(dateStr, tx) {
 const DEFAULT_FILTERS = {
   gender: 'all',
   ageRange: 'all',
+  country: 'all',
   province: 'all',
   ignoreAgePref: false,
   height: 'all',
@@ -162,11 +165,14 @@ export default function Discover() {
         const g = (d.gender || '').toLowerCase().trim();
         const isMale = ['male', 'ชาย', 'm', 'man'].includes(g);
         const isFemale = ['female', 'หญิง', 'f', 'woman'].includes(g);
+        const isTransgender = ['transgender', 'trans', 'ทรานส์เจนเดอร์', 'tg'].includes(g);
         if (filters.gender === 'male' && !isMale) return false;
         if (filters.gender === 'female' && !isFemale) return false;
-        if (filters.gender === 'other' && (isMale || isFemale || !g)) return false;
+        if (filters.gender === 'transgender' && !isTransgender) return false;
+        if (filters.gender === 'other' && (isMale || isFemale || isTransgender || !g)) return false;
       }
       if (!inRange(d.age, filters.ageRange)) return false;
+      if (filters.country !== 'all' && (p.details?.country || '') !== filters.country) return false;
       if (filters.province !== 'all' && (p.details?.province || '') !== filters.province) return false;
       if (!inRange(d.height, filters.height)) return false;
       if (!inRange(d.weight, filters.weight)) return false;
@@ -269,13 +275,34 @@ export default function Discover() {
 
   const provinceLabel = (p) => (p?.name && (p.name[lang] || p.name.en)) || p?.id || '';
 
+  // Province filter options depend on the selected country: Thai provinces for
+  // Thailand/"all", or that country's states/provinces (worldLocations.js) otherwise.
+  const provinceFilterOptions = useMemo(() => {
+    if (filters.country === 'all' || filters.country === 'Thailand') {
+      return PROVINCES.map(p => ({ value: p.id, label: provinceLabel(p) }));
+    }
+    return getStatesForCountryName(filters.country).map(s => ({ value: s.name, label: s.name }));
+  }, [filters.country, lang]);
+
   const updateFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
+
+  // Changing country invalidates the previous province/state selection.
+  const updateCountryFilter = (value) => setFilters(prev => ({ ...prev, country: value, province: 'all' }));
 
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
   return (
     <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
-      {isMobile && <MobileDiscoverFilters filters={filters} updateFilter={updateFilter} tx={tx} lang={lang} />}
+      {isMobile && (
+        <MobileDiscoverFilters
+          filters={filters}
+          updateFilter={updateFilter}
+          updateCountryFilter={updateCountryFilter}
+          provinceOptions={provinceFilterOptions}
+          tx={tx}
+          lang={lang}
+        />
+      )}
       {!isMobile && (
       <div style={S.searchBar}>
         {/* Row 1 */}
@@ -284,6 +311,7 @@ export default function Discover() {
             <option value="all">{tx.genderAll || "Guys & Girls"}</option>
             <option value="male">{tx.genderMale || "Guys"}</option>
             <option value="female">{tx.genderFemale || "Girls"}</option>
+            <option value="transgender">{tx.genderTransgender || "Transgender"}</option>
             <option value="other">{tx.genderOther || "Other"}</option>
           </select>
 
@@ -293,8 +321,8 @@ export default function Discover() {
 
           <select value={filters.province} onChange={e => updateFilter('province', e.target.value)} style={S.input}>
             <option value="all">{tx.allProvinces || "All provinces"}</option>
-            {PROVINCES.map(p => (
-              <option key={p.id} value={p.id}>{provinceLabel(p)}</option>
+            {provinceFilterOptions.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
 
@@ -346,7 +374,12 @@ export default function Discover() {
 
         {/* Row 3 */}
         <div style={S.row}>
-          <div />
+          <select value={filters.country} onChange={e => updateCountryFilter(e.target.value)} style={S.input}>
+            <option value="all">{tx.allCountries || "All countries"}</option>
+            {COUNTRY_LIST.map(c => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
           <div />
           <div />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
+import { getStatesForCountryName } from '../data/worldLocations';
 import PhotoCropper from '../components/PhotoCropper';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -19,7 +20,7 @@ const T = {
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
-    genderOptions:['ชาย','หญิง','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
+    genderOptions:['ชาย','หญิง','ทรานส์เจนเดอร์','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
     copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
     sidebarAbout:'เกี่ยวกับฉัน', sidebarInfo:'ข้อมูลส่วนตัว', sidebarLifestyle:'ไลฟ์สไตล์',
   },
@@ -359,6 +360,11 @@ export default function ProfileSetup() {
 
   const referralDisabled = isVerified && !!friendCode;
 
+  // Non-Thailand users get a real State/Province dropdown (from worldLocations.js)
+  // instead of the Thai province list; city is free-text for them (see below).
+  const isThailandLocation = !details.country || details.country === 'Thailand';
+  const foreignStates = isThailandLocation ? [] : getStatesForCountryName(details.country);
+
   // ──────────────────────────────────────────────
   // SIDEBAR (Desktop only)
   // ──────────────────────────────────────────────
@@ -397,7 +403,7 @@ export default function ProfileSetup() {
       </div>
 
       <Field label={<span>Country <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select value={details.country || ''} onChange={e => setDetails({...details, country: e.target.value})} style={{ ...S.input, borderColor: details.country ? '#334155' : '#ef4444' }}>
+        <select value={details.country || ''} onChange={e => setDetails({...details, country: e.target.value, province: '', city: ''})} style={{ ...S.input, borderColor: details.country ? '#334155' : '#ef4444' }}>
           <option value="">-- Select your country --</option>
           <option value="Thailand">🇹🇭 Thailand</option>
           <option value="United States">🇺🇸 United States</option>
@@ -453,34 +459,75 @@ export default function ProfileSetup() {
         {!details.country && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>Required: please select your country</div>}
       </Field>
 
-      <Field label={<span>{lang === 'th' ? 'จังหวัด' : 'Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select
-          value={details.province || ''}
-          onChange={e => setDetails({...details, province: e.target.value, city: ''})}
-          style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-        >
-          <option value="">{lang === 'th' ? '— เลือกจังหวัด —' : '-- Select province --'}</option>
-          {PROVINCES.map(p => (
-            <option key={p.id} value={p.id}>{p.name[lang === 'th' ? 'th' : 'en']}</option>
-          ))}
-        </select>
-        {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกจังหวัด' : 'Required: please select your province'}</div>}
-      </Field>
+      {isThailandLocation && (
+        <>
+          <Field label={<span>{lang === 'th' ? 'จังหวัด' : 'Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <select
+              value={details.province || ''}
+              onChange={e => setDetails({...details, province: e.target.value, city: ''})}
+              style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+            >
+              <option value="">{lang === 'th' ? '— เลือกจังหวัด —' : '-- Select province --'}</option>
+              {PROVINCES.map(p => (
+                <option key={p.id} value={p.id}>{p.name[lang === 'th' ? 'th' : 'en']}</option>
+              ))}
+            </select>
+            {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกจังหวัด' : 'Required: please select your province'}</div>}
+          </Field>
 
-      <Field label={<span>{lang === 'th' ? 'เขต/อำเภอ' : 'City / District'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select
-          value={details.city || ''}
-          onChange={e => setDetails({...details, city: e.target.value})}
-          disabled={!details.province}
-          style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444', opacity: details.province ? 1 : 0.6 }}
-        >
-          <option value="">{lang === 'th' ? '— เลือกเขต/อำเภอ —' : '-- Select city --'}</option>
-          {getCitiesByProvince(details.province).map(c => (
-            <option key={c.id} value={c.id}>{c.name[lang === 'th' ? 'th' : 'en']}</option>
-          ))}
-        </select>
-        {details.province && !details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกเขต/อำเภอ' : 'Required: please select your city'}</div>}
-      </Field>
+          <Field label={<span>{lang === 'th' ? 'เขต/อำเภอ' : 'City / District'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <select
+              value={details.city || ''}
+              onChange={e => setDetails({...details, city: e.target.value})}
+              disabled={!details.province}
+              style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444', opacity: details.province ? 1 : 0.6 }}
+            >
+              <option value="">{lang === 'th' ? '— เลือกเขต/อำเภอ —' : '-- Select city --'}</option>
+              {getCitiesByProvince(details.province).map(c => (
+                <option key={c.id} value={c.id}>{c.name[lang === 'th' ? 'th' : 'en']}</option>
+              ))}
+            </select>
+            {details.province && !details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกเขต/อำเภอ' : 'Required: please select your city'}</div>}
+          </Field>
+        </>
+      )}
+
+      {!isThailandLocation && (
+        <>
+          <Field label={<span>{lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            {foreignStates.length > 0 ? (
+              <select
+                value={details.province || ''}
+                onChange={e => setDetails({...details, province: e.target.value})}
+                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+              >
+                <option value="">{lang === 'th' ? '— เลือกรัฐ/จังหวัด —' : '-- Select state/province --'}</option>
+                {foreignStates.map(s => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={details.province || ''}
+                onChange={e => setDetails({...details, province: e.target.value})}
+                placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
+                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+              />
+            )}
+            {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกรัฐ/จังหวัด' : 'Required: please enter your state/province'}</div>}
+          </Field>
+
+          <Field label={<span>{lang === 'th' ? 'เมือง' : 'City'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <input
+              value={details.city || ''}
+              onChange={e => setDetails({...details, city: e.target.value})}
+              placeholder={lang === 'th' ? 'เมือง' : 'City'}
+              style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444' }}
+            />
+            {!details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกชื่อเมือง' : 'Required: please enter your city'}</div>}
+          </Field>
+        </>
+      )}
 
       <Field label="Preferred age range">
         <div style={{ display: 'flex', gap: 8 }}>
@@ -652,7 +699,7 @@ export default function ProfileSetup() {
       {/* Location — duplicated from Sidebar so mobile users can fill required fields */}
       <SectionTitle>📍 Location</SectionTitle>
       <Field label={<span>Country <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select value={details.country || ''} onChange={e => setDetails({...details, country: e.target.value})} style={{ ...S.input, borderColor: details.country ? '#334155' : '#ef4444' }}>
+        <select value={details.country || ''} onChange={e => setDetails({...details, country: e.target.value, province: '', city: ''})} style={{ ...S.input, borderColor: details.country ? '#334155' : '#ef4444' }}>
           <option value="">-- Select your country --</option>
           <option value="Thailand">🇹🇭 Thailand</option>
           <option value="United States">🇺🇸 United States</option>
@@ -708,34 +755,75 @@ export default function ProfileSetup() {
         {!details.country && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>Required: please select your country</div>}
       </Field>
 
-      <Field label={<span>{lang === 'th' ? 'จังหวัด' : 'Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select
-          value={details.province || ''}
-          onChange={e => setDetails({...details, province: e.target.value, city: ''})}
-          style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-        >
-          <option value="">{lang === 'th' ? '— เลือกจังหวัด —' : '-- Select province --'}</option>
-          {PROVINCES.map(p => (
-            <option key={p.id} value={p.id}>{p.name[lang === 'th' ? 'th' : 'en']}</option>
-          ))}
-        </select>
-        {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกจังหวัด' : 'Required: please select your province'}</div>}
-      </Field>
+      {isThailandLocation && (
+        <>
+          <Field label={<span>{lang === 'th' ? 'จังหวัด' : 'Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <select
+              value={details.province || ''}
+              onChange={e => setDetails({...details, province: e.target.value, city: ''})}
+              style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+            >
+              <option value="">{lang === 'th' ? '— เลือกจังหวัด —' : '-- Select province --'}</option>
+              {PROVINCES.map(p => (
+                <option key={p.id} value={p.id}>{p.name[lang === 'th' ? 'th' : 'en']}</option>
+              ))}
+            </select>
+            {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกจังหวัด' : 'Required: please select your province'}</div>}
+          </Field>
 
-      <Field label={<span>{lang === 'th' ? 'เขต/อำเภอ' : 'City / District'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-        <select
-          value={details.city || ''}
-          onChange={e => setDetails({...details, city: e.target.value})}
-          disabled={!details.province}
-          style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444', opacity: details.province ? 1 : 0.6 }}
-        >
-          <option value="">{lang === 'th' ? '— เลือกเขต/อำเภอ —' : '-- Select city --'}</option>
-          {getCitiesByProvince(details.province).map(c => (
-            <option key={c.id} value={c.id}>{c.name[lang === 'th' ? 'th' : 'en']}</option>
-          ))}
-        </select>
-        {details.province && !details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกเขต/อำเภอ' : 'Required: please select your city'}</div>}
-      </Field>
+          <Field label={<span>{lang === 'th' ? 'เขต/อำเภอ' : 'City / District'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <select
+              value={details.city || ''}
+              onChange={e => setDetails({...details, city: e.target.value})}
+              disabled={!details.province}
+              style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444', opacity: details.province ? 1 : 0.6 }}
+            >
+              <option value="">{lang === 'th' ? '— เลือกเขต/อำเภอ —' : '-- Select city --'}</option>
+              {getCitiesByProvince(details.province).map(c => (
+                <option key={c.id} value={c.id}>{c.name[lang === 'th' ? 'th' : 'en']}</option>
+              ))}
+            </select>
+            {details.province && !details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณาเลือกเขต/อำเภอ' : 'Required: please select your city'}</div>}
+          </Field>
+        </>
+      )}
+
+      {!isThailandLocation && (
+        <>
+          <Field label={<span>{lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            {foreignStates.length > 0 ? (
+              <select
+                value={details.province || ''}
+                onChange={e => setDetails({...details, province: e.target.value})}
+                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+              >
+                <option value="">{lang === 'th' ? '— เลือกรัฐ/จังหวัด —' : '-- Select state/province --'}</option>
+                {foreignStates.map(s => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={details.province || ''}
+                onChange={e => setDetails({...details, province: e.target.value})}
+                placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
+                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+              />
+            )}
+            {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกรัฐ/จังหวัด' : 'Required: please enter your state/province'}</div>}
+          </Field>
+
+          <Field label={<span>{lang === 'th' ? 'เมือง' : 'City'} <span style={{ color: '#ef4444' }}>*</span></span>}>
+            <input
+              value={details.city || ''}
+              onChange={e => setDetails({...details, city: e.target.value})}
+              placeholder={lang === 'th' ? 'เมือง' : 'City'}
+              style={{ ...S.input, borderColor: details.city ? '#334155' : '#ef4444' }}
+            />
+            {!details.city && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกชื่อเมือง' : 'Required: please enter your city'}</div>}
+          </Field>
+        </>
+      )}
 
       {/* Lifestyle */}
       <SectionTitle>✨ Lifestyle</SectionTitle>
