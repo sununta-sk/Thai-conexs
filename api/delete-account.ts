@@ -1,4 +1,16 @@
-﻿import { createClient } from '@supabase/supabase-js';
+// api/delete-account.ts
+// Vercel serverless function — POST /api/delete-account
+// Relocated from Dating-App/api/delete-account.ts (wrong location — Vercel's
+// api/ directory for this project is the repo root, not Dating-App/api).
+//
+// Verifies the caller is a real, active admin (via admin_users, checked against
+// their own Supabase Auth session token — not a static "admin token"), then
+// permanently deletes a user's data: dependent rows, Storage files, the
+// profiles row, and finally the Supabase Auth user itself.
+//
+// Called from src/pages/admin/UserDetailPage.jsx's handleDeleteAccount(), which
+// already POSTs { userId } with Authorization: Bearer <admin's session token>.
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -7,11 +19,13 @@ export default async function handler(req: any, res: any) {
   if (!authHeader) return res.status(401).json({ error: 'Missing authorization header' });
   const token = authHeader.replace('Bearer ', '');
 
-  const supabaseAuth = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-  const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser(token);
-  if (authError || !caller) return res.status(401).json({ error: 'Invalid or expired token' });
-
+  // Note: this project has no server-side SUPABASE_ANON_KEY var (only the
+  // client-exposed VITE_SUPABASE_ANON_KEY) — the service-role client works
+  // equally well for auth.getUser(token), since JWT validation depends on the
+  // token itself, not which API key the client was constructed with.
   const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+  const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !caller) return res.status(401).json({ error: 'Invalid or expired token' });
 
   const { data: adminRow } = await supabase
     .from('admin_users')
