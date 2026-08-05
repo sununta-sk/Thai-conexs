@@ -5,7 +5,9 @@ import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
 
 const STATUS_TABS = ['open', 'investigating', 'resolved', 'dismissed'];
-const CATEGORIES  = ['all', 'harassment', 'fake_profile', 'inappropriate_photo', 'spam', 'scam', 'underage', 'other'];
+// Union of content_reports.report_type values (RoomChat.jsx's in-chat report)
+// and user_reports.category values (ReportModal.jsx's "report this profile").
+const CATEGORIES  = ['all', 'inappropriate', 'sex_work', 'harassment', 'fake_profile', 'inappropriate_photo', 'spam', 'scam', 'underage', 'other'];
 
 const STATUS_COLOR = {
   open:          '#ef4444',
@@ -14,6 +16,8 @@ const STATUS_COLOR = {
   dismissed:     '#475569',
 };
 const CATEGORY_LABEL = {
+  inappropriate:       '⛔ Inappropriate Content',
+  sex_work:            '⚠️ Sex Work / Money',
   harassment:          '🚨 Harassment',
   fake_profile:        '🎭 Fake Profile',
   inappropriate_photo: '🖼️ Inappropriate Photo',
@@ -22,6 +26,10 @@ const CATEGORY_LABEL = {
   underage:            '⚠️ Underage',
   other:               '❓ Other',
 };
+// user_reports rows are inserted with status 'pending' (ReportModal.jsx) — treat
+// that as this table's "open" state; every other status is written identically
+// to both tables going forward.
+const toUserReportStatus = (tab) => (tab === 'open' ? 'pending' : tab);
 
 export default function ReportsPage() {
   const navigate = useNavigate();
@@ -35,26 +43,55 @@ export default function ReportsPage() {
   const [adminNote,     setAdminNote]     = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  /* ── Fetch ── */
+  /* ── Fetch ──
+   * Two report sources feed this page: content_reports (RoomChat.jsx's in-chat
+   * "Report User") and user_reports (ReportModal.jsx's "report this profile") —
+   * previously only content_reports was shown here, so an entire category of
+   * reports was invisible to admins. Both are queried and merged. */
   const fetchReports = useCallback(async () => {
     setLoading(true);
-    let query = supabase
+
+    let crQuery = supabase
       .from('content_reports')
-      .select(`
-        id, report_type, status, created_at, reporter_id, reported_user_id
-      `)
+      .select('id, report_type, status, created_at, reporter_id, reported_user_id, admin_note, ban_duration_applied')
       .eq('status', activeTab)
       .order('created_at', { ascending: false })
       .limit(50);
+    if (category !== 'all') crQuery = crQuery.eq('report_type', category);
 
-    if (category !== 'all') query = query.eq('report_type', category);
-    const { data } = await query;
-    if (data && data.length > 0) {
-      const ids = [...new Set([...data.map(r => r.reporter_id), ...data.map(r => r.reported_user_id)].filter(Boolean))];
+    let urQuery = supabase
+      .from('user_reports')
+      .select('id, category, sub_reason, custom_text, status, created_at, reporter_id, reported_id, admin_note, ban_duration_applied')
+      .eq('status', toUserReportStatus(activeTab))
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (category !== 'all') urQuery = urQuery.eq('category', category);
+
+    const [{ data: crData }, { data: urData }] = await Promise.all([crQuery, urQuery]);
+
+    const normalized = [
+      ...(crData || []).map(r => ({
+        id: r.id, source: 'content_reports',
+        reporter_id: r.reporter_id, reported_user_id: r.reported_user_id,
+        report_type: r.report_type, evidence: null,
+        status: r.status, created_at: r.created_at,
+        admin_note: r.admin_note, ban_duration_applied: r.ban_duration_applied,
+      })),
+      ...(urData || []).map(r => ({
+        id: r.id, source: 'user_reports',
+        reporter_id: r.reporter_id, reported_user_id: r.reported_id,
+        report_type: r.category, evidence: [r.sub_reason, r.custom_text].filter(Boolean).join(' — ') || null,
+        status: r.status === 'pending' ? 'open' : r.status, created_at: r.created_at,
+        admin_note: r.admin_note, ban_duration_applied: r.ban_duration_applied,
+      })),
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50);
+
+    if (normalized.length > 0) {
+      const ids = [...new Set([...normalized.map(r => r.reporter_id), ...normalized.map(r => r.reported_user_id)].filter(Boolean))];
       const { data: profiles } = await supabase.from('profiles').select('id, username, avatar_url').in('id', ids);
       const profileMap = {};
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
-      const enriched = data.map(r => ({
+      const enriched = normalized.map(r => ({
         ...r,
         reporter: profileMap[r.reporter_id] || null,
         reported: profileMap[r.reported_user_id] || null,
@@ -67,26 +104,31 @@ export default function ReportsPage() {
   }, [activeTab, category]);
 
   const fetchStats = async () => {
-    const results = await Promise.all(
-      STATUS_TABS.map(s =>
-        supabase.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', s)
-      )
-    );
     const s = {};
-    STATUS_TABS.forEach((key, i) => { s[key] = results[i].count || 0; });
+    await Promise.all(STATUS_TABS.map(async (tab) => {
+      const [crRes, urRes] = await Promise.all([
+        supabase.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', tab),
+        supabase.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', toUserReportStatus(tab)),
+      ]);
+      s[tab] = (crRes.count || 0) + (urRes.count || 0);
+    }));
     setStats(s);
   };
 
   useEffect(() => { fetchReports(); fetchStats(); }, [fetchReports]);
 
-  /* ── Action ── */
-  const updateStatus = async (reportId, newStatus) => {
+  /* ── Action ──
+   * report.source ('content_reports' | 'user_reports') tells us which table to
+   * write to. From here on both tables use the same status vocabulary
+   * ('investigating'/'resolved'/'dismissed') — only the initial open/pending
+   * state differs between them. */
+  const updateStatus = async (report, newStatus) => {
     setActionLoading(true);
-    await supabase.from('content_reports').update({
+    await supabase.from(report.source).update({
       status:      newStatus,
       admin_note:  adminNote || null,
       resolved_at: ['resolved', 'dismissed'].includes(newStatus) ? new Date().toISOString() : null,
-    }).eq('id', reportId);
+    }).eq('id', report.id);
     setDetail(null);
     setAdminNote('');
     await fetchReports();
@@ -159,7 +201,7 @@ export default function ReportsPage() {
               <table style={S.table}>
                 <thead>
                   <tr>
-                    {['Reporter', 'Reported User', 'Type', 'Date', ''].map(h => (
+                    {['Reporter', 'Reported User', 'Type', 'Ban Duration', 'Date', ''].map(h => (
                       <th key={h} style={S.th}>{h}</th>
                     ))}
                   </tr>
@@ -167,10 +209,10 @@ export default function ReportsPage() {
                 <tbody>
                   {reports.map(r => (
                     <tr
-                      key={r.id}
+                      key={`${r.source}-${r.id}`}
                       style={{
                         ...S.tr,
-                        background: detail?.id === r.id ? '#1e293b' : 'transparent',
+                        background: (detail?.id === r.id && detail?.source === r.source) ? '#1e293b' : 'transparent',
                       }}
                       onClick={() => { setDetail(r); setAdminNote(r.admin_note || ''); }}
                     >
@@ -186,12 +228,21 @@ export default function ReportsPage() {
                       <td style={S.td}>
                         <span style={S.catChip}>{CATEGORY_LABEL[r.report_type] || r.report_type}</span>
                       </td>
+                      {/* Ban duration applied, if any */}
+                      <td style={{ ...S.td, fontSize: 12 }}>{r.ban_duration_applied || 'None'}</td>
                       {/* Date */}
                       <td style={{ ...S.td, color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>
                         {new Date(r.created_at).toLocaleDateString('en-GB')}
                       </td>
-                      {/* Arrow */}
-                      <td style={{ ...S.td, color: '#334155' }}>›</td>
+                      {/* View */}
+                      <td style={S.td}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDetail(r); setAdminNote(r.admin_note || ''); }}
+                          style={S.viewBtn}
+                        >
+                          View
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -233,10 +284,10 @@ export default function ReportsPage() {
                 <div style={S.panelLabel}>Type</div>
                 <span style={S.catChip}>{CATEGORY_LABEL[detail.report_type] || detail.report_type}</span>
               </div>
-              {detail.description && (
+              {detail.evidence && (
                 <div style={S.panelSection}>
-                  <div style={S.panelLabel}>Details</div>
-                  <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6 }}>{detail.description}</div>
+                  <div style={S.panelLabel}>Reason / Evidence</div>
+                  <div style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.6 }}>{detail.evidence}</div>
                 </div>
               )}
 
@@ -256,15 +307,15 @@ export default function ReportsPage() {
               {detail.status === 'open' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button style={{ ...S.actBtn, background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b44' }}
-                    onClick={() => updateStatus(detail.id, 'investigating')} disabled={actionLoading}>
+                    onClick={() => updateStatus(detail, 'investigating')} disabled={actionLoading}>
                     🔍 Investigate
                   </button>
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
-                    onClick={() => updateStatus(detail.id, 'resolved')} disabled={actionLoading}>
+                    onClick={() => updateStatus(detail, 'resolved')} disabled={actionLoading}>
                     ✓ Resolve
                   </button>
                   <button style={{ ...S.actBtn, background: '#47556922', color: '#64748b', border: '1px solid #47556944' }}
-                    onClick={() => updateStatus(detail.id, 'dismissed')} disabled={actionLoading}>
+                    onClick={() => updateStatus(detail, 'dismissed')} disabled={actionLoading}>
                     ✕ Dismiss
                   </button>
                 </div>
@@ -272,11 +323,11 @@ export default function ReportsPage() {
               {detail.status === 'investigating' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
-                    onClick={() => updateStatus(detail.id, 'resolved')} disabled={actionLoading}>
+                    onClick={() => updateStatus(detail, 'resolved')} disabled={actionLoading}>
                     ✓ Mark Resolved
                   </button>
                   <button style={{ ...S.actBtn, background: '#47556922', color: '#64748b', border: '1px solid #47556944' }}
-                    onClick={() => updateStatus(detail.id, 'dismissed')} disabled={actionLoading}>
+                    onClick={() => updateStatus(detail, 'dismissed')} disabled={actionLoading}>
                     ✕ Dismiss
                   </button>
                 </div>
@@ -286,10 +337,20 @@ export default function ReportsPage() {
               <div style={{marginBottom:12,marginTop:12}}>
                 <div style={{color:"#94a3b8",fontSize:11,marginBottom:6,fontWeight:600}}>BAN USER</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                  {[{l:"1hr",h:1},{l:"24hr",h:24},{l:"7d",h:168},{l:"30d",h:720},{l:"60d",h:1440},{l:"1yr",h:8760},{l:"permanent",h:999999}].map(({l,h}) => (
+                  {[
+                    {l:"1hr",applied:"1 hour",h:1},
+                    {l:"24hr",applied:"24 hours",h:24},
+                    {l:"7d",applied:"7 days",h:168},
+                    {l:"30d",applied:"30 days",h:720},
+                    {l:"60d",applied:"60 days",h:1440},
+                    {l:"1yr",applied:"1 year",h:8760},
+                    {l:"permanent",applied:"Permanent",h:999999},
+                  ].map(({l,applied,h}) => (
                     <button key={h} onClick={async () => {
                       const until = h===999999 ? "2099-01-01T00:00:00Z" : new Date(Date.now()+h*3600000).toISOString();
                       await supabase.from("profiles").update({banned_until:until,ban_reason:detail.report_type||"violation"}).eq("id",detail.reported_user_id);
+                      await supabase.from(detail.source).update({ ban_duration_applied: applied }).eq("id", detail.id);
+                      await fetchReports();
                       alert("Banned: "+l);
                     }} style={{padding:"4px 10px",background:"#ef4444",color:"#fff",border:"none",borderRadius:6,cursor:"pointer",fontSize:12}}>{l}</button>
                   ))}
@@ -409,5 +470,11 @@ const S = {
     width: '100%', padding: '9px 0',
     borderRadius: 10, fontSize: 13,
     fontWeight: 700, cursor: 'pointer',
+  },
+  viewBtn: {
+    padding: '4px 12px', borderRadius: 8,
+    background: '#3b82f622', color: '#3b82f6',
+    border: '1px solid #3b82f644',
+    fontSize: 11, fontWeight: 700, cursor: 'pointer',
   },
 };
