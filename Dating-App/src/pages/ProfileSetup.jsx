@@ -217,6 +217,33 @@ export default function ProfileSetup() {
   const handleCropSave = async (blob) => {
     try {
       setUploading(true);
+
+      // Check this photo against banned accounts' photo hashes before uploading
+      // (hash comparison only, not face-matching AI). Fail open if unreachable.
+      try {
+        const imageBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+        const checkRes = await fetch('/api/check-photo-hash', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64 }),
+        });
+        const check = await checkRes.json();
+        if (check?.blocked) {
+          alert(lang === 'th' ? '⚠️ ไม่สามารถใช้รูปนี้ได้ กรุณาเลือกรูปอื่น' : '⚠️ This photo cannot be used. Please choose a different one.');
+          setUploading(false);
+          setCropperImage(null);
+          setRecropIndex(null);
+          return;
+        }
+      } catch {
+        // Fail open — don't block a legitimate upload if this check is unreachable.
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       const filePath = `${user.id}/${Date.now()}_cropped.jpg`;
       const { error: uploadError } = await supabase.storage

@@ -211,6 +211,27 @@ export default function Register() {
     if (password !== confirm) { alert(tx.passwordsMustMatch || 'Passwords do not match'); return; }
     if (password.length < 6) { alert(tx.passwordTooShort || 'Password must be at least 6 characters'); return; }
     setLoading(true);
+
+    // Block signup if this email belongs to a currently banned/suspended account.
+    try {
+      const checkRes = await fetch('/api/check-signup-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const check = await checkRes.json();
+      if (check?.blocked) {
+        const until = check.permanent
+          ? (lang === 'th' ? 'ถาวร' : 'permanently')
+          : (lang === 'th' ? `จนถึง ${new Date(check.bannedUntil).toLocaleDateString()}` : `until ${new Date(check.bannedUntil).toLocaleDateString()}`);
+        alert((lang === 'th' ? '⚠️ บัญชีนี้ถูกระงับ ' : '⚠️ This account is banned ') + until + ': ' + check.reason);
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Fail open — don't block a legitimate signup if this check is unreachable.
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
