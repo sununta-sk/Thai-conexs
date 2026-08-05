@@ -2,11 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "../../hooks/useSubscription";
 
+// price: { yearly, sixMonth? } in EUR. billingOptions lists which of those
+// keys this plan actually offers (Gold has both; Free/Platinum have one).
+// audience: 'public' plans show on this page; 'affiliate' plans are only
+// ever offered through the affiliate resale flow (not built yet — no
+// affiliate-only tier has been defined; add one here with audience:
+// 'affiliate' when its name/price/features are decided).
 const PLANS = [
   {
     id: "free",
     name: "Free",
-    price: { monthly: 0, yearly: 0 },
+    audience: "public",
+    price: { yearly: 0 },
+    billingOptions: ["yearly"],
     color: "#6b7280",
     gradient: "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
     icon: "🌱",
@@ -24,7 +32,9 @@ const PLANS = [
   {
     id: "gold",
     name: "Gold",
-    price: { monthly: 299, yearly: 2388 },
+    audience: "public",
+    price: { yearly: 125, sixMonth: 90 },
+    billingOptions: ["yearly", "sixMonth"],
     color: "#f59e0b",
     gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
     icon: "✨",
@@ -43,7 +53,9 @@ const PLANS = [
   {
     id: "platinum",
     name: "Platinum",
-    price: { monthly: 599, yearly: 4788 },
+    audience: "public",
+    price: { yearly: 175 },
+    billingOptions: ["yearly"],
     color: "#8b5cf6",
     gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
     icon: "💎",
@@ -61,35 +73,21 @@ const PLANS = [
   },
 ];
 
+const BILLING_LABEL = { yearly: "12 months", sixMonth: "6 months" };
+
 export default function SubscriptionPage() {
-  const [billing, setBilling] = useState("monthly");
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const { currentPlan, subscribe } = useSubscription();
+  // Per-plan billing selection (only Gold currently has more than one option).
+  const [billingByPlan, setBillingByPlan] = useState({ gold: "yearly" });
+  const { currentPlan } = useSubscription();
   const navigate = useNavigate();
 
-  const handleSubscribe = async (plan) => {
-    if (plan.id === "free") return;
-    setSelectedPlan(plan.id);
-    setLoading(true);
-    setErrorMsg(null);
-    try {
-      const { checkoutUrl } = await subscribe(plan.id, billing);
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-      setSelectedPlan(null);
-    }
-  };
-
-  const getYearlySaving = (plan) => {
-    if (!plan.price.monthly) return 0;
-    return plan.price.monthly * 12 - plan.price.yearly;
-  };
+  // Checkout isn't wired up yet — Mike hasn't created the Stripe account, so
+  // there are no real Price IDs to charge against. Subscribe is disabled
+  // ("Coming soon") rather than calling out to Stripe with mismatched/fake
+  // price IDs. TODO: once real Stripe Price IDs exist for these EUR amounts,
+  // re-enable this and call useSubscription().subscribe(plan.id, billing)
+  // the same way it worked before.
+  const publicPlans = PLANS.filter((p) => p.audience !== "affiliate");
 
   return (
     <div style={styles.page}>
@@ -108,33 +106,13 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {errorMsg && (
-          <div style={styles.errorBanner}>⚠️ {errorMsg}</div>
-        )}
-
-        <div style={styles.toggleWrapper}>
-          <div style={styles.toggle}>
-            <button
-              style={{ ...styles.toggleBtn, ...(billing === "monthly" ? styles.toggleActive : {}) }}
-              onClick={() => setBilling("monthly")}
-            >Monthly</button>
-            <button
-              style={{ ...styles.toggleBtn, ...(billing === "yearly" ? styles.toggleActive : {}) }}
-              onClick={() => setBilling("yearly")}
-            >
-              Yearly
-              <span style={styles.saveBadge}>Save 33%</span>
-            </button>
-          </div>
-        </div>
-
         <div style={styles.plansGrid}>
-          {PLANS.map((plan) => {
+          {publicPlans.map((plan) => {
             const isCurrentPlan = currentPlan === plan.id;
-            const price = billing === "monthly" ? plan.price.monthly : Math.round(plan.price.yearly / 12);
-            const saving = getYearlySaving(plan);
             const isPlatinum = plan.id === "platinum";
-            const isLoading = loading && selectedPlan === plan.id;
+            const hasMultipleBilling = plan.billingOptions.length > 1;
+            const selectedBilling = billingByPlan[plan.id] || plan.billingOptions[0];
+            const price = plan.price[selectedBilling];
 
             return (
               <div
@@ -157,23 +135,29 @@ export default function SubscriptionPage() {
                   <h2 style={{ ...styles.planName, color: plan.color }}>{plan.name}</h2>
                 </div>
 
+                {hasMultipleBilling && (
+                  <div style={{ ...styles.toggle, marginBottom: 16 }}>
+                    {plan.billingOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        style={{ ...styles.toggleBtn, padding: "6px 14px", fontSize: 12, ...(selectedBilling === opt ? styles.toggleActive : {}) }}
+                        onClick={() => setBillingByPlan(prev => ({ ...prev, [plan.id]: opt }))}
+                      >
+                        {BILLING_LABEL[opt]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div style={styles.priceBlock}>
-                  {plan.price.monthly === 0 ? (
+                  {plan.price.yearly === 0 ? (
                     <div style={styles.freeLabel}>Free Forever</div>
                   ) : (
-                    <>
-                      <div style={styles.priceRow}>
-                        <span style={styles.currency}>฿</span>
-                        <span style={{ ...styles.price, color: plan.color }}>{price}</span>
-                        <span style={styles.period}>/mo</span>
-                      </div>
-                      {billing === "yearly" && saving > 0 && (
-                        <div style={styles.savingText}>Save ฿{saving}/year</div>
-                      )}
-                      {billing === "yearly" && (
-                        <div style={styles.billedText}>Billed ฿{plan.price.yearly}/year</div>
-                      )}
-                    </>
+                    <div style={styles.priceRow}>
+                      <span style={styles.currency}>€</span>
+                      <span style={{ ...styles.price, color: plan.color }}>{price}</span>
+                      <span style={styles.period}>/{BILLING_LABEL[selectedBilling].toLowerCase()}</span>
+                    </div>
                   )}
                 </div>
 
@@ -189,16 +173,16 @@ export default function SubscriptionPage() {
                 </ul>
 
                 <button
-                  onClick={() => handleSubscribe(plan)}
-                  disabled={isCurrentPlan || isLoading || plan.id === "free"}
+                  disabled
+                  title="Checkout isn't connected to a live payment processor yet"
                   style={{
                     ...styles.ctaBtn,
-                    background: isCurrentPlan ? "#374151" : plan.gradient,
-                    opacity: plan.id === "free" ? 0.5 : 1,
-                    cursor: plan.id === "free" || isCurrentPlan ? "default" : "pointer",
+                    background: "#374151",
+                    opacity: 0.6,
+                    cursor: "default",
                   }}
                 >
-                  {isLoading ? "⏳ Loading..." : isCurrentPlan ? "Current Plan" : plan.id === "free" ? "Your Default Plan" : `Get ${plan.name}`}
+                  {isCurrentPlan ? "Current Plan" : plan.id === "free" ? "Your Default Plan" : "Coming Soon"}
                 </button>
               </div>
             );
