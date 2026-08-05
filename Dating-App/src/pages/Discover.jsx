@@ -413,7 +413,7 @@ export default function Discover() {
             return (
               <div key={profile.id} style={S.card}>
                 <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
-                  <img src={photoUrl} alt={profile.username} style={S.photo} />
+                  <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                   {profile.is_verified && <div style={S.verifiedBadge}>V</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
                 </div>

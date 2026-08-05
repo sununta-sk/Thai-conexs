@@ -16,19 +16,26 @@ import CheckEmail   from './pages/CheckEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
 import RulesPage from './pages/RulesPage';
-import ProfileSetup from './pages/ProfileSetup';
-import AccountSettings from './pages/AccountSettings';
-import HelpPage from './pages/HelpPage';
 import LoadingScreen from './components/LoadingScreen';
 import GlobalToast from './components/GlobalToast';
-import Discover     from './pages/Discover';
-import Messages     from './pages/Messages';
-import RoomChat     from './pages/RoomChat';
-import PaymentPage  from './pages/PaymentPage';
 import Navbar       from './components/Navbar';
 import MobilePreviewFrame from './components/MobilePreviewFrame';
-import AdminDashboard    from './pages/AdminDashboard';
-import NotificationsPage from './pages/NotificationsPage';
+
+// These were previously static imports, meaning every visitor — including
+// anonymous ones still on the login/register page — downloaded the JS for all
+// of them upfront (ProfileSetup alone is ~230KB, RoomChat pulls in a ~510KB
+// emoji picker). The route tree below already has a single <Suspense> boundary
+// wrapping everything, same as the /admin/* pages already use, so these are
+// safe to lazy-load the same way.
+const ProfileSetup       = lazy(() => import('./pages/ProfileSetup'));
+const AccountSettings    = lazy(() => import('./pages/AccountSettings'));
+const HelpPage           = lazy(() => import('./pages/HelpPage'));
+const Discover           = lazy(() => import('./pages/Discover'));
+const Messages           = lazy(() => import('./pages/Messages'));
+const RoomChat           = lazy(() => import('./pages/RoomChat'));
+const PaymentPage        = lazy(() => import('./pages/PaymentPage'));
+const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
+const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
 
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));

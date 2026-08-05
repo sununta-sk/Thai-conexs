@@ -43,14 +43,28 @@ export default function Messages() {
       const rid = m.room_id || m.chat_id;
       if (!latestMap[rid]) latestMap[rid] = m;
     });
-    const formatted = await Promise.all(Object.values(latestMap).map(async (m) => {
+    const latestList = Object.values(latestMap);
+
+    // Batch-fetch every conversation's other-participant profile in one query
+    // instead of one query per conversation (was N+1 — one round trip per chat).
+    const otherIds = [...new Set(latestList.map(m => {
+      const rid = m.room_id || m.chat_id;
+      return rid.split('_').find(id => id !== uid);
+    }).filter(Boolean))];
+    const { data: profs } = otherIds.length
+      ? await supabase.from('profiles').select('id, username, avatar_url').in('id', otherIds)
+      : { data: [] };
+    const profileMap = {};
+    (profs || []).forEach(p => { profileMap[p.id] = p; });
+
+    const formatted = latestList.map((m) => {
       const rid = m.room_id || m.chat_id;
       const otherId = rid.split('_').find(id => id !== uid);
-      const { data: prof } = await supabase.from('profiles').select('username, avatar_url').eq('id', otherId).maybeSingle();
+      const prof = profileMap[otherId] || null;
       if (prof && otherId === OFFICIAL_ID) prof.avatar_url = officialLogo;
       const unreadCount = msgs.filter(x => (x.room_id || x.chat_id) === rid && x.sender_id !== uid && !x.is_read).length;
       return { roomId: rid, content: m.content, time: m.created_at, user: prof, senderId: m.sender_id, unreadCount };
-    }));
+    });
     setChats(formatted);
     setLoading(false);
   };

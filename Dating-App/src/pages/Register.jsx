@@ -85,6 +85,7 @@ function UserPhotoGrid({ isMobile }) {
                   src={p.avatar_url}
                   alt={p.username}
                   style={G.img}
+                  loading="lazy"
                   onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
                 />
                 {p.details?.gender && (

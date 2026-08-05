@@ -24,6 +24,12 @@ const COPY = {
   },
 };
 
+// Cap output resolution — an uncropped phone photo can be 4000px+ on a side;
+// profile photos never display larger than this, so uploading/downloading
+// full resolution was pure waste. 1080px stays sharp on any screen this app
+// displays photos at.
+const MAX_DIMENSION = 1080;
+
 // Returns a Blob of the cropped image
 async function getCroppedBlob(imageSrc, pixelCrop) {
   const image = await new Promise((resolve, reject) => {
@@ -34,9 +40,13 @@ async function getCroppedBlob(imageSrc, pixelCrop) {
     img.src = imageSrc;
   });
 
+  const scale = Math.min(1, MAX_DIMENSION / Math.max(pixelCrop.width, pixelCrop.height));
+  const outWidth = Math.round(pixelCrop.width * scale);
+  const outHeight = Math.round(pixelCrop.height * scale);
+
   const canvas = document.createElement('canvas');
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+  canvas.width = outWidth;
+  canvas.height = outHeight;
   const ctx = canvas.getContext('2d');
 
   ctx.drawImage(
@@ -44,7 +54,7 @@ async function getCroppedBlob(imageSrc, pixelCrop) {
     pixelCrop.x, pixelCrop.y,
     pixelCrop.width, pixelCrop.height,
     0, 0,
-    pixelCrop.width, pixelCrop.height
+    outWidth, outHeight
   );
 
   return new Promise((resolve, reject) => {
