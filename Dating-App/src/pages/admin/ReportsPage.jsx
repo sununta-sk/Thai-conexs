@@ -36,6 +36,7 @@ export default function ReportsPage() {
 
   const [reports,       setReports]       = useState([]);
   const [loading,       setLoading]       = useState(true);
+  const [loadError,     setLoadError]     = useState(null);
   const [activeTab,     setActiveTab]     = useState('open');
   const [category,      setCategory]      = useState('all');
   const [stats,         setStats]         = useState({});
@@ -50,6 +51,7 @@ export default function ReportsPage() {
    * reports was invisible to admins. Both are queried and merged. */
   const fetchReports = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
 
     let crQuery = supabase
       .from('content_reports')
@@ -67,7 +69,15 @@ export default function ReportsPage() {
       .limit(50);
     if (category !== 'all') urQuery = urQuery.eq('category', category);
 
-    const [{ data: crData }, { data: urData }] = await Promise.all([crQuery, urQuery]);
+    const [{ data: crData, error: crError }, { data: urData, error: urError }] = await Promise.all([crQuery, urQuery]);
+
+    if (crError || urError) {
+      console.error('[ReportsPage] fetchReports failed', crError || urError);
+      setLoadError((crError || urError).message);
+      setReports([]);
+      setLoading(false);
+      return;
+    }
 
     const normalized = [
       ...(crData || []).map(r => ({
@@ -110,6 +120,8 @@ export default function ReportsPage() {
         supabase.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', tab),
         supabase.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', toUserReportStatus(tab)),
       ]);
+      if (crRes.error) console.error('[ReportsPage] fetchStats content_reports', tab, crRes.error);
+      if (urRes.error) console.error('[ReportsPage] fetchStats user_reports', tab, urRes.error);
       s[tab] = (crRes.count || 0) + (urRes.count || 0);
     }));
     setStats(s);
@@ -147,6 +159,10 @@ export default function ReportsPage() {
             <p style={S.pageSubtitle}>Manage user reports</p>
           </div>
         </div>
+
+        {loadError && (
+          <div style={S.errorBanner}>⚠️ Couldn't load reports: {loadError}</div>
+        )}
 
         {/* ── Status Tabs ── */}
         <div style={S.tabs}>
@@ -414,6 +430,7 @@ const S = {
   pageHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
+  errorBanner: { background: '#ef444422', border: '1px solid #ef444444', borderRadius: 10, padding: '10px 16px', marginBottom: 16, color: '#f87171', fontSize: 13, fontWeight: 600 },
 
   tabs: { display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
   tab:  {
