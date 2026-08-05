@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
-import { getStatesForCountryName } from '../data/worldLocations';
 import PhotoCropper from '../components/PhotoCropper';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -387,10 +386,10 @@ export default function ProfileSetup() {
 
   const referralDisabled = isVerified && !!friendCode;
 
-  // Non-Thailand users get a real State/Province dropdown (from worldLocations.js)
-  // instead of the Thai province list; city is free-text for them (see below).
+  // Non-Thailand users get plain text inputs for state/province and city
+  // (per client direction — the earlier country->state cascading dropdown was
+  // overridden in favor of this simpler manual-entry approach).
   const isThailandLocation = !details.country || details.country === 'Thailand';
-  const foreignStates = isThailandLocation ? [] : getStatesForCountryName(details.country);
 
   // ──────────────────────────────────────────────
   // SIDEBAR (Desktop only)
@@ -522,25 +521,12 @@ export default function ProfileSetup() {
       {!isThailandLocation && (
         <>
           <Field label={<span>{lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-            {foreignStates.length > 0 ? (
-              <select
-                value={details.province || ''}
-                onChange={e => setDetails({...details, province: e.target.value})}
-                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-              >
-                <option value="">{lang === 'th' ? '— เลือกรัฐ/จังหวัด —' : '-- Select state/province --'}</option>
-                {foreignStates.map(s => (
-                  <option key={s.id} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                value={details.province || ''}
-                onChange={e => setDetails({...details, province: e.target.value})}
-                placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
-                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-              />
-            )}
+            <input
+              value={details.province || ''}
+              onChange={e => setDetails({...details, province: e.target.value})}
+              placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
+              style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+            />
             {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกรัฐ/จังหวัด' : 'Required: please enter your state/province'}</div>}
           </Field>
 
@@ -818,25 +804,12 @@ export default function ProfileSetup() {
       {!isThailandLocation && (
         <>
           <Field label={<span>{lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'} <span style={{ color: '#ef4444' }}>*</span></span>}>
-            {foreignStates.length > 0 ? (
-              <select
-                value={details.province || ''}
-                onChange={e => setDetails({...details, province: e.target.value})}
-                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-              >
-                <option value="">{lang === 'th' ? '— เลือกรัฐ/จังหวัด —' : '-- Select state/province --'}</option>
-                {foreignStates.map(s => (
-                  <option key={s.id} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                value={details.province || ''}
-                onChange={e => setDetails({...details, province: e.target.value})}
-                placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
-                style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
-              />
-            )}
+            <input
+              value={details.province || ''}
+              onChange={e => setDetails({...details, province: e.target.value})}
+              placeholder={lang === 'th' ? 'รัฐ/จังหวัด' : 'State / Province'}
+              style={{ ...S.input, borderColor: details.province ? '#334155' : '#ef4444' }}
+            />
             {!details.province && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{lang === 'th' ? 'กรุณากรอกรัฐ/จังหวัด' : 'Required: please enter your state/province'}</div>}
           </Field>
 
