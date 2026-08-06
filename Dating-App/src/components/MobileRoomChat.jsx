@@ -225,8 +225,12 @@ export default function MobileRoomChat() {
   useEffect(() => {
     if (!session || !chatId) return;
     const fetch_ = async () => {
-      const { data, error } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: true }).range(0, 99);
-      if (!error) setMessages(data || []);
+      // Fetch the newest 100 messages (descending), then reverse for display.
+      // Previously this ordered ascending with the same range, which always
+      // returned the OLDEST 100 messages once a chat passed 100 total —
+      // permanently hiding every message sent after that, including new ones.
+      const { data, error } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: false }).range(0, 99);
+      if (!error) setMessages((data || []).slice().reverse());
       setLoading(false);
     };
     fetch_();
@@ -241,8 +245,8 @@ export default function MobileRoomChat() {
         })
       .subscribe();
     const poll = setInterval(async () => {
-      const { data } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: true }).range(0, 99);
-      if (data) setMessages(data);
+      const { data } = await supabase.from("messages").select("*").or(`chat_id.eq.${chatId},room_id.eq.${chatId}`).order("created_at", { ascending: false }).range(0, 99);
+      if (data) setMessages(data.slice().reverse());
     }, 1000);
     return () => { supabase.removeChannel(channel); clearInterval(poll); };
   }, [session, chatId]);
