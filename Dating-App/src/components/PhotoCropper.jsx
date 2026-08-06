@@ -13,6 +13,7 @@ const COPY = {
     cancel: 'Cancel',
     save: 'Save Photo',
     processing: 'Processing...',
+    preparing: 'Preparing...',
   },
   th: {
     title: 'จัดรูปภาพ',
@@ -21,6 +22,7 @@ const COPY = {
     cancel: 'ยกเลิก',
     save: 'บันทึกรูป',
     processing: 'กำลังประมวลผล...',
+    preparing: 'กำลังเตรียม...',
   },
 };
 
@@ -80,7 +82,15 @@ export default function PhotoCropper({ imageSrc, onCancel, onSave }) {
   }, []);
 
   const handleSave = async () => {
-    if (!croppedAreaPixels) return;
+    // Guard against react-easy-crop's onCropComplete not having fired yet
+    // (e.g. image still decoding) — previously a silent no-op that looked
+    // exactly like "nothing happens when I click Save" from the user's side.
+    // The button below is now disabled/labeled until this is ready, so this
+    // should rarely fire in practice; kept as a defensive fallback.
+    if (!croppedAreaPixels) {
+      alert(lang === 'th' ? 'กรุณารอสักครู่ให้รูปโหลดเสร็จ แล้วลองอีกครั้ง' : 'Please wait a moment for the photo to finish loading, then try again.');
+      return;
+    }
     setSaving(true);
     try {
       const blob = await getCroppedBlob(imageSrc, croppedAreaPixels);
@@ -138,11 +148,11 @@ export default function PhotoCropper({ imageSrc, onCancel, onSave }) {
             {t.cancel}
           </button>
           <button
-            style={{ ...S.saveBtn, opacity: saving ? 0.6 : 1 }}
+            style={{ ...S.saveBtn, opacity: (saving || !croppedAreaPixels) ? 0.6 : 1 }}
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !croppedAreaPixels}
           >
-            {saving ? t.processing : t.save}
+            {saving ? t.processing : !croppedAreaPixels ? t.preparing : t.save}
           </button>
         </div>
       </div>
