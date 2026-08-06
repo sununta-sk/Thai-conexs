@@ -23,23 +23,42 @@ export function useUnreadCount() {
     if (!userId) { setCount(0); return; }
 
     let cancelled = false;
+    let inFlight = false; // guard against overlapping fetches piling up if a query is slow
     const fetchCount = async () => {
-      const { count: c, error } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false)
-        .neq('sender_id', userId)
-        .like('chat_id', `%${userId}%`);
-      if (!cancelled && !error) setCount(c || 0);
+      if (inFlight) return;
+      inFlight = true;
+      try {
+        const { count: c, error } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_read', false)
+          .neq('sender_id', userId)
+          .like('chat_id', `%${userId}%`);
+        if (!cancelled && !error) setCount(c || 0);
+      } finally {
+        inFlight = false;
+      }
     };
 
     fetchCount();
 
+    // The realtime subscription had no filter at all — it re-fetched on
+    // EVERY message change anywhere in the app, for every user, regardless
+    // of whether that message involved them. On a live site with real chat
+    // traffic this scales with total site-wide message volume, not with
+    // anything relevant to this user, and can produce a very high, unbounded
+    // firing rate. Postgres realtime filters can't express "chat_id contains
+    // my id" server-side (same chat_id-encoding limitation noted for the
+    // .like() query above), so filter client-side instead — same pattern
+    // GlobalToast.jsx already uses for its own per-user message listener.
+    const involvesMe = (row) => row?.chat_id?.includes(userId);
     const sub = supabase
       .channel(`unread-counter-${userId}`)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'messages' },
-        () => fetchCount())
+        (payload) => {
+          if (involvesMe(payload.new) || involvesMe(payload.old)) fetchCount();
+        })
       .subscribe();
 
     const interval = setInterval(fetchCount, 3000);
