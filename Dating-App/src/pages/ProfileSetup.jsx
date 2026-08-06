@@ -217,32 +217,6 @@ export default function ProfileSetup() {
     try {
       setUploading(true);
 
-      // Check this photo against banned accounts' photo hashes before uploading
-      // (hash comparison only, not face-matching AI). Fail open if unreachable.
-      try {
-        const imageBase64 = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-        const checkRes = await fetch('/api/check-photo-hash', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64 }),
-        });
-        const check = await checkRes.json();
-        if (check?.blocked) {
-          alert(lang === 'th' ? '⚠️ ไม่สามารถใช้รูปนี้ได้ กรุณาเลือกรูปอื่น' : '⚠️ This photo cannot be used. Please choose a different one.');
-          setUploading(false);
-          setCropperImage(null);
-          setRecropIndex(null);
-          return;
-        }
-      } catch {
-        // Fail open — don't block a legitimate upload if this check is unreachable.
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       const filePath = `${user.id}/${Date.now()}_cropped.jpg`;
       const { error: uploadError } = await supabase.storage
@@ -277,6 +251,39 @@ export default function ProfileSetup() {
 
       setCropperImage(null);
       setRecropIndex(null);
+
+      // Ban-evasion check against banned accounts' photo hashes (hash
+      // comparison only, not face-matching AI) — runs AFTER the photo is
+      // already saved and visible, not before. Measured at 1.6-2.4s+ per
+      // call (jimp's pure-JS JPEG decode is slow) when it sat in front of
+      // the upload, which was the primary suspect behind "photo not
+      // uploading" reports. Consistent with how this app already handles
+      // moderation elsewhere: photo_moderation_queue above is also reviewed
+      // after the photo is already live, not before. Fail open on any error.
+      (async () => {
+        try {
+          const imageBase64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          const checkRes = await fetch('/api/check-photo-hash', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64 }),
+          });
+          const check = await checkRes.json();
+          if (check?.blocked) {
+            setPhotos(prev => prev.filter(p => p.url !== publicUrl));
+            setMainPhoto(prev => (prev === publicUrl ? '' : prev));
+            await supabase.storage.from('avatars').remove([filePath]);
+            alert(lang === 'th' ? '⚠️ รูปนี้ถูกลบเนื่องจากตรงกับรูปของบัญชีที่ถูกระงับ' : '⚠️ This photo was removed — it matches one previously used by a banned account.');
+          }
+        } catch {
+          // Fail open — never remove a legitimate photo if this check breaks.
+        }
+      })();
     } catch (err) {
       alert(err.message);
     } finally {
