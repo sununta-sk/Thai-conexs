@@ -53,6 +53,7 @@ function playSound(type) {
 
 // ── Helpers (mirrored from RoomChat) ──
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
+const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -339,14 +340,12 @@ export default function MobileRoomChat() {
     await supabase.from("support_tickets").insert({ user_id: session.user.id, subject: "Chat issue", message: ticketMsg, status: "open", priority: "medium" });
     setShowTicket(false); setTicketMsg(""); alert("ส่ง Ticket เรียบร้อยแล้ว");
   };
-
   // Derived display values
   const profileCity = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const extractedAvatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
   const allPhotos = [...(extractedAvatarUrl ? [extractedAvatarUrl] : []), ...photoUrls.filter(u => u !== extractedAvatarUrl)];
-  const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
   const avatarUrl = otherUserId === OFFICIAL_ID ? officialLogo : (allPhotos[0] || null);
   const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
 

@@ -8,6 +8,7 @@ import ReportModal from '../components/ReportModal';
 
 import { optimizeImage } from '../lib/imageUtils';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
+import { useAuditLogger } from '../hooks/useAuditLogger';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -148,6 +149,15 @@ export default function UserProfilePage() {
   const [reportOpen, setReportOpen]     = useState(false);
   const [loading, setLoading]           = useState(true);
 
+  // ── Admin: quick "Official Account" private message ──
+  const { logAction } = useAuditLogger();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [otherIsAdmin, setOtherIsAdmin] = useState(false);
+  const [showOfficialMsg, setShowOfficialMsg] = useState(false);
+  const [officialTitle, setOfficialTitle] = useState('');
+  const [officialBody, setOfficialBody] = useState('');
+  const [officialSending, setOfficialSending] = useState(false);
+
   // Desktop redirect to chat (this page is mobile-only)
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 900) {
@@ -201,6 +211,36 @@ export default function UserProfilePage() {
     };
     load();
   }, [userId, navigate]);
+
+  useEffect(() => {
+    if (!currentUserId) { setIsAdmin(false); return; }
+    supabase.from('admin_users').select('id').eq('auth_user_id', currentUserId).eq('is_active', true).maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!userId) { setOtherIsAdmin(false); return; }
+    supabase.from('admin_users').select('id').eq('auth_user_id', userId).eq('is_active', true).maybeSingle()
+      .then(({ data }) => setOtherIsAdmin(!!data));
+  }, [userId]);
+
+  const submitOfficialMessage = async () => {
+    if (!officialTitle.trim() || !officialBody.trim() || !profile?.id) return;
+    setOfficialSending(true);
+    const announceEmoji = String.fromCodePoint(0x1F4E2);
+    const content = announceEmoji + ' ' + officialTitle.trim() + '\n\n' + officialBody.trim();
+    const chat_id = [profile.id, OFFICIAL_ID].sort().join('_');
+    const { error } = await supabase.from('messages').insert({ chat_id, room_id: chat_id, sender_id: OFFICIAL_ID, content });
+    if (error) { alert('Failed to send: ' + error.message); setOfficialSending(false); return; }
+    await logAction({
+      action_type: 'announcement_publish',
+      target_type: 'app_user',
+      target_id: profile.id,
+      metadata: { title: officialTitle.trim(), private: true, to_username: profile.username },
+    }).catch(console.error);
+    setShowOfficialMsg(false); setOfficialTitle(''); setOfficialBody(''); setOfficialSending(false);
+    alert('Sent to ' + (profile.username || 'user') + ' via Official Account');
+  };
 
   if (loading) return <div style={S.loadWrap}><div style={S.spinner} /><style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style></div>;
   if (!profile) return <div style={S.loadWrap}><p style={{ color: '#94a3b8' }}>Profile not found</p></div>;
@@ -307,6 +347,10 @@ export default function UserProfilePage() {
           <button style={S.blockBtn} onClick={handleBlock}>🚫 Block</button>
         </div>
 
+        {isAdmin && !otherIsAdmin && (
+          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}>📢 Send Official Message</button>
+        )}
+
         {profile.bio && (
           <div style={S.section}>
             <div style={S.sectionLabel}>About Me</div>
@@ -351,6 +395,35 @@ export default function UserProfilePage() {
           onClose={() => setReportOpen(false)}
         />
       )}
+
+      {showOfficialMsg && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowOfficialMsg(false)}>
+          <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 16, padding: 24, width: '100%', maxWidth: 340 }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontWeight: 700, marginBottom: 4, color: '#f1f5f9' }}>📢 Send Official Message</div>
+            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>To {profile.username ?? 'this user'}, via Official Account</div>
+            <input
+              value={officialTitle}
+              onChange={e => setOfficialTitle(e.target.value)}
+              placeholder="Title..."
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }}
+            />
+            <textarea
+              value={officialBody}
+              onChange={e => setOfficialBody(e.target.value)}
+              placeholder="Message..."
+              rows={4}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }}
+            />
+            <button
+              onClick={submitOfficialMessage}
+              disabled={officialSending || !officialTitle.trim() || !officialBody.trim()}
+              style={{ marginTop: 12, width: '100%', padding: '10px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, opacity: (officialSending || !officialTitle.trim() || !officialBody.trim()) ? 0.6 : 1 }}
+            >
+              {officialSending ? 'Sending…' : 'Send'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -387,6 +460,7 @@ const S = {
   actionRow2: { display: 'flex', gap: 8, marginTop: 10 },
   reportBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   blockBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  officialMsgBtn: { display: 'block', width: '100%', marginTop: 10, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
   bioText: { margin: 0, fontSize: 14, color: '#cbd5e1', lineHeight: 1.8 },

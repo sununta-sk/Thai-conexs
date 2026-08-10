@@ -8,6 +8,7 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
 import { optimizeImage } from "../lib/imageUtils";
+import { useAuditLogger } from "../hooks/useAuditLogger";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -64,6 +65,7 @@ function playSound(type) {
 
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 const FREE_LIMIT = 3;
+const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function getChatId(uid1, uid2) { return [uid1, uid2].sort().join("_"); }
 function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
@@ -171,7 +173,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike, showOfficialMsgBtn, onOfficialMsg }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -219,6 +221,9 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
 
         <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
         <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
+        {showOfficialMsgBtn && (
+          <button style={DS.officialMsgBtn} onClick={onOfficialMsg}>📢 Send Official Message</button>
+        )}
       </div>
     </div>
   );
@@ -242,6 +247,7 @@ const DS = {
   likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  officialMsgBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 24, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -314,6 +320,15 @@ function RoomChatDesktop() {
   const [showGif, setShowGif] = useState(false);
   const [isSubscriber, setIsSubscriber] = useState(false);
 
+  // ── Admin: quick "Official Account" private message ──
+  const { logAction } = useAuditLogger();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [otherIsAdmin, setOtherIsAdmin] = useState(false);
+  const [showOfficialMsg, setShowOfficialMsg] = useState(false);
+  const [officialTitle, setOfficialTitle] = useState('');
+  const [officialBody, setOfficialBody] = useState('');
+  const [officialSending, setOfficialSending] = useState(false);
+
   const submitReport = async () => {
     if (!reportReason || !session) return;
     await supabase.from('content_reports').insert({ reporter_id: session.user.id, reported_user_id: otherUserId, report_type: reportReason, status: 'open' });
@@ -331,6 +346,23 @@ function RoomChatDesktop() {
     if (!ticketMsg || !session) return;
     await supabase.from('support_tickets').insert({ user_id: session.user.id, subject: 'Chat issue', message: ticketMsg, status: 'open', priority: 'medium' });
     setShowTicket(false); setTicketMsg(''); alert(lang === 'th' ? 'ส่ง Ticket เรียบร้อยแล้ว' : 'Ticket sent successfully');
+  };
+  const submitOfficialMessage = async () => {
+    if (!officialTitle.trim() || !officialBody.trim() || !otherUserId) return;
+    setOfficialSending(true);
+    const announceEmoji = String.fromCodePoint(0x1F4E2);
+    const content = announceEmoji + ' ' + officialTitle.trim() + '\n\n' + officialBody.trim();
+    const chat_id = [otherUserId, OFFICIAL_ID].sort().join('_');
+    const { error } = await supabase.from('messages').insert({ chat_id, room_id: chat_id, sender_id: OFFICIAL_ID, content });
+    if (error) { alert('Failed to send: ' + error.message); setOfficialSending(false); return; }
+    await logAction({
+      action_type: 'announcement_publish',
+      target_type: 'app_user',
+      target_id: otherUserId,
+      metadata: { title: officialTitle.trim(), private: true, to_username: otherProfile?.username },
+    }).catch(console.error);
+    setShowOfficialMsg(false); setOfficialTitle(''); setOfficialBody(''); setOfficialSending(false);
+    alert('Sent to ' + (otherProfile?.username || 'user') + ' via Official Account');
   };
 
   const bottomRef = useRef(null);
@@ -373,7 +405,19 @@ function RoomChatDesktop() {
       });
   }, [session]);
 
+  useEffect(() => {
+    if (!session) { setIsAdmin(false); return; }
+    supabase.from('admin_users').select('id').eq('auth_user_id', session.user.id).eq('is_active', true).maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [session]);
+
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
+
+  useEffect(() => {
+    if (!otherUserId) { setOtherIsAdmin(false); return; }
+    supabase.from('admin_users').select('id').eq('auth_user_id', otherUserId).eq('is_active', true).maybeSingle()
+      .then(({ data }) => setOtherIsAdmin(!!data));
+  }, [otherUserId]);
   const [liked, setLiked] = useState(false);
   const handleLike = async () => {
     if (!session || !otherUserId) return;
@@ -587,6 +631,17 @@ function RoomChatDesktop() {
             </div>
           </div>
         )}
+        {showOfficialMsg && (
+          <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowOfficialMsg(false)}>
+            <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:340}} onClick={e => e.stopPropagation()}>
+              <div style={{fontWeight:700,marginBottom:4,color:'#f1f5f9'}}>📢 Send Official Message</div>
+              <div style={{fontSize:12,color:'#94a3b8',marginBottom:12}}>To {otherProfile?.username ?? 'this user'}, via Official Account</div>
+              <input value={officialTitle} onChange={e => setOfficialTitle(e.target.value)} placeholder="Title..." style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',fontSize:14,marginBottom:10,boxSizing:'border-box'}} />
+              <textarea value={officialBody} onChange={e => setOfficialBody(e.target.value)} placeholder="Message..." rows={4} style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',fontSize:14,resize:'vertical',boxSizing:'border-box'}} />
+              <button onClick={submitOfficialMessage} disabled={officialSending || !officialTitle.trim() || !officialBody.trim()} style={{marginTop:12,width:'100%',padding:'10px',background:'#f59e0b',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontWeight:600,opacity:(officialSending || !officialTitle.trim() || !officialBody.trim())?0.6:1}}>{officialSending ? 'Sending…' : 'Send'}</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={S.messageArea}>
@@ -688,6 +743,8 @@ function RoomChatDesktop() {
           onBlock={submitBlock}
           liked={liked}
           onLike={handleLike}
+          showOfficialMsgBtn={isAdmin && !otherIsAdmin}
+          onOfficialMsg={() => setShowOfficialMsg(true)}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}
