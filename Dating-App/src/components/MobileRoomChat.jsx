@@ -1,12 +1,10 @@
 // src/components/MobileRoomChat.jsx — ThaiFriendly-style mobile chat (v5b-2)
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
 import { optimizeImage } from "../lib/imageUtils";
 import officialLogo from "../lib/LotusConnexs-full.jpeg";
 
@@ -54,6 +52,9 @@ function playSound(type) {
 // ── Helpers (mirrored from RoomChat) ──
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
+// Emoji picker (component + ~460KB emoji dataset) is only fetched once the user
+// actually opens the emoji tray, instead of being bundled into every chat page load.
+const EmojiPicker = lazy(() => import("@emoji-mart/react"));
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -152,9 +153,15 @@ export default function MobileRoomChat() {
   const [showTicket, setShowTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
+  const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
+
+  useEffect(() => {
+    if (!showEmoji || emojiData) return;
+    import("@emoji-mart/data").then((m) => setEmojiData(m.default));
+  }, [showEmoji, emojiData]);
 
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -463,7 +470,11 @@ export default function MobileRoomChat() {
       {/* ── Emoji Picker ── */}
       {showEmoji && (
         <div ref={emojiRef} style={S.emojiWrap}>
-          <Picker data={data} onEmojiSelect={handleEmojiSelect} theme="dark" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
+          {emojiData && (
+            <Suspense fallback={<div style={S.emojiLoading}>Loading…</div>}>
+              <EmojiPicker data={emojiData} onEmojiSelect={handleEmojiSelect} theme="dark" previewPosition="none" skinTonePosition="none" maxFrequentRows={2} />
+            </Suspense>
+          )}
         </div>
       )}
 
@@ -601,6 +612,7 @@ const S = {
 
   // Pickers
   emojiWrap: { position: "absolute", bottom: 70, left: 8, zIndex: 50 },
+  emojiLoading: { width: 300, height: 60, display: "flex", alignItems: "center", justifyContent: "center", background: "#1e293b", border: "1px solid #334155", borderRadius: 16, color: "#64748b", fontSize: 13, fontWeight: 600 },
   gifWrap: { position: "absolute", bottom: 70, left: 8, right: 8, zIndex: 50 },
 
   // Input bar — #0f172a bg, border-top

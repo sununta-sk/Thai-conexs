@@ -8,6 +8,16 @@ export default defineConfig({
   },
   build: {
     chunkSizeWarningLimit: 400,
+    modulePreload: {
+      // Vite's default preloads the full transitive chunk graph reachable from
+      // each entry, including chunks that are only ever loaded on-demand behind
+      // a user action (e.g. the emoji picker + its ~460KB dataset, only fetched
+      // when the emoji tray is actually opened). Without this, that chunk would
+      // still get silently downloaded on every page load via <link rel="modulepreload">,
+      // defeating the point of splitting it out. Everything else keeps Vite's
+      // default preload behavior unchanged.
+      resolveDependencies: (filename, deps) => deps.filter((d) => !d.includes('vendor-emoji')),
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
