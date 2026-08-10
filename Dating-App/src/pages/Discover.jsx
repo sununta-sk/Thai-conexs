@@ -198,15 +198,7 @@ export default function Discover() {
     });
 
     if (filters.orderBy === 'last_seen') {
-      const hasPhoto = (p) => Boolean(p.avatar_url) || (Array.isArray(p.details?.photos) && p.details.photos.length > 0);
-      const withPhotos = result.filter(hasPhoto);
-      const withoutPhotos = result.filter(p => !hasPhoto(p));
-      for (let i = withPhotos.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
-      }
-      withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
-      result = [...withPhotos, ...withoutPhotos];
+      result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
