@@ -73,6 +73,7 @@ const DEFAULT_FILTERS = {
   onlineOnly: false,
   hasPhoto: false,
   orderBy: 'last_seen',
+  username: '',
 };
 
 const AGE_VALUES = ['all', '18-24', '25-34', '35-44', '45-54', '55+'];
@@ -137,7 +138,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, created_at').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -184,6 +185,7 @@ export default function Discover() {
       if (filters.children !== 'all' && d.children !== filters.children) return false;
       if (filters.onlineOnly && !isOnline) return false;
       if (filters.hasPhoto && !p.avatar_url) return false;
+      if (filters.username && filters.username.trim() && !(p.username || '').toLowerCase().includes(filters.username.trim().toLowerCase())) return false;
 
       if (!filters.ignoreAgePref && myAge) {
         const minPref = parseInt(d.preferred_age_min);
@@ -206,7 +208,7 @@ export default function Discover() {
       withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
       result = [...withPhotos, ...withoutPhotos];
     } else if (filters.orderBy === 'newest') {
-      result.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
+      result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
 
     // VIP users (active paid subscription) surface above everyone else,
@@ -397,7 +399,13 @@ export default function Discover() {
             ))}
           </select>
           <div />
-          <div />
+          <input
+            type="text"
+            value={filters.username}
+            onChange={e => updateFilter('username', e.target.value)}
+            placeholder={tx.searchUsername || "Search username..."}
+            style={{ ...S.input, cursor: 'text' }}
+          />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>
             <option value="last_seen">{tx.orderLastActive || "Order by Last Active"}</option>
             <option value="newest">{tx.orderNewest || "Order by Newest"}</option>

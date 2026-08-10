@@ -32,7 +32,10 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
     (filters?.ageRange && filters.ageRange !== 'all' ? 1 : 0) +
     (filters?.country && filters.country !== 'all' ? 1 : 0) +
     (filters?.province && filters.province !== 'all' ? 1 : 0) +
-    (filters?.ignoreAgePref ? 1 : 0);
+    (filters?.ignoreAgePref ? 1 : 0) +
+    (filters?.onlineOnly ? 1 : 0) +
+    (filters?.orderBy && filters.orderBy !== 'last_seen' ? 1 : 0) +
+    (filters?.username && filters.username.trim() ? 1 : 0);
 
   return (
     <>
@@ -155,6 +158,39 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
             style={sel}>
             <option value="respect">{tx.respectAgePref || 'Respect their age range'}</option>
             <option value="ignore">{tx.ignoreAgePref || 'Ignore their age range'}</option>
+          </select>
+
+          <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
+            {tx.onlineOnly || 'Online'}
+          </label>
+          <select
+            value={filters?.onlineOnly ? 'online' : 'all'}
+            onChange={e => updateFilter('onlineOnly', e.target.value === 'online')}
+            style={sel}>
+            <option value="all">{tx.showAllMembers || 'All members'}</option>
+            <option value="online">{tx.onlineOnly || 'Online only'}</option>
+          </select>
+
+          <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
+            {tx.searchUsername || 'Search username'}
+          </label>
+          <input
+            type="text"
+            value={filters?.username || ''}
+            onChange={e => updateFilter('username', e.target.value)}
+            placeholder={tx.searchUsername || 'Search username...'}
+            style={{ ...sel, cursor: 'text' }}
+          />
+
+          <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
+            {tx.sortBy || 'Sort By'}
+          </label>
+          <select
+            value={filters?.orderBy || 'last_seen'}
+            onChange={e => updateFilter('orderBy', e.target.value)}
+            style={sel}>
+            <option value="last_seen">{tx.orderLastActive || 'Order by Last Active'}</option>
+            <option value="newest">{tx.orderNewest || 'Order by Newest'}</option>
           </select>
 
           <button
