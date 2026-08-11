@@ -179,7 +179,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
             value={filters?.username || ''}
             onChange={e => updateFilter('username', e.target.value)}
             placeholder={tx.searchUsername || 'Search username...'}
-            style={{ ...sel, cursor: 'text' }}
+            style={{ ...sel, cursor: 'text', boxSizing: 'border-box' }}
           />
 
           <label style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, marginBottom: -4, marginTop: 4 }}>
