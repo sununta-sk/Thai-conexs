@@ -70,9 +70,12 @@ export default function GlobalToast() {
       const id = ++toastIdRef.current;
       setToasts(prev => [...prev.slice(-2), { ...toast, id }]);
       playDing();
+      // 18s (was 8s) - gives more room for a real notification to actually be
+      // noticed, e.g. when two people are coordinating a cross-device test.
+      // Shared by all toast types (message/view/like), not just profile-view.
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
-      }, 8000);
+      }, 18000);
     };
 
     console.log('[Toast] Subscribing for userId:', userId);
