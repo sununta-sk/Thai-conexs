@@ -72,7 +72,7 @@ const DEFAULT_FILTERS = {
   children: 'all',
   onlineOnly: false,
   hasPhoto: false,
-  orderBy: 'last_seen',
+  orderBy: 'random',
   username: '',
 };
 
@@ -197,7 +197,17 @@ export default function Discover() {
       return true;
     });
 
-    if (filters.orderBy === 'last_seen') {
+    if (filters.orderBy === 'random') {
+      const hasPhoto = (p) => Boolean(p.avatar_url) || (Array.isArray(p.details?.photos) && p.details.photos.length > 0);
+      const withPhotos = result.filter(hasPhoto);
+      const withoutPhotos = result.filter(p => !hasPhoto(p));
+      for (let i = withPhotos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [withPhotos[i], withPhotos[j]] = [withPhotos[j], withPhotos[i]];
+      }
+      withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      result = [...withPhotos, ...withoutPhotos];
+    } else if (filters.orderBy === 'last_seen') {
       result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
@@ -399,8 +409,9 @@ export default function Discover() {
             style={{ ...S.input, cursor: 'text' }}
           />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>
-            <option value="last_seen">{tx.orderLastActive || "Order by Last Active"}</option>
-            <option value="newest">{tx.orderNewest || "Order by Newest"}</option>
+            <option value="random">{tx.orderRandom || "Sort by Random"}</option>
+            <option value="last_seen">{tx.orderLastActive || "Sort by Last Active"}</option>
+            <option value="newest">{tx.orderNewest || "Sort by Newest"}</option>
           </select>
           <div style={S.resultCount}>
             {(tx.memberCount || '{shown} of {total} members')

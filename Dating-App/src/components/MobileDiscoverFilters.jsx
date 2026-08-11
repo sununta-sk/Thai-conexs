@@ -34,7 +34,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
     (filters?.province && filters.province !== 'all' ? 1 : 0) +
     (filters?.ignoreAgePref ? 1 : 0) +
     (filters?.onlineOnly ? 1 : 0) +
-    (filters?.orderBy && filters.orderBy !== 'last_seen' ? 1 : 0) +
+    (filters?.orderBy && filters.orderBy !== 'random' ? 1 : 0) +
     (filters?.username && filters.username.trim() ? 1 : 0);
 
   return (
@@ -186,11 +186,12 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
             {tx.sortBy || 'Sort By'}
           </label>
           <select
-            value={filters?.orderBy || 'last_seen'}
+            value={filters?.orderBy || 'random'}
             onChange={e => updateFilter('orderBy', e.target.value)}
             style={sel}>
-            <option value="last_seen">{tx.orderLastActive || 'Order by Last Active'}</option>
-            <option value="newest">{tx.orderNewest || 'Order by Newest'}</option>
+            <option value="random">{tx.orderRandom || 'Sort by Random'}</option>
+            <option value="last_seen">{tx.orderLastActive || 'Sort by Last Active'}</option>
+            <option value="newest">{tx.orderNewest || 'Sort by Newest'}</option>
           </select>
 
           <button
