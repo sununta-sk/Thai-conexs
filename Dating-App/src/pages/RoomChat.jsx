@@ -452,7 +452,13 @@ function RoomChatDesktop() {
     }).then(({ error }) => {
       if (error) console.error('[ProfileView from chat] ERROR:', error);
     });
-  }, [otherUserId, session]);
+    // Depend on the stable user id, not the session object itself: session
+    // gets set from two independent async sources (getSession() and
+    // onAuthStateChange's initial fire) which produce different object
+    // references for the same logical session, which was causing this
+    // effect - and the profile_views insert with it - to fire twice per
+    // chat open.
+  }, [otherUserId, session?.user?.id]);
 
   useEffect(() => {
     if (!session || !otherUserId) return;

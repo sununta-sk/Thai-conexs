@@ -218,7 +218,9 @@ export default function MobileRoomChat() {
       .then(({ data }) => { if (data) setOtherProfile(data); });
     supabase.from("profile_views").insert({ viewer_id: session.user.id, viewed_id: otherUserId })
       .then(({ error }) => { if (error) console.error("[ProfileView from chat]", error); });
-  }, [otherUserId, session]);
+    // Depend on the stable user id, not the session object itself - see
+    // matching comment in RoomChat.jsx's identical effect.
+  }, [otherUserId, session?.user?.id]);
 
   // Presence channel — identical to RoomChat
   useEffect(() => {
