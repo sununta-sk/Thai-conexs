@@ -400,13 +400,12 @@ export default function Discover() {
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
-          <div />
           <input
             type="text"
             value={filters.username}
             onChange={e => updateFilter('username', e.target.value)}
             placeholder={tx.searchUsername || "Search username..."}
-            style={{ ...S.input, cursor: 'text' }}
+            style={{ ...S.input, cursor: 'text', gridColumn: 'span 2' }}
           />
           <select value={filters.orderBy} onChange={e => updateFilter('orderBy', e.target.value)} style={S.input}>
             <option value="random">{tx.orderRandom || "Sort by Random"}</option>
