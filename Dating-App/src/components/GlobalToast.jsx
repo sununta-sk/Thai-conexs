@@ -38,6 +38,9 @@ function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
 
+const DEFAULT_TOAST_DURATION_MS = 8000;
+const PROFILE_VIEW_TOAST_DURATION_MS = 18000;
+
 export default function GlobalToast() {
   const [toasts, setToasts] = useState([]);
   const [userId, setUserId] = useState(null);
@@ -66,16 +69,15 @@ export default function GlobalToast() {
   useEffect(() => {
     if (!userId) return;
 
-    const addToast = (toast) => {
+    // Per-call duration, not a shared constant - message/like keep their
+    // original 8s; profile-view gets its own longer window (see call site).
+    const addToast = (toast, durationMs = DEFAULT_TOAST_DURATION_MS) => {
       const id = ++toastIdRef.current;
       setToasts(prev => [...prev.slice(-2), { ...toast, id }]);
       playDing();
-      // 18s (was 8s) - gives more room for a real notification to actually be
-      // noticed, e.g. when two people are coordinating a cross-device test.
-      // Shared by all toast types (message/view/like), not just profile-view.
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
-      }, 18000);
+      }, durationMs);
     };
 
     console.log('[Toast] Subscribing for userId:', userId);
@@ -134,7 +136,7 @@ export default function GlobalToast() {
             name: viewer ? (viewer.username || 'Someone') : 'Someone',
             text: 'is looking at your profile!',
             onClick: () => navigateRef.current('/room-chat/' + chatId),
-          });
+          }, PROFILE_VIEW_TOAST_DURATION_MS);
         })
       .subscribe((status) => console.log('[Toast] View channel:', status));
 
