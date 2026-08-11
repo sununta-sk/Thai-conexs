@@ -18,9 +18,18 @@ if (typeof window !== 'undefined') {
   document.addEventListener('click', unlock);
   document.addEventListener('touchstart', unlock);
 }
-function playDing() {
+async function playDing() {
   try {
     const ctx = getAudioCtx();
+    // getAudioCtx() kicks off resume() but doesn't wait for it (it's also used
+    // by the fire-and-forget click/touchstart unlock listener below, where
+    // that's fine). Here we're about to start playback immediately, so make
+    // sure the context has actually finished resuming first - starting an
+    // oscillator while still 'suspended' can silently produce no sound on
+    // stricter mobile browsers even though no error is thrown.
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
