@@ -41,9 +41,10 @@ export default function AdminDashboard() {
         .eq('status', 'active');
       const gross = revData?.reduce((s, r) => s + (Number(r.amount_paid) || 0), 0) || 0;
 
-      // Open tickets
+      // Open tickets (support_tickets is the real table users' tickets land
+      // in - see TicketsPage.jsx; moderation_tickets exists but is unused/empty)
       const { count: ticketCount } = await supabase
-        .from('moderation_tickets')
+        .from('support_tickets')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'open');
 
@@ -58,9 +59,11 @@ export default function AdminDashboard() {
 
   async function fetchTickets() {
     try {
+      // support_tickets is the real table (see fetchStats note above) -
+      // it has `subject`, not `title`, and no `ticket_number` field.
       const { data } = await supabase
-        .from('moderation_tickets')
-        .select('id, ticket_number, title, status, priority, created_at')
+        .from('support_tickets')
+        .select('id, subject, status, priority, created_at')
         .order('created_at', { ascending: false })
         .limit(8);
       setRecentTickets(data || []);
@@ -92,8 +95,11 @@ export default function AdminDashboard() {
     } catch (e) { console.error('plans error', e.message); }
   }
 
-  const priorityColor = { low: '#10b981', medium: '#f59e0b', high: '#f97316', critical: '#ef4444' };
-  const statusColor   = { open: '#3b82f6', in_progress: '#8b5cf6', resolved: '#10b981', closed: '#475569' };
+  // Matches support_tickets' real priority/status values (see TicketsPage.jsx) -
+  // the old moderation_tickets-era maps used 'critical' (never a real value here)
+  // and were missing 'waiting_user'.
+  const priorityColor = { low: '#475569', medium: '#3b82f6', high: '#f59e0b', urgent: '#ef4444' };
+  const statusColor   = { open: '#ef4444', in_progress: '#3b82f6', waiting_user: '#f59e0b', resolved: '#10b981', closed: '#475569' };
 
   return (
     <AdminLayout>
@@ -151,14 +157,13 @@ export default function AdminDashboard() {
                     <table style={S.table}>
                       <thead>
                         <tr>
-                          {['#', 'Title', 'Priority', 'Status'].map(h => <th key={h} style={S.th}>{h}</th>)}
+                          {['Subject', 'Priority', 'Status'].map(h => <th key={h} style={S.th}>{h}</th>)}
                         </tr>
                       </thead>
                       <tbody>
                         {recentTickets.map(t => (
                           <tr key={t.id} style={S.tr}>
-                            <td style={{ ...S.td, color: '#475569' }}>TKT-{String(t.ticket_number).padStart(4,'0')}</td>
-                            <td style={{ ...S.td, color: '#f1f5f9', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</td>
+                            <td style={{ ...S.td, color: '#f1f5f9', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject}</td>
                             <td style={S.td}>
                               <span style={{ ...S.badge, background: `${priorityColor[t.priority]}22`, color: priorityColor[t.priority] }}>{t.priority}</span>
                             </td>
