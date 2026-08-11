@@ -11,6 +11,9 @@ import { useUnreadCount } from '../hooks/useUnreadCount';
 
 const TOP_H = 68;
 const BOTTOM_H = 64;
+// Fired when the funnel icon (Discover only) is tapped; MobileDiscoverFilters
+// listens for this to open its filter popup.
+export const OPEN_DISCOVER_FILTERS_EVENT = 'open-discover-filters';
 
 function MenuItem({ onClick, color = '#f1f5f9', children }) {
   return (
@@ -151,6 +154,21 @@ export default function MobileNavbar() {
           <button onClick={() => setLang('en')} style={{ padding: '4px 7px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>EN</button>
           <button onClick={() => setLang('th')} style={{ padding: '4px 7px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>TH</button>
         </div>
+        {isActive('/discover') && (
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent(OPEN_DISCOVER_FILTERS_EVENT))}
+            aria-label={tx.filters || 'Filters'}
+            style={{
+              width: 30, height: 30, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#1e293b', border: '1px solid #334155', borderRadius: 8,
+              cursor: 'pointer', padding: 0,
+            }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="4 4 20 4 14 12.5 14 19 10 21 10 12.5 4 4" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Bottom nav */}
