@@ -203,7 +203,9 @@ const S = {
   },
   wrapMobile: {
     position: 'fixed',
-    top: 12,
+    // Sits just below MobileNavbar's fixed top bar (68px + safe-area-inset-top)
+    // instead of overlapping it.
+    top: 'calc(68px + env(safe-area-inset-top) + 8px)',
     left: 12,
     right: 12,
     zIndex: 9999,
