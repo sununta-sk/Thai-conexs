@@ -155,9 +155,20 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 }
 
 const SC = {
-  wrap: { position: 'relative', width: '100%', aspectRatio: '3/4', borderRadius: 16, overflow: 'hidden', background: '#0f172a', marginBottom: 8, border: '1px solid #334155' },
-  img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'filter 0.3s, transform 0.3s' },
-  noPhoto: { width: '100%', aspectRatio: '3/4', borderRadius: 16, background: '#0f172a', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, marginBottom: 8 },
+  // Explicit height (not just aspectRatio) so the box size can't depend on
+  // aspect-ratio resolving correctly against a percentage-height child img -
+  // 400 = DS.inner's 300px maxWidth at a 3:4 ratio (300 * 4/3). If DS.inner's
+  // maxWidth ever changes, this needs updating to match.
+  wrap: { position: 'relative', width: '100%', height: 400, borderRadius: 16, overflow: 'hidden', background: '#0f172a', marginBottom: 8, border: '1px solid #334155' },
+  // object-fit: contain (not cover) so the full photo is always visible,
+  // letterboxed/pillarboxed rather than cropped - the empty bars show
+  // SC.wrap's own background (#0f172a, the app's dark theme color) through
+  // the img's own transparent, unpainted space.
+  img: { width: '100%', height: '100%', objectFit: 'contain', display: 'block', transition: 'filter 0.3s, transform 0.3s' },
+  // Same fixed height as SC.wrap, so the empty-state box is identically
+  // sized to the photo-filled one - the sidebar shouldn't shift depending
+  // on whether a profile happens to have photos.
+  noPhoto: { width: '100%', height: 400, borderRadius: 16, background: '#0f172a', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, marginBottom: 8 },
   arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.9)', border: '1px solid #334155', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', color: '#f1f5f9', lineHeight: 1, paddingBottom: 3, zIndex: 5 },
   counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
   freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
