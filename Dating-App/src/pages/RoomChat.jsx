@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { useIsMobile } from "../hooks/useIsMobile";
+import { useIsMobile, useIsDesktop } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
 import { optimizeImage } from "../lib/imageUtils";
@@ -89,16 +89,6 @@ function timeAgo(dateStr) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
-}
-
-function useIsDesktop(breakpoint = 900) {
-  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= breakpoint : false);
-  useEffect(() => {
-    const onResize = () => setIsDesktop(window.innerWidth >= breakpoint);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [breakpoint]);
-  return isDesktop;
 }
 
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
@@ -302,7 +292,7 @@ const GP = {
 function RoomChatDesktop() {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop(900);
+  const isDesktop = useIsDesktop();
   const { lang } = useTranslation(['common']);
 
   const [session, setSession] = useState(null);

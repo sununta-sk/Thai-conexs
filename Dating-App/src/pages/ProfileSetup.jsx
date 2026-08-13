@@ -4,6 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
+import { useIsDesktop } from '../hooks/useIsMobile';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -48,16 +49,6 @@ function dataURLtoBlob(dataURL) {
   return new Blob([byteArray], { type: 'image/jpeg' });
 }
 
-function useIsDesktop(breakpoint = 900) {
-  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= breakpoint : false);
-  useEffect(() => {
-    const onResize = () => setIsDesktop(window.innerWidth >= breakpoint);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [breakpoint]);
-  return isDesktop;
-}
-
 function ChipSelect({ label, options, value, onChange, multi = false }) {
   const toggle = (opt) => {
     if (multi) {
@@ -93,7 +84,7 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop(900);
+  const isDesktop = useIsDesktop();
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
 

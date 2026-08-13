@@ -9,6 +9,7 @@ import ReportModal from '../components/ReportModal';
 import { optimizeImage } from '../lib/imageUtils';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import { useAuditLogger } from '../hooks/useAuditLogger';
+import { getViewportTier } from '../hooks/useIsMobile';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -160,7 +161,7 @@ export default function UserProfilePage() {
 
   // Desktop redirect to chat (this page is mobile-only)
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 900) {
+    if (typeof window !== 'undefined' && getViewportTier() !== 'mobile') {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) navigate('/room-chat/' + getChatId(session.user.id, userId), { replace: true });
         else navigate('/login', { replace: true });
@@ -172,7 +173,7 @@ export default function UserProfilePage() {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/login'); return; }
-      if (window.innerWidth >= 900) return; // Desktop redirects, skip load
+      if (getViewportTier() !== 'mobile') return; // Desktop redirects, skip load
       setCurrentUserId(session.user.id);
 
       const { data, error } = await supabase

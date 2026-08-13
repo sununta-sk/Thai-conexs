@@ -1,22 +1,36 @@
 // src/hooks/useIsMobile.js
-// Single source of truth for mobile mode (real mobile OR Mobile Preview).
-// Side effects:
-//   - Toggles 'mobile-active' class on <html> while mobile
+// Single source of truth for responsive tier (real mobile OR Mobile Preview).
+//
+// Tiers:
+//   'mobile'  — width < 768   (unchanged from the original binary threshold)
+//   'laptop'  — 768–1439      (new: previously lumped in with 'desktop')
+//   'desktop' — >= 1440
+//
+// Side effects (only while tier === 'mobile', unchanged from before):
+//   - Toggles 'mobile-active' class on <html>
 //   - Injects global CSS overrides for known hardcoded grids
 import { useState, useEffect } from 'react';
 
 const PREVIEW_KEY = 'mobilePreviewMode';
 const PREVIEW_EVENT = 'mobilePreviewChange';
-const BREAKPOINT = 768;
+export const MOBILE_BREAKPOINT = 768;
+export const DESKTOP_BREAKPOINT = 1440;
 
 const isPreview = () => {
   try { return localStorage.getItem(PREVIEW_KEY) === '1'; } catch { return false; }
 };
 
-const compute = () => {
-  if (typeof window === 'undefined') return false;
-  return isPreview() || window.innerWidth < BREAKPOINT;
-};
+// Plain (non-hook) tier read — safe to call from effects/callbacks outside
+// component render, where hooks can't be used. Mirrors the hook's own logic
+// exactly so there's one source of truth for the thresholds.
+export function getViewportTier() {
+  if (typeof window === 'undefined') return 'desktop';
+  if (isPreview()) return 'mobile';
+  const w = window.innerWidth;
+  if (w < MOBILE_BREAKPOINT) return 'mobile';
+  if (w < DESKTOP_BREAKPOINT) return 'laptop';
+  return 'desktop';
+}
 
 // Inject CSS rules once
 function ensureCSS() {
@@ -39,12 +53,16 @@ function ensureCSS() {
   document.head.appendChild(style);
 }
 
-export function useIsMobile() {
-  const [mobile, setMobile] = useState(compute);
+// Returns 'mobile' | 'laptop' | 'desktop', live-updating on resize/preview
+// toggle. New call sites that need to treat 13"-laptop widths differently
+// from large-desktop widths should use this instead of the binary hooks
+// below.
+export function useViewportTier() {
+  const [tier, setTier] = useState(getViewportTier);
 
   useEffect(() => {
     ensureCSS();
-    const update = () => setMobile(compute());
+    const update = () => setTier(getViewportTier());
     window.addEventListener('resize', update);
     window.addEventListener('storage', update);
     window.addEventListener(PREVIEW_EVENT, update);
@@ -57,10 +75,28 @@ export function useIsMobile() {
 
   useEffect(() => {
     const cls = 'mobile-active';
-    if (mobile) document.documentElement.classList.add(cls);
+    if (tier === 'mobile') document.documentElement.classList.add(cls);
     else document.documentElement.classList.remove(cls);
     return () => document.documentElement.classList.remove(cls);
-  }, [mobile]);
+  }, [tier]);
 
-  return mobile;
+  return tier;
+}
+
+// Unchanged binary signal — every existing call site (Navbar, Discover,
+// Messages, GlobalToast, admin pages, etc.) keeps working exactly as before:
+// true below 768px (or Mobile Preview on), false at 768px and above.
+export function useIsMobile() {
+  return useViewportTier() === 'mobile';
+}
+
+// Replaces the old per-file `useIsDesktop(900)` duplicated in RoomChat.jsx,
+// ProfileSetup.jsx and AccountSettings.jsx. Those each had their own
+// independent 900px threshold, disagreeing with the 768px used everywhere
+// else in the app (including this hook) for the 768–899px range. This now
+// resolves to the same 768px boundary as useIsMobile, so "desktop" here
+// means "not mobile" consistently app-wide — true at 768px and above,
+// including both the 'laptop' and 'desktop' tiers.
+export function useIsDesktop() {
+  return useViewportTier() !== 'mobile';
 }
