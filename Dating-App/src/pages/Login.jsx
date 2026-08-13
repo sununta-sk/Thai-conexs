@@ -99,7 +99,7 @@ function UserPhotoGrid({ isMobile }) {
             ))
           )
         ) : (
-          Array.from({ length: isMobile ? 12 : 24 }).map((_, i) => (
+          Array.from({ length: total }).map((_, i) => (
             <div key={i} style={{ ...G.cell, background: fallbackColors[i % fallbackColors.length] }} />
           ))
         )}
