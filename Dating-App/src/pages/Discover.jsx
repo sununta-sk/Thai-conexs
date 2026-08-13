@@ -311,6 +311,23 @@ export default function Discover() {
 
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
+  // Card grid: mobile keeps the exact literal 'repeat(6, 130px)' string
+  // unchanged, because hooks/useIsMobile.js's injected CSS
+  // (.mobile-active [style*="repeat(6, 130px)"]) string-matches that exact
+  // value to force 3 columns on mobile. Laptop/desktop (>=768px) instead
+  // gets a fluid track so column count and card width grow with the
+  // viewport instead of staying frozen at a fixed 6x130px island.
+  const gridStyle = isMobile
+    ? S.grid
+    : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' };
+
+  // Card text/badges: fixed sizes preserved exactly on mobile; scale up via
+  // clamp() on laptop/desktop as cards get wider.
+  const nameStyle = isMobile ? S.name : { ...S.name, fontSize: 'clamp(13px, 1vw + 7px, 16px)' };
+  const metaStyle = isMobile ? S.meta : { ...S.meta, fontSize: 'clamp(11px, 0.8vw + 6px, 14px)' };
+  const verifiedBadgeStyle = isMobile ? S.verifiedBadge : { ...S.verifiedBadge, fontSize: 'clamp(9px, 0.5vw + 6px, 11px)' };
+  const vipBadgeStyle = isMobile ? S.vipBadge : { ...S.vipBadge, fontSize: 'clamp(8px, 0.5vw + 5px, 10px)' };
+
   return (
     <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
       {isMobile && (
@@ -427,7 +444,7 @@ export default function Discover() {
       ) : filteredProfiles.length === 0 ? (
         <div style={S.emptyState}>{profiles.length === 0 ? (tx.noMembersFound || 'No members found') : (tx.noMatchesAdjust || 'No matches. Try adjusting your filters.')}</div>
       ) : (
-        <div style={S.grid}>
+        <div style={gridStyle}>
           {filteredProfiles.map((profile) => {
             const photoUrl = getMainPhoto(profile);
             const isOnline = onlineUsers.has(profile.id);
@@ -439,13 +456,13 @@ export default function Discover() {
               <div key={profile.id} style={S.card}>
                 <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                   <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
-                  {profile.is_verified && <div style={S.verifiedBadge}>V</div>}
-                  {isVipProfile(profile) && <div style={S.vipBadge}>VIP</div>}
+                  {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
+                  {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
                   <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
                 </div>
                 <div style={S.info}>
-                  <div style={S.name}>{profile.username || '-'}</div>
-                  {metaParts.length > 0 && <div style={S.meta}>{metaParts.join(', ')}</div>}
+                  <div style={nameStyle}>{profile.username || '-'}</div>
+                  {metaParts.length > 0 && <div style={metaStyle}>{metaParts.join(', ')}</div>}
                 </div>
                 <div style={S.actions}>
                   <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
