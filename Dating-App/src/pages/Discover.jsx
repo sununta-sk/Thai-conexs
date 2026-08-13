@@ -317,9 +317,22 @@ export default function Discover() {
   // value to force 3 columns on mobile. Laptop/desktop (>=768px) instead
   // gets a fluid track so column count and card width grow with the
   // viewport instead of staying frozen at a fixed 6x130px island.
+  //
+  // S.grid's maxWidth (below) is now 1100px to match S.searchBar's 1100px -
+  // it was previously 1400px, a mismatch that was invisible under the old
+  // fixed repeat(6, 130px) track (always ~830px of actual card content,
+  // comfortably narrower than either box, so it never reached either cap)
+  // but became a visible edge overflow once the track went fluid, since
+  // 1fr tracks stretch to fill their full container width. Matching
+  // horizontal padding (18px, same as searchBar's) here too so the card
+  // edges line up with the filter bar's edges exactly, not just the caps.
+  // maxWidth is changed on the shared S.grid object itself (not just this
+  // !isMobile branch) because it's inert on mobile - the viewport is
+  // always far narrower than either 1100px or 1400px there, so this has
+  // zero visual effect on mobile.
   const gridStyle = isMobile
     ? S.grid
-    : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' };
+    : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px' };
 
   // Card text/badges: fixed sizes preserved exactly on mobile; scale up via
   // clamp() on laptop/desktop as cards get wider.
@@ -549,7 +562,7 @@ const S = {
     justifyContent: 'center',
     gap: '10px',
     padding: '15px',
-    maxWidth: '1400px',
+    maxWidth: '1100px',
     margin: '0 auto',
   },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
