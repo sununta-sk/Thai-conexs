@@ -69,7 +69,9 @@ function UserPhotoGrid({ isMobile }) {
     return () => { active = false; clearInterval(interval); };
   }, []);
 
-  const fallbackColors = ['#334155','#1e293b','#475569','#64748b','#e91e63','#334155','#1e293b','#475569'];
+  // None of these may equal '#1e293b' or '#0f172a' — those are the surrounding
+  // panel/page background colors, so a cell painted that color disappears.
+  const fallbackColors = ['#334155','#3b4a61','#475569','#64748b','#e91e63','#334155','#3b4a61','#475569'];
 
   return (
     <div style={G.wrap}>
