@@ -171,7 +171,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike, showOfficialMsgBtn, onOfficialMsg }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -219,9 +219,6 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
 
         <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
         <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
-        {showOfficialMsgBtn && (
-          <button style={DS.officialMsgBtn} onClick={onOfficialMsg}>📢 Send Official Message</button>
-        )}
       </div>
     </div>
   );
@@ -245,7 +242,6 @@ const DS = {
   likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  officialMsgBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 24, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -609,6 +605,9 @@ function RoomChatDesktop() {
           </div>
         )}
         {isDesktop && <div style={{ flex: 1 }} />}
+        {isAdmin && !otherIsAdmin && (
+          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}>📢 Send Official Message</button>
+        )}
         <div style={{position:'relative'}}>
           <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}><span style={S.moreDots}>···</span></button>
           {showMenu && (
@@ -757,8 +756,6 @@ function RoomChatDesktop() {
           onBlock={submitBlock}
           liked={liked}
           onLike={handleLike}
-          showOfficialMsgBtn={isAdmin && !otherIsAdmin}
-          onOfficialMsg={() => setShowOfficialMsg(true)}
         />
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {chatColumn}
@@ -790,6 +787,14 @@ const S = {
   photoPlaceholder: { width: 52, height: 52, borderRadius: 10, background: "#0f172a", border: '1px solid #334155', display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   moreBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 6px", flexShrink: 0 },
   moreDots: { fontSize: 22, color: "#94a3b8", letterSpacing: 1, fontWeight: 900 },
+  // Same visual chrome (color/border/borderRadius/fontSize/fontWeight/
+  // vertical padding) as the button previously had in DesktopSidebar's
+  // DS.officialMsgBtn - width:'100%' doesn't make sense in this horizontal
+  // header row, so it's swapped for flexShrink:0/whiteSpace:'nowrap', and
+  // horizontal padding is added (16px, matching backBtnBig's convention in
+  // this same header) since there's no longer a 100%-width parent giving it
+  // shape. Vertical padding (10px) is unchanged from the original.
+  officialMsgBtn: { padding: "10px 16px", background: "transparent", border: "1px solid #f59e0b66", borderRadius: 24, color: "#f59e0b", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" },
   messageArea: { flex: 1, overflowY: "auto", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
   emptyState: { textAlign: "center", color: "#64748b", fontSize: 14, marginTop: 40, fontWeight: 600 },
   separator: { textAlign: "center", color: "#64748b", fontSize: 12, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },
