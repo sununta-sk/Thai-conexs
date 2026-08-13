@@ -7,6 +7,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import MobileRoomChat from "../components/MobileRoomChat";
 import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
+import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -93,6 +94,7 @@ function timeAgo(dateStr) {
 
 function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
+  const [enlarged, setEnlarged] = useState(false);
 
   const validPhotos = (photos || []).map(extractPhotoUrl).filter(p => p && p.startsWith('http'));
 
@@ -110,11 +112,16 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         key={current}
         src={src}
         alt=""
-        style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+        style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
+        onClick={() => { if (!isLocked) setEnlarged(true); }}
         onError={(e) => {
           e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
         }}
       />
+
+      {enlarged && !isLocked && (
+        <PhotoEnlargeModal src={src} onClose={() => setEnlarged(false)} />
+      )}
 
       {isLocked && (
         <div style={SC.lockOverlay}>

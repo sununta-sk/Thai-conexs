@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import ReportModal from '../components/ReportModal';
+import PhotoEnlargeModal from '../components/PhotoEnlargeModal';
 
 import { optimizeImage } from '../lib/imageUtils';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
@@ -37,6 +38,7 @@ const FREE_LIMIT = 3;
 // ── Photo Carousel ──────────────────────────────────────────
 function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const [current, setCurrent] = useState(0);
+  const [enlarged, setEnlarged] = useState(false);
   const touchStartX = useRef(null);
   const touchEndX   = useRef(null);
 
@@ -65,8 +67,13 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           key={current}
           src={photos[current]}
           alt={`photo-${current}`}
-          style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+          style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
+          onClick={() => { if (!isLocked) setEnlarged(true); }}
         />
+
+        {enlarged && !isLocked && (
+          <PhotoEnlargeModal src={photos[current]} alt={`photo-${current}`} onClose={() => setEnlarged(false)} />
+        )}
 
         {!isLocked && <div style={C.gradient} />}
 

@@ -59,6 +59,13 @@ export default defineConfig({
           if (id.includes('src/hooks/useUnreadCount')) return 'app-shared';
           if (id.includes('src/context/OnlineContext')) return 'app-shared';
           if (id.includes('src/components/MobileNavbar')) return 'app-shared';
+          // Shared between RoomChat.jsx ('page-chat' below) and
+          // UserProfilePage.jsx (its own default lazy chunk) - same story as
+          // the rest of this block: left unpinned, Rollup hosted it inside
+          // 'page-chat', making the ~55KB page-chat chunk a forced static
+          // dependency of the mobile Bio page even though most visitors there
+          // never open a chat.
+          if (id.includes('src/components/PhotoEnlargeModal')) return 'app-shared';
           // Same story, but for an asset rather than code: this logo image is
           // imported by both Login.jsx (main entry) and Discover.jsx (lazy),
           // and Rollup dedupes the resulting asset-URL constant into a single
