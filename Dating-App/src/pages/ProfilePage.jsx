@@ -6,9 +6,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import BoostButton from '../components/BoostButton'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,8 +45,16 @@ export default function ProfilePage() {
   const avatar = profile.avatar_url
     || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name || 'User')}&background=e91e63&color=fff&size=200`
 
+  // Laptop/desktop (>=768px): content is centered inside a 900px column
+  // (same width as Login/Register's card, an existing app value) instead of
+  // stretching edge-to-edge, with S.page's background staying full-bleed.
+  // Mobile gets no style here at all - identical to the plain unwrapped
+  // rendering before this change.
+  const contentWrapStyle = isMobile ? undefined : { maxWidth: 900, margin: '0 auto' };
+
   return (
     <div style={S.page}>
+    <div style={contentWrapStyle}>
 
       {/* ── Hero ── */}
       <div style={S.hero}>
@@ -122,6 +132,7 @@ export default function ProfilePage() {
         </button>
       </div>
 
+    </div>
     </div>
   )
 }
