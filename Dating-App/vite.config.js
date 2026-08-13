@@ -25,7 +25,18 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
             if (id.includes('@supabase')) return 'vendor-supabase';
             if (id.includes('react-dom') || id.includes('react-router-dom') || id.includes('scheduler')) return 'vendor-react';
-            if (id.includes('/react/')) return 'vendor-react';
+            // Anchored to the package's own node_modules folder, not a bare
+            // '/react/' substring: that loosely matched ANY package path
+            // containing "react" as a path segment, including the unrelated
+            // @emoji-mart/react package (unpacks to node_modules/@emoji-mart/
+            // react/...). That swept @emoji-mart/react's code into this
+            // always-eager chunk instead of vendor-emoji below, and since
+            // that misplaced code statically imports a shared internal
+            // export from the rest of emoji-mart, it dragged the ~510KB
+            // vendor-emoji chunk into every single page load — including the
+            // anonymous Login page — regardless of the emoji picker's own
+            // lazy()/dynamic import() usage in RoomChat/MobileRoomChat.
+            if (id.includes('/node_modules/react/')) return 'vendor-react';
             if (id.includes('firebase')) return 'vendor-firebase';
             if (id.includes('stripe')) return 'vendor-stripe';
             if (id.includes('emoji-mart')) return 'vendor-emoji';
