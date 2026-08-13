@@ -434,7 +434,6 @@ export default function Discover() {
             const age = profile.details?.age ?? '';
             const gender = profile.details?.gender ?? '';
             const city = profile.city || profile.details?.city || '';
-            const lastSeen = isOnline ? (tx.rightNow || 'Right now') : formatLastSeen(profile.last_seen_at, tx);
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
@@ -447,7 +446,6 @@ export default function Discover() {
                 <div style={S.info}>
                   <div style={S.name}>{profile.username || '-'}</div>
                   {metaParts.length > 0 && <div style={S.meta}>{metaParts.join(', ')}</div>}
-                  <div style={{ ...S.lastSeen, color: isOnline ? '#4caf50' : '#64748b' }}>{lastSeen}</div>
                 </div>
                 <div style={S.actions}>
                   <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
