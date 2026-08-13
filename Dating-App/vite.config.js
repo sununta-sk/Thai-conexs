@@ -11,12 +11,24 @@ export default defineConfig({
     modulePreload: {
       // Vite's default preloads the full transitive chunk graph reachable from
       // each entry, including chunks that are only ever loaded on-demand behind
-      // a user action (e.g. the emoji picker + its ~460KB dataset, only fetched
-      // when the emoji tray is actually opened). Without this, that chunk would
-      // still get silently downloaded on every page load via <link rel="modulepreload">,
-      // defeating the point of splitting it out. Everything else keeps Vite's
-      // default preload behavior unchanged.
-      resolveDependencies: (filename, deps) => deps.filter((d) => !d.includes('vendor-emoji')),
+      // a user action or an authenticated route (e.g. the emoji picker + its
+      // ~460KB dataset, only fetched when the emoji tray is actually opened).
+      // Without this, those chunks would still get silently downloaded on every
+      // single page load — including the anonymous, logged-out Login/Register
+      // page — via <link rel="modulepreload">, defeating the point of splitting
+      // them out and, on constrained connections, competing for bandwidth with
+      // vendor-supabase, which Login/Register need immediately to fetch the
+      // "members online" preview photos. page-profile-setup/page-discover/
+      // page-chat/vendor-firebase are all behind auth (post-login routes), so
+      // they have no reason to preload before a visitor has even logged in.
+      // Everything else keeps Vite's default preload behavior unchanged.
+      resolveDependencies: (filename, deps) => deps.filter((d) =>
+        !d.includes('vendor-emoji') &&
+        !d.includes('page-profile-setup') &&
+        !d.includes('page-discover') &&
+        !d.includes('page-chat') &&
+        !d.includes('vendor-firebase')
+      ),
     },
     rollupOptions: {
       output: {
