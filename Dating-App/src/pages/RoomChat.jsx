@@ -64,6 +64,10 @@ function playSound(type) {
 
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 const FREE_LIMIT = 3;
+// Sidebar carousel display box maxes out around 300-360px wide - 700px
+// covers that comfortably even at ~2x device pixel ratio without pulling
+// down whatever full-resolution original the photo was uploaded at.
+const CAROUSEL_IMG_WIDTH = 700;
 const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 // Emoji picker (component + ~460KB emoji dataset) is only fetched once the user
 // actually opens the emoji tray, instead of being bundled into every chat page load.
@@ -98,6 +102,22 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
   const validPhotos = (photos || []).map(extractPhotoUrl).filter(p => p && p.startsWith('http'));
 
+  // Preload the adjacent (prev/next) photo off-DOM, at the same optimized
+  // size the visible <img> below requests, so the browser already has it
+  // cached by the time the user actually taps prev/next - this plus the
+  // optimizeImage() call below are the fix for "photos open slow between
+  // first & second etc": previously only the CURRENT photo was ever
+  // fetched, on demand, and at full original (often multi-MB) resolution.
+  // Keyed on validPhotos.join(',') rather than the array itself, since
+  // RoomChatDesktop's 1s message-poll re-renders this component every
+  // second with a freshly-built (but same-content) photos array - without
+  // this, the effect would refire and re-request every poll tick.
+  useEffect(() => {
+    if (validPhotos.length <= 1) return;
+    const neighbors = [(current + 1) % validPhotos.length, (current - 1 + validPhotos.length) % validPhotos.length];
+    neighbors.forEach(i => { new Image().src = optimizeImage(validPhotos[i], { width: CAROUSEL_IMG_WIDTH }); });
+  }, [current, validPhotos.join(',')]);
+
   if (validPhotos.length === 0) {
     return <div style={SC.noPhoto}>No photos</div>;
   }
@@ -110,7 +130,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
     <div style={SC.wrap}>
       <img
         key={current}
-        src={src}
+        src={optimizeImage(src, { width: CAROUSEL_IMG_WIDTH })}
         alt=""
         style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
         onClick={() => { if (!isLocked) setEnlarged(true); }}
