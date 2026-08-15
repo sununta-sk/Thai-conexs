@@ -1,17 +1,104 @@
 // src/components/PhotoEnlargeModal.jsx
 // Shared click-to-enlarge photo popup, used by RoomChat.jsx's desktop
 // sidebar carousel and UserProfilePage.jsx's mobile Bio-page carousel.
-// Callers are responsible for their own paywall gating - this component
-// only ever receives a src for a photo that's already allowed to be shown
-// full-size; it has no gating logic of its own.
+//
+// Now also handles in-modal prev/next navigation across a profile's whole
+// photo set (arrows, swipe, and left/right arrow keys), so a user can
+// browse every photo without closing and reopening the modal per photo.
+// The paywall stays a single check inside this component - callers hand it
+// their existing (isSubscriber, freeLimit) pair instead of pre-computing
+// isLocked themselves, so navigating past the free limit *inside* the
+// modal hits the exact same gate the outer carousel already enforces, not
+// a second copy of the rule that could drift from it.
 
-export default function PhotoEnlargeModal({ src, alt = '', onClose }) {
+import { useEffect, useRef, useState } from 'react';
+
+export default function PhotoEnlargeModal({
+  photos,
+  startIndex = 0,
+  altPrefix = '',
+  isSubscriber = false,
+  freeLimit = 3,
+  onUpgrade,
+  onClose,
+  onIndexChange,
+  lockLabels,
+}) {
+  const list = Array.isArray(photos) && photos.length > 0 ? photos : null;
+  const [current, setCurrent] = useState(startIndex);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+
+  if (!list) return null;
+  const src = list[current];
   if (!src) return null;
+
+  const labels = {
+    title: 'Priority Members Only',
+    sub: 'Available to Priority Members',
+    btn: '🚀 Upgrade for full access',
+    ...lockLabels,
+  };
+
+  const goTo = (i) => {
+    const next = (i + list.length) % list.length;
+    setCurrent(next);
+    onIndexChange?.(next);
+  };
+  const prev = () => goTo(current - 1);
+  const next = () => goTo(current + 1);
+  const isLocked = !isSubscriber && current >= freeLimit;
+
+  useEffect(() => {
+    if (list.length <= 1) return;
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') prev();
+      else if (e.key === 'ArrowRight') next();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, list.length]);
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchMove = (e) => { touchEndX.current = e.touches[0].clientX; };
+  const onTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 40) (diff > 0 ? next() : prev());
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   return (
     <div style={S.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={S.frame}>
-        <img src={src} alt={alt} style={S.img} />
+      <div style={S.frame} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+        <img
+          key={current}
+          src={src}
+          alt={altPrefix ? `${altPrefix}-${current}` : ''}
+          style={{ ...S.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+        />
+
+        {isLocked && (
+          <div style={S.lockOverlay}>
+            <div style={S.lockBox}>
+              <div style={S.lockIcon}>🔒</div>
+              <div style={S.lockTitle}>{labels.title}</div>
+              <div style={S.lockSub}>{labels.sub}</div>
+              <button type="button" style={S.lockBtn} onClick={onUpgrade}>{labels.btn}</button>
+            </div>
+          </div>
+        )}
+
+        {list.length > 1 && (
+          <>
+            <button type="button" style={{ ...S.arrow, left: -16 }} onClick={prev} aria-label="Previous photo">‹</button>
+            <button type="button" style={{ ...S.arrow, right: -16 }} onClick={next} aria-label="Next photo">›</button>
+            <div style={S.counter}>{current + 1} / {list.length}</div>
+          </>
+        )}
+
         <button type="button" style={S.closeBtn} onClick={onClose} aria-label="Close">✕</button>
       </div>
     </div>
@@ -27,7 +114,7 @@ const S = {
     zIndex: 10000,
     padding: '24px',
   },
-  frame: { position: 'relative', maxWidth: '92vw', maxHeight: '92vh' },
+  frame: { position: 'relative', maxWidth: '92vw', maxHeight: '92vh', touchAction: 'pan-y' },
   img: {
     display: 'block',
     maxWidth: '92vw',
@@ -37,6 +124,7 @@ const S = {
     objectFit: 'contain',
     borderRadius: 16,
     boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+    transition: 'filter 0.3s, transform 0.3s',
   },
   closeBtn: {
     position: 'absolute', top: 14, right: 14,
@@ -51,4 +139,28 @@ const S = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
   },
+  // Arrows sit just outside the frame's edges (negative left/right) so they
+  // never cover the photo itself - the frame is only as wide as the image,
+  // so this stays clear of the close button regardless of image aspect ratio.
+  arrow: {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+    width: 44, height: 44, borderRadius: '50%',
+    background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)',
+    border: '1px solid rgba(255,255,255,0.15)', color: '#f1f5f9',
+    fontSize: 26, fontWeight: 700, lineHeight: 1, paddingBottom: 3,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.5)', zIndex: 2,
+  },
+  counter: {
+    position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',
+    background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)',
+    color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 12px',
+    borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)',
+  },
+  lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', border: '1px solid #334155', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', maxWidth: 280 },
+  lockIcon: { fontSize: 36, marginBottom: 8 },
+  lockTitle: { fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
+  lockSub: { fontSize: 13, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 },
+  lockBtn: { width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
 };

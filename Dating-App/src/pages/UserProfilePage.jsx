@@ -72,7 +72,17 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         />
 
         {enlarged && !isLocked && (
-          <PhotoEnlargeModal src={photos[current]} alt={`photo-${current}`} onClose={() => setEnlarged(false)} />
+          <PhotoEnlargeModal
+            photos={photos}
+            startIndex={current}
+            altPrefix="photo"
+            isSubscriber={isSubscriber}
+            freeLimit={FREE_LIMIT}
+            onUpgrade={onUpgrade}
+            onClose={() => setEnlarged(false)}
+            onIndexChange={setCurrent}
+            lockLabels={{ title: 'Priority Members Only', sub: 'This content is only available to Priority Members', btn: '🚀 Get your boarding pass to full access' }}
+          />
         )}
 
         {!isLocked && <div style={C.gradient} />}

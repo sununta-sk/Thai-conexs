@@ -120,7 +120,16 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
       />
 
       {enlarged && !isLocked && (
-        <PhotoEnlargeModal src={src} onClose={() => setEnlarged(false)} />
+        <PhotoEnlargeModal
+          photos={validPhotos}
+          startIndex={current}
+          isSubscriber={isSubscriber}
+          freeLimit={FREE_LIMIT}
+          onUpgrade={onUpgrade}
+          onClose={() => setEnlarged(false)}
+          onIndexChange={setCurrent}
+          lockLabels={{ title: 'Priority Members Only', sub: 'Available to Priority Members', btn: '🚀 Upgrade for full access' }}
+        />
       )}
 
       {isLocked && (
