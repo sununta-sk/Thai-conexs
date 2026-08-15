@@ -34,10 +34,6 @@ function extractPhotoUrl(p) {
 }
 
 const FREE_LIMIT = 3;
-// Carousel display box is the card width (max 480px) - 700px covers that
-// comfortably even at ~2x device pixel ratio without pulling down whatever
-// full-resolution original the photo was uploaded at.
-const CAROUSEL_IMG_WIDTH = 700;
 
 // ── Photo Carousel ──────────────────────────────────────────
 function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
@@ -46,17 +42,21 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   const touchStartX = useRef(null);
   const touchEndX   = useRef(null);
 
-  // Preload the adjacent (prev/next) photo off-DOM, at the same optimized
-  // size the visible <img> below requests - see RoomChat.jsx's
-  // SidebarPhotoCarousel for the matching fix and the investigation this
-  // came out of (Task C: only the current photo was ever fetched, on
-  // demand, at full original resolution, causing a visible delay on every
-  // prev/next). Keyed on photos.join(',') rather than the array itself,
+  // Preload the adjacent (prev/next) photo off-DOM at its original URL - see
+  // RoomChat.jsx's SidebarPhotoCarousel for the matching fix and the
+  // investigation this came out of (Task C: only the current photo was
+  // ever fetched, on demand, causing a visible delay on every prev/next).
+  // This used to also request a resized/compressed version via
+  // optimizeImage()'s Supabase render/image transform, but that transform
+  // endpoint isn't confirmed working on this project and was causing real
+  // photos to fail to load (see the reverted src attribute below) -
+  // reverted here too so the preloaded request matches what's actually
+  // displayed. Keyed on photos.join(',') rather than the array itself,
   // since the parent rebuilds this array every render.
   useEffect(() => {
     if (!photos || photos.length <= 1) return;
     const neighbors = [(current + 1) % photos.length, (current - 1 + photos.length) % photos.length];
-    neighbors.forEach(i => { new Image().src = optimizeImage(photos[i], { width: CAROUSEL_IMG_WIDTH }); });
+    neighbors.forEach(i => { new Image().src = photos[i]; });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, photos && photos.join(',')]);
 
@@ -83,7 +83,11 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
         <img
           key={current}
-          src={optimizeImage(photos[current], { width: CAROUSEL_IMG_WIDTH })}
+          // Reverted from optimizeImage(...) back to the raw URL - see the
+          // preload effect above for why (Supabase's render/image transform
+          // isn't confirmed enabled on this project and was breaking real
+          // photo loads).
+          src={photos[current]}
           alt={`photo-${current}`}
           style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
           onClick={() => { if (!isLocked) setEnlarged(true); }}

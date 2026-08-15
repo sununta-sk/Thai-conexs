@@ -64,10 +64,6 @@ function playSound(type) {
 
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 const FREE_LIMIT = 3;
-// Sidebar carousel display box maxes out around 300-360px wide - 700px
-// covers that comfortably even at ~2x device pixel ratio without pulling
-// down whatever full-resolution original the photo was uploaded at.
-const CAROUSEL_IMG_WIDTH = 700;
 const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 // Emoji picker (component + ~460KB emoji dataset) is only fetched once the user
 // actually opens the emoji tray, instead of being bundled into every chat page load.
@@ -102,12 +98,15 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
   const validPhotos = (photos || []).map(extractPhotoUrl).filter(p => p && p.startsWith('http'));
 
-  // Preload the adjacent (prev/next) photo off-DOM, at the same optimized
-  // size the visible <img> below requests, so the browser already has it
-  // cached by the time the user actually taps prev/next - this plus the
-  // optimizeImage() call below are the fix for "photos open slow between
-  // first & second etc": previously only the CURRENT photo was ever
-  // fetched, on demand, and at full original (often multi-MB) resolution.
+  // Preload the adjacent (prev/next) photo off-DOM at its original URL, so
+  // the browser already has it cached by the time the user actually taps
+  // prev/next - this is the fix for "photos open slow between first &
+  // second etc": previously only the CURRENT photo was ever fetched, on
+  // demand. (This used to also request a resized/compressed version via
+  // optimizeImage()'s Supabase render/image transform, but that transform
+  // endpoint isn't confirmed working on this project - see the reverted
+  // src attribute below for the full explanation. Reverted here too so the
+  // preloaded request actually matches what the visible <img> will use.)
   // Keyed on validPhotos.join(',') rather than the array itself, since
   // RoomChatDesktop's 1s message-poll re-renders this component every
   // second with a freshly-built (but same-content) photos array - without
@@ -115,7 +114,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
   useEffect(() => {
     if (validPhotos.length <= 1) return;
     const neighbors = [(current + 1) % validPhotos.length, (current - 1 + validPhotos.length) % validPhotos.length];
-    neighbors.forEach(i => { new Image().src = optimizeImage(validPhotos[i], { width: CAROUSEL_IMG_WIDTH }); });
+    neighbors.forEach(i => { new Image().src = validPhotos[i]; });
   }, [current, validPhotos.join(',')]);
 
   if (validPhotos.length === 0) {
@@ -130,7 +129,14 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
     <div style={SC.wrap}>
       <img
         key={current}
-        src={optimizeImage(src, { width: CAROUSEL_IMG_WIDTH })}
+        // Reverted from optimizeImage(src, {...}) back to the raw URL: that
+        // routed every photo through Supabase Storage's image-transform
+        // ("/storage/v1/render/image/") endpoint, which is a plan-gated
+        // feature not confirmed enabled on this project - real photos
+        // started failing to load and silently falling back to the
+        // onError silhouette below. Raw object URLs are the same ones
+        // that were already working before Task C.
+        src={src}
         alt=""
         style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
         onClick={() => { if (!isLocked) setEnlarged(true); }}

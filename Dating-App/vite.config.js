@@ -66,16 +66,6 @@ export default defineConfig({
           // dependency of the mobile Bio page even though most visitors there
           // never open a chat.
           if (id.includes('src/components/PhotoEnlargeModal')) return 'app-shared';
-          // Same story again: optimizeImage() is called from RoomChat.jsx
-          // ('page-chat'), UserProfilePage.jsx (its own lazy chunk), and
-          // MobileRoomChat.jsx ('page-chat' too). It used to be a dead,
-          // never-called import in all three (tree-shaken away entirely), so
-          // this had no effect - now that the RoomChat/UserProfilePage photo
-          // carousels actually call it (Task C's fix), leaving it unpinned
-          // let Rollup host the real function inside 'page-chat' and made
-          // UserProfilePage cross-import it from there, exactly the forced
-          // static dependency this whole block exists to avoid.
-          if (id.includes('src/lib/imageUtils')) return 'app-shared';
           // Same story, but for an asset rather than code: this logo image is
           // imported by both Login.jsx (main entry) and Discover.jsx (lazy),
           // and Rollup dedupes the resulting asset-URL constant into a single

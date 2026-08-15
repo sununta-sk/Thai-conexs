@@ -26,8 +26,16 @@ export default function PhotoEnlargeModal({
 }) {
   const list = Array.isArray(photos) && photos.length > 0 ? photos : null;
   const [current, setCurrent] = useState(startIndex);
+  // Tracks whether the CURRENT photo has finished loading, so a slow
+  // in-modal prev/next (e.g. a photo that wasn't preloaded yet) shows the
+  // app's existing spinner instead of a blank/dark frame. Reset on every
+  // index change since the <img> below is remounted (key={current}) and
+  // starts a fresh load each time.
+  const [loaded, setLoaded] = useState(false);
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
+
+  useEffect(() => { setLoaded(false); }, [current]);
 
   if (!list) return null;
   const src = list[current];
@@ -72,12 +80,26 @@ export default function PhotoEnlargeModal({
 
   return (
     <div style={S.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
+      {/* Reuses the app's existing spinner (same border/borderTopColor/spin
+          pattern as ProfilePage.jsx, UserProfilePage.jsx, AccountSettings.jsx,
+          BoostModal.jsx) rather than inventing a new loading indicator.
+          Positioned on the overlay itself, not inside .frame - .frame's size
+          comes entirely from the <img>'s own natural dimensions, so while
+          unloaded it has no stable size to center a spinner within. */}
+      {!loaded && !isLocked && (
+        <>
+          <div style={S.spinner} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </>
+      )}
       <div style={S.frame} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <img
           key={current}
           src={src}
           alt={altPrefix ? `${altPrefix}-${current}` : ''}
-          style={{ ...S.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+          onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
+          style={{ ...S.img, opacity: (loaded || isLocked) ? 1 : 0, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
         />
 
         {isLocked && (
@@ -115,6 +137,19 @@ const S = {
     padding: '24px',
   },
   frame: { position: 'relative', maxWidth: '92vw', maxHeight: '92vh', touchAction: 'pan-y' },
+  // Same values as the app's existing small spinner (ProfilePage.jsx /
+  // UserProfilePage.jsx's S.spinner) - centered on the viewport via the
+  // overlay rather than the frame, since the frame has no stable size to
+  // center within before the image has loaded.
+  spinner: {
+    position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+    width: 36, height: 36,
+    border: '3px solid rgba(233,30,99,0.2)',
+    borderTopColor: '#e91e63',
+    borderRadius: '50%',
+    animation: 'spin 0.7s linear infinite',
+    zIndex: 1,
+  },
   img: {
     display: 'block',
     maxWidth: '92vw',
