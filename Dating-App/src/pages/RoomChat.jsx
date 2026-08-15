@@ -193,6 +193,18 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
   const city = profile?.city || d.city || '';
   const bio = profile?.bio || profile?.about_me || '';
 
+  // Bio is clamped to 2 lines by default (keeps the sidebar compact on short
+  // screens) with a "...more" toggle to reveal the rest inline. Whether the
+  // toggle is even shown is decided by measuring the actual rendered text -
+  // scrollHeight > clientHeight only once the 2-line clamp is actually
+  // cutting something off, so short bios don't get a pointless "...more".
+  const bioRef = useRef(null);
+  const [bioExpanded, setBioExpanded] = useState(false);
+  const [bioClamped, setBioClamped] = useState(false);
+  useEffect(() => {
+    if (bioRef.current) setBioClamped(bioRef.current.scrollHeight > bioRef.current.clientHeight + 1);
+  }, [bio]);
+
   return (
     <div style={DS.wrap}>
       <div style={DS.inner}>
@@ -214,7 +226,12 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
         {bio && (
           <>
             <div style={DS.sectionTitle}>ABOUT ME</div>
-            <div style={DS.bioText}>{bio}</div>
+            <div ref={bioRef} style={bioExpanded ? DS.bioText : DS.bioTextClamped}>{bio}</div>
+            {bioClamped && (
+              <button type="button" style={DS.bioToggle} onClick={() => setBioExpanded(v => !v)}>
+                {bioExpanded ? 'Show less' : '...more'}
+              </button>
+            )}
           </>
         )}
 
@@ -236,7 +253,16 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
 }
 
 const DS = {
-  wrap: { width: 360, flexShrink: 0, background: '#1e293b', borderRight: '1px solid #334155', overflowY: 'auto', display: 'flex', justifyContent: 'center' },
+  // alignItems: 'flex-start' (overriding the flex default 'stretch') matters
+  // on short screens: 'stretch' would force .inner to exactly match wrap's
+  // own (viewport-bound) height, and since .inner is itself a column flex
+  // container, its children - including the fixed-height photo box - would
+  // then get flex-shrunk to fit that height instead of overflowing it, so
+  // the overflowY: 'auto' below would never actually get anything to
+  // scroll. 'flex-start' lets .inner size to its natural content height,
+  // so it can genuinely exceed wrap's height and scroll - verified with a
+  // headless render at a 600px viewport (13"-laptop-short) before/after.
+  wrap: { width: 360, flexShrink: 0, background: '#1e293b', borderRight: '1px solid #334155', overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' },
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
@@ -248,6 +274,8 @@ const DS = {
   city: { fontSize: 13, color: '#94a3b8', fontWeight: 600 },
   sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 14, alignSelf: 'flex-start' },
   bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
+  bioTextClamped: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  bioToggle: { alignSelf: 'flex-start', background: 'none', border: 'none', color: '#e91e63', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: '2px 0 0', marginTop: -4 },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
   likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
