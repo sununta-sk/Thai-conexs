@@ -51,6 +51,24 @@ function isVipProfile(p) {
   return p.subscription_plan === 'gold' || p.subscription_plan === 'platinum';
 }
 
+// Copy for the side-margin TCN Referral promo boxes.
+const REFERRAL_PROMO = {
+  en: {
+    eyebrow: 'TCN REFERRAL SYSTEM',
+    headline: 'Invite friends, earn €30',
+    body: "Share your code. When a friend joins and verifies their profile, you get €30 real credit added to your balance.",
+    copyBtn: '📋 Copy Code',
+    copiedBtn: '✅ Copied!',
+  },
+  th: {
+    eyebrow: 'ระบบแนะนำเพื่อน TCN',
+    headline: 'ชวนเพื่อน รับ €30',
+    body: 'แชร์โค้ดของคุณ เมื่อเพื่อนสมัครและยืนยันตัวตนสำเร็จ คุณจะได้รับเครดิตจริง €30 เข้ายอดคงเหลือทันที',
+    copyBtn: '📋 คัดลอกโค้ด',
+    copiedBtn: '✅ คัดลอกแล้ว!',
+  },
+};
+
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -110,6 +128,37 @@ export default function Discover() {
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const { onlineUsers } = useOnline();
   const navigate = useNavigate();
+
+  // ── TCN Referral promo boxes (side margins) ──
+  const [referralCode, setReferralCode] = useState('');
+  const [referralCopied, setReferralCopied] = useState(false);
+  const [referralDismissed, setReferralDismissed] = useState(() => {
+    try { return localStorage.getItem('tcn_referral_promo_dismissed') === '1'; } catch { return false; }
+  });
+  const dismissReferralPromo = () => {
+    setReferralDismissed(true);
+    try { localStorage.setItem('tcn_referral_promo_dismissed', '1'); } catch {}
+  };
+
+  useEffect(() => {
+    // Quietly ensure the current user has a referral code, reusing the exact
+    // same generation formula ProfileSetup.jsx uses (TCN-<first 6 of uid>),
+    // so codes stay consistent across the app. Only touches this one column.
+    if (!currentUserId || referralDismissed) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('profiles').select('referral_code').eq('id', currentUserId).maybeSingle();
+      if (cancelled) return;
+      if (data?.referral_code) {
+        setReferralCode(data.referral_code);
+      } else {
+        const code = `TCN-${currentUserId.slice(0, 6).toUpperCase()}`;
+        const { error } = await supabase.from('profiles').update({ referral_code: code }).eq('id', currentUserId);
+        if (!cancelled && !error) setReferralCode(code);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId, referralDismissed]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -348,7 +397,43 @@ export default function Discover() {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
         }
+        .tcn-promo-box { display: none; }
+        @media (min-width: 1560px) {
+          .tcn-promo-box { display: block; }
+        }
       `}</style>
+      {!referralDismissed && referralCode && (
+        <>
+          <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - 774px)' }}>
+            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
+            <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
+            <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
+            <p style={S.promoBody}>{REFERRAL_PROMO[lang]?.body || REFERRAL_PROMO.en.body}</p>
+            <div style={S.promoCode}>{referralCode}</div>
+            <button
+              type="button"
+              style={S.promoCopyBtn}
+              onClick={() => { navigator.clipboard.writeText(referralCode); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
+            >
+              {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
+            </button>
+          </div>
+          <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - 774px)' }}>
+            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
+            <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
+            <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
+            <p style={S.promoBody}>{REFERRAL_PROMO[lang]?.body || REFERRAL_PROMO.en.body}</p>
+            <div style={S.promoCode}>{referralCode}</div>
+            <button
+              type="button"
+              style={S.promoCopyBtn}
+              onClick={() => { navigator.clipboard.writeText(referralCode); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
+            >
+              {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
+            </button>
+          </div>
+        </>
+      )}
       {isMobile && (
         <MobileDiscoverFilters
           filters={filters}
@@ -598,4 +683,37 @@ const S = {
   btnLike: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
+
+  // TCN Referral promo boxes (side margins, desktop-wide only — see .tcn-promo-box media query)
+  promoBox: {
+    position: 'fixed',
+    top: 110,
+    width: 200,
+    boxSizing: 'border-box',
+    padding: '16px 14px',
+    background: 'linear-gradient(135deg, #e91e63, #9c27b0)',
+    borderRadius: 14,
+    boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+    zIndex: 30,
+  },
+  promoClose: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    border: 'none',
+    background: 'rgba(255,255,255,0.2)',
+    color: '#fff',
+    fontSize: 11,
+    lineHeight: '20px',
+    padding: 0,
+    cursor: 'pointer',
+  },
+  promoEyebrow: { margin: '0 20px 4px 0', fontSize: 10, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9, color: '#fff' },
+  promoHeadline: { margin: '0 0 6px', fontSize: 16, fontWeight: 900, color: '#fff', lineHeight: 1.2 },
+  promoBody: { margin: '0 0 10px', fontSize: 11, lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' },
+  promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '6px 8px', fontSize: 13, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 8, wordBreak: 'break-all' },
+  promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '6px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' },
 };
