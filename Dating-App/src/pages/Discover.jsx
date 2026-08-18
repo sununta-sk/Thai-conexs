@@ -343,6 +343,12 @@ export default function Discover() {
 
   return (
     <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
+      <style>{`
+        @keyframes vipShimmer {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+      `}</style>
       {isMobile && (
         <MobileDiscoverFilters
           filters={filters}
@@ -467,11 +473,13 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
-                <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
-                  <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
-                  {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
-                  {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
-                  <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
+                <div style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
+                  <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
+                    <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
+                    {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
+                    {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                    <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
+                  </div>
                 </div>
                 <div style={S.info}>
                   <div style={nameStyle}>{profile.username || '-'}</div>
@@ -566,6 +574,15 @@ const S = {
     margin: '0 auto',
   },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
+  vipFrameOff: { display: 'block' },
+  vipFrame: {
+    display: 'block',
+    padding: 3,
+    boxSizing: 'border-box',
+    background: 'linear-gradient(90deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292)',
+    backgroundSize: '300% 100%',
+    animation: 'vipShimmer 5s linear infinite',
+  },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
