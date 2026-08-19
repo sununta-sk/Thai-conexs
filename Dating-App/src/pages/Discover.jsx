@@ -379,9 +379,15 @@ export default function Discover() {
   // !isMobile branch) because it's inert on mobile - the viewport is
   // always far narrower than either 1100px or 1400px there, so this has
   // zero visual effect on mobile.
+  // maxWidth is overridden only in this !isMobile branch (not on the shared
+  // S.grid object) so mobile keeps its exact original 1100px, untouched —
+  // the --tcn-grid-max CSS var (defined alongside the promo boxes above)
+  // shrinks the grid on laptop-tier widths so it and both promo boxes fit
+  // side-by-side without overlap, reaching the original fixed 1100px again
+  // once the viewport is wide enough (~1560px+).
   const gridStyle = isMobile
     ? S.grid
-    : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px' };
+    : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px', maxWidth: 'var(--tcn-grid-max)' };
 
   // Card text/badges: fixed sizes preserved exactly on mobile; scale up via
   // clamp() on laptop/desktop as cards get wider.
@@ -397,14 +403,24 @@ export default function Discover() {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
         }
+        /* Promo box width scales 120px->200px as viewport grows 768px->~1429px,
+           then holds at 200px (matches the box width used before this was made
+           responsive). Grid max-width is solved so grid + both boxes + gaps +
+           edge insets always sum to <=100vw, reaching the original fixed
+           1100px cap once there's room (at ~1560px+), unchanged above that. */
+        :root {
+          --tcn-box-w: clamp(120px, 14vw, 200px);
+          --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
+        }
         .tcn-promo-box { display: none; }
-        @media (min-width: 1560px) {
+        @media (min-width: 768px) {
+          /* 768px matches MOBILE_BREAKPOINT in hooks/useIsMobile.js */
           .tcn-promo-box { display: block; }
         }
       `}</style>
       {!referralDismissed && referralCode && (
         <>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - 774px)' }}>
+          <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
             <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
             <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
             <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
@@ -418,7 +434,7 @@ export default function Discover() {
               {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
             </button>
           </div>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - 774px)' }}>
+          <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
             <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
             <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
             <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
@@ -688,7 +704,7 @@ const S = {
   promoBox: {
     position: 'fixed',
     top: 110,
-    width: 200,
+    width: 'var(--tcn-box-w)',
     boxSizing: 'border-box',
     padding: '16px 14px',
     background: 'linear-gradient(135deg, #e91e63, #9c27b0)',
