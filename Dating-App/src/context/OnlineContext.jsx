@@ -133,6 +133,7 @@ export function OnlineProvider({ children }) {
     for (const id of allIds) {
       const tier = getActivityTier({
         isBot: botIds.has(id),
+        botId: id,
         isPresent: realOnlineUsers.has(id),
         lastSeenAt: lastSeenMap.get(id) ?? null,
       });
@@ -148,6 +149,7 @@ export function OnlineProvider({ children }) {
   // still reuses presence + bot state from this same context.
   const getTier = useCallback((id, lastSeenAt) => getActivityTier({
     isBot: botIds.has(id),
+    botId: id,
     isPresent: realOnlineUsers.has(id),
     lastSeenAt: lastSeenAt ?? lastSeenMap.get(id) ?? null,
   }), [botIds, realOnlineUsers, lastSeenMap]);

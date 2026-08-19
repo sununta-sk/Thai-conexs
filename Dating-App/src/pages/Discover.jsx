@@ -151,7 +151,7 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [banInfo, setBanInfo] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const { onlineUsers, recentlyActiveUsers } = useOnline();
+  const { onlineUsers, recentlyActiveUsers, botIds } = useOnline();
   const navigate = useNavigate();
 
   // ── TCN Referral promo boxes (side margins) ──
@@ -279,7 +279,17 @@ export default function Discover() {
       withoutPhotos.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
       result = [...withPhotos, ...withoutPhotos];
     } else if (filters.orderBy === 'last_seen') {
-      result.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      // Two-tier: real (non-bot) users by last_seen_at desc first, then bot
+      // accounts by last_seen_at desc after them. Bots' last_seen_at
+      // refreshes on its own cadence outside this app, so without this split
+      // they could permanently outrank a genuinely active real user just by
+      // having a technically-newer timestamp - real activity should always
+      // win regardless of that.
+      const realUsers = result.filter(p => !botIds.has(p.id));
+      const bots = result.filter(p => botIds.has(p.id));
+      realUsers.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      bots.sort((a, b) => new Date(b.last_seen_at || 0) - new Date(a.last_seen_at || 0));
+      result = [...realUsers, ...bots];
     } else if (filters.orderBy === 'newest') {
       result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
@@ -296,7 +306,7 @@ export default function Discover() {
     result = [...vip, ...nonVip];
 
     return result;
-  }, [profiles, filters, onlineUsers, currentUserProfile]);
+  }, [profiles, filters, onlineUsers, botIds, currentUserProfile]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
 
