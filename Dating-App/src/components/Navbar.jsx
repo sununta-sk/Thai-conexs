@@ -98,6 +98,14 @@ function NavbarDesktop() {
       boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       boxSizing: 'border-box',
     }}>
+      {/* Same @keyframes name/definition as Discover's VIP card shimmer -
+          identical rule, so this is a reuse, not a second animation. */}
+      <style>{`
+        @keyframes vipShimmer {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+      `}</style>
 
       {/* Left: Logo + Online pill */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifySelf: 'start' }}>
@@ -189,11 +197,17 @@ function NavbarDesktop() {
             onMouseEnter={(e) => e.currentTarget.style.background = '#334155'}
             onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
           >
-            {myAvatar ? (
-              <img src={myAvatar} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #334155' }} />
-            ) : (
-              <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
-            )}
+            {/* VIP ring reuses Discover's vipFrame gradient/animation (same
+                colors, same 5s linear shimmer) - here just circular padding
+                instead of Discover's square-card padding, sized so the
+                overall 38x38 footprint is unchanged. */}
+            <div style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
+              {myAvatar ? (
+                <img src={myAvatar} alt="" style={isPremium ? avatarImgVipStyle : avatarImgStyle} />
+              ) : (
+                <div style={{ ...(isPremium ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+              )}
+            </div>
             <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>▼</span>
           </button>
 
@@ -217,6 +231,15 @@ function NavbarDesktop() {
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ {tx.editProfile || 'Edit Profile'}</MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>⚙️ {tx.accountSettings || 'Account Settings'}</MenuItem>
+              {/* Same destination as the "Upgrade Account" button above (/subscription) */}
+              <MenuItem
+                onClick={() => goTo('/subscription')}
+                color="#fff"
+                background="linear-gradient(135deg, #22c55e, #16a34a)"
+                hoverBackground="linear-gradient(135deg, #16a34a, #15803d)"
+              >
+                💎 {tx.upgradeProfile || 'Upgrade Profile'}
+              </MenuItem>
               <MenuItem onClick={() => goTo('/help')}>❓ {tx.help || 'Help'}</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 {tx.notifications || 'Notifications'}</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
@@ -235,7 +258,7 @@ function NavbarDesktop() {
   );
 }
 
-function MenuItem({ children, onClick, color = '#94a3b8' }) {
+function MenuItem({ children, onClick, color = '#94a3b8', background = 'none', hoverBackground = '#334155' }) {
   return (
     <button
       onClick={onClick}
@@ -244,7 +267,7 @@ function MenuItem({ children, onClick, color = '#94a3b8' }) {
         width: '100%',
         padding: '12px 16px',
         border: 'none',
-        background: 'none',
+        background,
         textAlign: 'left',
         cursor: 'pointer',
         fontSize: 14,
@@ -252,13 +275,32 @@ function MenuItem({ children, onClick, color = '#94a3b8' }) {
         color: color,
         transition: 'background 0.15s',
       }}
-      onMouseEnter={(e) => e.currentTarget.style.background = '#334155'}
-      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+      onMouseEnter={(e) => e.currentTarget.style.background = hoverBackground}
+      onMouseLeave={(e) => e.currentTarget.style.background = background}
     >
       {children}
     </button>
   );
 }
+
+// Navbar avatar VIP ring - same gradient/backgroundSize/animation as
+// Discover's S.vipFrame, just circular (borderRadius 50%) and a fixed 38px
+// footprint instead of Discover's square card. avatarImgVipStyle shrinks the
+// avatar by the ring's padding so the overall footprint stays 38x38.
+const avatarFrameOffStyle = { display: 'block' };
+const avatarVipFrameStyle = {
+  display: 'block',
+  width: 38,
+  height: 38,
+  padding: 3,
+  boxSizing: 'border-box',
+  borderRadius: '50%',
+  background: 'linear-gradient(90deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292)',
+  backgroundSize: '300% 100%',
+  animation: 'vipShimmer 5s linear infinite',
+};
+const avatarImgStyle = { width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #334155' };
+const avatarImgVipStyle = { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' };
 
 const navBtnStyle = (active) => ({
   background: 'none',
