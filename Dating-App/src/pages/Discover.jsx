@@ -408,9 +408,16 @@ export default function Discover() {
            responsive). Grid max-width is solved so grid + both boxes + gaps +
            edge insets always sum to <=100vw, reaching the original fixed
            1100px cap once there's room (at ~1560px+), unchanged above that. */
+        /* Box vertical position: roughly centered in the viewport, but never
+           above 260px from the top — verified (header 77px + searchBar
+           bottom at 242px, see commit notes) so the box can never overlap
+           the fixed nav bar or the filter/search bar. --tcn-box-h (464px) is
+           the box's height floor (see promoBox.minHeight) used here so the
+           centering math matches the box's real rendered size. */
         :root {
           --tcn-box-w: clamp(120px, 14vw, 200px);
           --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
+          --tcn-box-h: 464px;
         }
         .tcn-promo-box { display: none; }
         @media (min-width: 768px) {
@@ -701,12 +708,19 @@ const S = {
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
   // TCN Referral promo boxes (side margins, desktop-wide only — see .tcn-promo-box media query)
+  // top/minHeight: see the --tcn-box-h comment in the <style> block — the
+  // 260px floor and 464px height together guarantee the box can never
+  // overlap the fixed nav bar (77px) or searchBar (bottom edge 242px).
   promoBox: {
     position: 'fixed',
-    top: 110,
+    top: 'max(260px, calc(50vh - var(--tcn-box-h) / 2))',
     width: 'var(--tcn-box-w)',
+    minHeight: 'var(--tcn-box-h)',
     boxSizing: 'border-box',
-    padding: '16px 14px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    padding: '20px 16px',
     background: 'linear-gradient(135deg, #e91e63, #9c27b0)',
     borderRadius: 14,
     boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
@@ -714,22 +728,22 @@ const S = {
   },
   promoClose: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 20,
-    height: 20,
+    top: 10,
+    right: 10,
+    width: 22,
+    height: 22,
     borderRadius: '50%',
     border: 'none',
     background: 'rgba(255,255,255,0.2)',
     color: '#fff',
-    fontSize: 11,
-    lineHeight: '20px',
+    fontSize: 12,
+    lineHeight: '22px',
     padding: 0,
     cursor: 'pointer',
   },
-  promoEyebrow: { margin: '0 20px 4px 0', fontSize: 10, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9, color: '#fff' },
-  promoHeadline: { margin: '0 0 6px', fontSize: 16, fontWeight: 900, color: '#fff', lineHeight: 1.2 },
-  promoBody: { margin: '0 0 10px', fontSize: 11, lineHeight: 1.4, color: 'rgba(255,255,255,0.9)' },
-  promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '6px 8px', fontSize: 13, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 8, wordBreak: 'break-all' },
-  promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '6px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' },
+  promoEyebrow: { margin: '0 22px 6px 0', fontSize: 11, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9, color: '#fff' },
+  promoHeadline: { margin: '0 0 8px', fontSize: 19, fontWeight: 900, color: '#fff', lineHeight: 1.2 },
+  promoBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, color: 'rgba(255,255,255,0.9)' },
+  promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 10px', fontSize: 15, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 12, wordBreak: 'break-all' },
+  promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
