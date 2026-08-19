@@ -42,6 +42,19 @@ const HERO_TEXT_EN = [
   "Join now and start your search today!",
 ];
 
+// Same matching lists Discover.jsx's gender filter uses (kept verbatim so
+// both pages agree on what counts as male/female/transgender) - anything
+// that isn't a male/female match (transgender, other, blank, null, etc.)
+// gets a generic pride-flag icon instead of guessing.
+function genderBadge(rawGender) {
+  const g = (rawGender || '').toLowerCase().trim();
+  const isMale = ['male', 'ชาย', 'm', 'man'].includes(g);
+  const isFemale = ['female', 'หญิง', 'f', 'woman'].includes(g);
+  if (isMale) return '♂';
+  if (isFemale) return '♀';
+  return '🏳️‍🌈';
+}
+
 function UserPhotoGrid({ isMobile }) {
   const [profiles, setProfiles] = useState([]); const cols = isMobile ? 4 : 8; const total = isMobile ? 16 : 32;
 
@@ -91,9 +104,7 @@ function UserPhotoGrid({ isMobile }) {
                 style={G.img}
                 onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
               />
-              {p.details?.gender && (
-                <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
-              )}
+              <div style={G.badge}>{genderBadge(p.details?.gender)}</div>
             </div>
           )).concat(
             Array.from({ length: Math.max(0, total - Math.min(profiles.length, total)) }).map((_, i) => (
