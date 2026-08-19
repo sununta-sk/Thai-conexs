@@ -69,6 +69,31 @@ const REFERRAL_PROMO = {
   },
 };
 
+// Copy for the right-margin VIP membership promo box. Priority visibility is
+// live today (VIP-first search ranking); messaging + translate are on the
+// roadmap, so those two are phrased as upcoming rather than claimed as
+// already active.
+const VIP_PROMO = {
+  en: {
+    eyebrow: 'VIP MEMBERSHIP',
+    headline: 'More reasons to go VIP',
+    points: [
+      { icon: '🔝', text: 'Priority visibility — your profile shows first in Discover, every time.' },
+      { icon: '💬', text: 'Unlimited messaging — unlocking soon for VIP members.' },
+      { icon: '🌐', text: 'Free in-chat translation — unlocking soon for VIP members.' },
+    ],
+  },
+  th: {
+    eyebrow: 'สมาชิก VIP',
+    headline: 'เหตุผลดีๆ ที่ควรเป็น VIP',
+    points: [
+      { icon: '🔝', text: 'การมองเห็นสูงสุด — โปรไฟล์ของคุณแสดงเป็นอันดับแรกในหน้าค้นหาเสมอ' },
+      { icon: '💬', text: 'ส่งข้อความไม่จำกัด — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
+      { icon: '🌐', text: 'แปลข้อความในแชทฟรี — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
+    ],
+  },
+};
+
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -443,17 +468,16 @@ export default function Discover() {
           </div>
           <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
             <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
-            <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
-            <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
-            <p style={S.promoBody}>{REFERRAL_PROMO[lang]?.body || REFERRAL_PROMO.en.body}</p>
-            <div style={S.promoCode}>{referralCode}</div>
-            <button
-              type="button"
-              style={S.promoCopyBtn}
-              onClick={() => { navigator.clipboard.writeText(referralCode); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
-            >
-              {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
-            </button>
+            <p style={S.promoEyebrow}>{VIP_PROMO[lang]?.eyebrow || VIP_PROMO.en.eyebrow}</p>
+            <h3 style={S.promoHeadline}>{VIP_PROMO[lang]?.headline || VIP_PROMO.en.headline}</h3>
+            <ul style={S.promoList}>
+              {(VIP_PROMO[lang]?.points || VIP_PROMO.en.points).map((point, i) => (
+                <li key={i} style={S.promoListItem}>
+                  <span style={S.promoListIcon}>{point.icon}</span>
+                  <span>{point.text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </>
       )}
@@ -746,4 +770,8 @@ const S = {
   promoBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, color: 'rgba(255,255,255,0.9)' },
   promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 10px', fontSize: 15, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 12, wordBreak: 'break-all' },
   promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  // Right box's 3-point VIP benefit list (bullet-point format, same visual language as the left box)
+  promoList: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 },
+  promoListItem: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, lineHeight: 1.35, color: 'rgba(255,255,255,0.95)' },
+  promoListIcon: { fontSize: 13, lineHeight: 1.3, flexShrink: 0 },
 };
