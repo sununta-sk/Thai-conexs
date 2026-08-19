@@ -31,6 +31,14 @@ export default function AccountSettings() {
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
 
+  // Passed / blocked profiles - view + undo. Two separate lists (not
+  // merged) since they're two separate tables/actions, even though the
+  // undo mechanics are identical for both.
+  const [passedProfiles, setPassedProfiles] = useState([]);
+  const [blockedProfiles, setBlockedProfiles] = useState([]);
+  const [loadingPassedBlocked, setLoadingPassedBlocked] = useState(true);
+  const [undoingId, setUndoingId] = useState(null);
+
   useEffect(() => {
     async function load() {
       const { data: { user: u } } = await supabase.auth.getUser();
@@ -57,6 +65,57 @@ export default function AccountSettings() {
     }
     load();
   }, [navigate]);
+
+  // Load the current user's passed + blocked profiles (joined with the
+  // target profile's username/avatar for display). Separate effect/query
+  // from the main profile load above - doesn't touch anything it depends on.
+  useEffect(() => {
+    async function loadPassedAndBlocked() {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) return;
+
+      const [{ data: passes }, { data: blocks }] = await Promise.all([
+        supabase.from('user_passes').select('passed_id').eq('passer_id', u.id),
+        supabase.from('user_blocks').select('blocked_id').eq('blocker_id', u.id),
+      ]);
+
+      const passedIds = (passes || []).map(r => r.passed_id);
+      const blockedIds = (blocks || []).map(r => r.blocked_id);
+      const allIds = [...new Set([...passedIds, ...blockedIds])];
+
+      let profilesById = {};
+      if (allIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', allIds);
+        profilesById = Object.fromEntries((profilesData || []).map(p => [p.id, p]));
+      }
+
+      setPassedProfiles(passedIds.map(id => profilesById[id]).filter(Boolean));
+      setBlockedProfiles(blockedIds.map(id => profilesById[id]).filter(Boolean));
+      setLoadingPassedBlocked(false);
+    }
+    loadPassedAndBlocked();
+  }, []);
+
+  const handleUndoPass = async (targetId) => {
+    if (!user) return;
+    setUndoingId(targetId);
+    const { error } = await supabase.from('user_passes').delete().match({ passer_id: user.id, passed_id: targetId });
+    setUndoingId(null);
+    if (error) { alert('Error: ' + error.message); return; }
+    setPassedProfiles(prev => prev.filter(p => p.id !== targetId));
+  };
+
+  const handleUndoBlock = async (targetId) => {
+    if (!user) return;
+    setUndoingId(targetId);
+    const { error } = await supabase.from('user_blocks').delete().match({ blocker_id: user.id, blocked_id: targetId });
+    setUndoingId(null);
+    if (error) { alert('Error: ' + error.message); return; }
+    setBlockedProfiles(prev => prev.filter(p => p.id !== targetId));
+  };
 
   const USERNAME_COOLDOWN_DAYS = 60;
   const cooldownDaysRemaining = (() => {
@@ -210,6 +269,34 @@ export default function AccountSettings() {
         {RightColumn}
       </div>
 
+      <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
+        <div style={{ ...S.col, gridColumn: isDesktop ? '1 / -1' : undefined }}>
+          <div style={S.card}>
+            <div style={S.cardHeader}>Passed profiles</div>
+            <p style={S.subCardText}>Profiles you've passed on won't show up in Discover. Undo to make them visible again.</p>
+            <PassedBlockedList
+              loading={loadingPassedBlocked}
+              profiles={passedProfiles}
+              emptyText="You haven't passed on anyone."
+              undoingId={undoingId}
+              onUndo={handleUndoPass}
+            />
+          </div>
+
+          <div style={S.card}>
+            <div style={S.cardHeader}>Blocked profiles</div>
+            <p style={S.subCardText}>Blocked profiles can't message you and won't show up in Discover. Undo to unblock.</p>
+            <PassedBlockedList
+              loading={loadingPassedBlocked}
+              profiles={blockedProfiles}
+              emptyText="You haven't blocked anyone."
+              undoingId={undoingId}
+              onUndo={handleUndoBlock}
+            />
+          </div>
+        </div>
+      </div>
+
       {showCloseConfirm && (
         <Modal onClose={() => setShowCloseConfirm(false)}>
           <div style={S.modalIcon}>!</div>
@@ -235,6 +322,30 @@ export default function AccountSettings() {
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+function PassedBlockedList({ loading, profiles, emptyText, undoingId, onUndo }) {
+  if (loading) return <p style={S.note}>Loading…</p>;
+  if (profiles.length === 0) return <p style={S.note}>{emptyText}</p>;
+  return (
+    <div style={S.listWrap}>
+      {profiles.map(p => (
+        <div key={p.id} style={S.listRow}>
+          {p.avatar_url
+            ? <img src={p.avatar_url} alt="" style={S.listAvatar} />
+            : <div style={{ ...S.listAvatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#64748b' }}>👤</div>}
+          <span style={S.listUsername}>{p.username || 'Unknown user'}</span>
+          <button
+            onClick={() => onUndo(p.id)}
+            disabled={undoingId === p.id}
+            style={{ ...S.btnSecondary, opacity: undoingId === p.id ? 0.5 : 1 }}
+          >
+            {undoingId === p.id ? 'Undoing…' : 'Undo'}
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -279,6 +390,10 @@ const S = {
   note: { marginTop: 12, fontSize: 12, color: '#64748b', lineHeight: 1.5 },
   subCardHeader: { fontSize: 14, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
   subCardText: { fontSize: 13, color: '#94a3b8', lineHeight: 1.6, marginTop: 0, marginBottom: 12 },
+  listWrap: { display: 'flex', flexDirection: 'column', gap: 8 },
+  listRow: { display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', borderRadius: 10, background: '#0f172a', border: '1px solid #334155' },
+  listAvatar: { width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', background: '#334155', flexShrink: 0 },
+  listUsername: { flex: 1, fontSize: 14, fontWeight: 700, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   modalIcon: { fontSize: 40, marginBottom: 12 },
   modalTitle: { fontSize: 18, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
   modalText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.6, margin: 0 },
