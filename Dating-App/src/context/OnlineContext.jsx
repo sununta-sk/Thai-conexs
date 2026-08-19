@@ -1,5 +1,5 @@
 // src/contexts/OnlineContext.jsx
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { getActivityTier } from '../lib/activityStatus';
 
@@ -8,12 +8,20 @@ import { getActivityTier } from '../lib/activityStatus';
 // without new data arriving.
 const POLL_INTERVAL_MS = 60 * 1000;
 
+// How often the current user's own last_seen_at gets written while the app
+// is open - anywhere, not just Discover. Comfortably inside
+// ONLINE_THRESHOLD_MS (15 min) so "Sort by Last Active" reflects someone
+// who's actively using the app (chatting, browsing profiles, etc.) within a
+// couple of minutes, without writing on every render.
+const HEARTBEAT_INTERVAL_MS = 90 * 1000;
+
 const OnlineContext = createContext({
   onlineUsers: new Set(),
   recentlyActiveUsers: new Set(),
   onlineCount: 0,
   botIds: new Set(),
   getTier: () => 'offline',
+  touchActivity: () => {},
 });
 
 export function OnlineProvider({ children }) {
@@ -86,6 +94,36 @@ export function OnlineProvider({ children }) {
     return () => { supabase.removeChannel(channel); };
   }, [currentUserId]);
 
+  // touchActivity: writes the current user's own last_seen_at "now". Kept
+  // as a stable callback so pages can call it directly at a specific
+  // activity moment (opening a chat, sending a message) instead of waiting
+  // for the interval below. Throttled to at most once every 20s so a burst
+  // of calls (e.g. several messages in quick succession) doesn't turn into
+  // a write per message.
+  const lastHeartbeatRef = useRef(0);
+  const touchActivity = useCallback(() => {
+    if (!currentUserId) return;
+    const now = Date.now();
+    if (now - lastHeartbeatRef.current < 20 * 1000) return;
+    lastHeartbeatRef.current = now;
+    supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUserId)
+      .then(({ error }) => { if (error) console.warn('[OnlineContext] heartbeat write failed:', error.message); });
+  }, [currentUserId]);
+
+  // 5b. Recurring heartbeat: keeps last_seen_at close to real-time while the
+  // user is active ANYWHERE in the app (this provider wraps the whole app,
+  // not just Discover). Skips the write while the tab is hidden/backgrounded
+  // to avoid piling up needless DB writes for an idle background tab.
+  useEffect(() => {
+    if (!currentUserId) return;
+    touchActivity(); // write immediately on login/app-open, don't wait a full interval
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'hidden') return;
+      touchActivity();
+    }, HEARTBEAT_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [currentUserId, touchActivity]);
+
   // 5. Derive the single online / recently-active sets from presence + bots
   // + last_seen_at, all via the shared getActivityTier definition.
   const { onlineUsers, recentlyActiveUsers } = useMemo(() => {
@@ -121,6 +159,7 @@ export function OnlineProvider({ children }) {
       onlineCount: onlineUsers.size,
       botIds,
       getTier,
+      touchActivity,
     }}>
       {children}
     </OnlineContext.Provider>

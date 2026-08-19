@@ -140,7 +140,7 @@ const menuItemStyle = (variant) => ({
 export default function MobileRoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
-  const { getTier } = useOnline();
+  const { getTier, touchActivity } = useOnline();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -219,6 +219,9 @@ export default function MobileRoomChat() {
       .then(({ data }) => { if (data) setOtherProfile(data); });
     supabase.from("profile_views").insert({ viewer_id: session.user.id, viewed_id: otherUserId })
       .then(({ error }) => { if (error) console.error("[ProfileView from chat]", error); });
+    // Opening a chat is an activity moment - touch last_seen_at right away,
+    // same as RoomChat.jsx's identical effect.
+    touchActivity();
     // Depend on the stable user id, not the session object itself - see
     // matching comment in RoomChat.jsx's identical effect.
   }, [otherUserId, session?.user?.id]);
@@ -298,11 +301,11 @@ export default function MobileRoomChat() {
     setMessages(prev => [...prev, tempMsg]);
     if (!content_override) setNewMessage("");
     const { error } = await supabase.from("messages").insert({ chat_id: chatId, room_id: chatId, sender_id: session.user.id, content });
-    if (!error) playSound("send");
+    if (!error) { playSound("send"); touchActivity(); }
     if (error) { console.error("Send error:", error); if (!content_override) setNewMessage(content); }
     setSending(false);
     inputRef.current?.focus();
-  }, [newMessage, session, chatId, sending]);
+  }, [newMessage, session, chatId, sending, touchActivity]);
 
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
   const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
@@ -355,7 +358,9 @@ export default function MobileRoomChat() {
   const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
-  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : timeAgo(otherProfile?.last_seen_at);
+  // "Xd ago" hidden, same principle as the Discover-card fix (2408ea6) and
+  // RoomChat.jsx's matching change - tier labels stay, raw stale time doesn't.
+  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";
 
   if (loading) {
     return (

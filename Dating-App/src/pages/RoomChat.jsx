@@ -372,7 +372,7 @@ function RoomChatDesktop() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { lang } = useTranslation(['common']);
-  const { getTier } = useOnline();
+  const { getTier, touchActivity } = useOnline();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -513,6 +513,9 @@ function RoomChatDesktop() {
     if (!otherUserId || !session) return;
     supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan").eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
+    // Opening a chat is an activity moment - touch last_seen_at right away
+    // instead of waiting for OnlineContext's own heartbeat interval.
+    touchActivity();
     // Track profile view when opening chat (so the other user gets a toast notification)
     supabase.from('profile_views').insert({
       viewer_id: session.user.id,
@@ -572,11 +575,11 @@ function RoomChatDesktop() {
     setMessages(prev => [...prev, tempMsg]);
     if (!content_override) setNewMessage("");
     const { error } = await supabase.from("messages").insert({ chat_id: chatId, room_id: chatId, sender_id: session.user.id, content });
-    if (!error) playSound('send');
+    if (!error) { playSound('send'); touchActivity(); }
     if (error) { console.error("Send error:", error); if (!content_override) setNewMessage(content); }
     setSending(false);
     inputRef.current?.focus();
-  }, [newMessage, session, chatId, sending]);
+  }, [newMessage, session, chatId, sending, touchActivity]);
 
   const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
   const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
@@ -623,7 +626,12 @@ function RoomChatDesktop() {
   const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
-  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : timeAgo(otherProfile?.last_seen_at);
+  // "Xd ago" (raw last-seen timestamp text) is intentionally hidden - same
+  // principle as the earlier Discover-card fix (2408ea6): with a low
+  // current user count, an exact/relative stale time makes low activity
+  // too visible. Online/Recently Active are tier labels, not raw
+  // timestamps, so they're unaffected; the status dot is untouched too.
+  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";
 
   if (loading) {
     return (
