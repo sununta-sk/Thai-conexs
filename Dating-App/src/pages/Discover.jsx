@@ -157,13 +157,10 @@ export default function Discover() {
   // ── TCN Referral promo boxes (side margins) ──
   const [referralCode, setReferralCode] = useState('');
   const [referralCopied, setReferralCopied] = useState(false);
-  const [referralDismissed, setReferralDismissed] = useState(() => {
-    try { return localStorage.getItem('tcn_referral_promo_dismissed') === '1'; } catch { return false; }
-  });
-  const dismissReferralPromo = () => {
-    setReferralDismissed(true);
-    try { localStorage.setItem('tcn_referral_promo_dismissed', '1'); } catch {}
-  };
+  // In-memory only, on purpose: closing the boxes should hide them for this
+  // page view alone, not persist across refreshes/new loads (no localStorage).
+  const [referralDismissed, setReferralDismissed] = useState(false);
+  const dismissReferralPromo = () => setReferralDismissed(true);
 
   useEffect(() => {
     // Quietly ensure the current user has a referral code, reusing the exact
@@ -450,7 +447,12 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {!referralDismissed && referralCode && (
+      {/* Gated on currentUserId (set as soon as the session check resolves),
+          not referralCode (which needs its own extra DB round-trip) - this
+          keeps the boxes' appearance in step with WelcomeModal, which shows
+          right after that same session check with no further fetch. The
+          referral code text/copy button still just fill in once loaded. */}
+      {!referralDismissed && currentUserId && (
         <>
           <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
             <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
