@@ -10,6 +10,7 @@ import PhotoEnlargeModal from '../components/PhotoEnlargeModal';
 import { optimizeImage } from '../lib/imageUtils';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import { useAuditLogger } from '../hooks/useAuditLogger';
+import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -180,6 +181,7 @@ const C = {
 export default function UserProfilePage() {
   const { userId } = useParams();
   const navigate   = useNavigate();
+  const { getTier } = useOnline();
 
   const [profile, setProfile]           = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -299,8 +301,10 @@ export default function UserProfilePage() {
   const allPhotos = avatar ? [avatar, ...photoUrls.filter(u => u !== avatar)] : photoUrls;
 
   const displayCity  = profile.city || profile.location || '';
-  const isOnlineNow  = profile.last_seen_at && (Date.now() - new Date(profile.last_seen_at)) < 5 * 60 * 1000;
-  const lastSeenText = isOnlineNow ? 'Online' : timeAgo(profile.last_seen_at);
+  const activityTier   = getTier(profile.id, profile.last_seen_at);
+  const isOnlineNow    = activityTier === 'online';
+  const isRecentlyActiveNow = activityTier === 'recently_active';
+  const lastSeenText = isOnlineNow ? 'Online' : isRecentlyActiveNow ? 'Recently Active' : timeAgo(profile.last_seen_at);
 
   const handleSendMessage = () => navigate(`/room-chat/${getChatId(currentUserId, profile.id)}`);
   const handleUpgrade     = () => navigate('/subscription');
@@ -360,8 +364,8 @@ export default function UserProfilePage() {
         </div>
 
         <div style={S.subRow}>
-          <span style={isOnlineNow ? S.onlineDot : S.offlineDot} />
-          <span style={{ color: isOnlineNow ? '#4ade80' : '#94a3b8', fontSize: 13 }}>{lastSeenText}</span>
+          <span style={isOnlineNow ? S.onlineDot : isRecentlyActiveNow ? S.recentlyActiveDot : S.offlineDot} />
+          <span style={{ color: isOnlineNow ? '#4ade80' : isRecentlyActiveNow ? '#fbbf24' : '#94a3b8', fontSize: 13 }}>{lastSeenText}</span>
           {displayCity && (
             <>
               <span style={{ color: '#475569' }}>·</span>
@@ -490,6 +494,7 @@ const S = {
   vipBadge: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
+  recentlyActiveDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, boxShadow: '0 0 6px #fbbf24' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
   msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
   actionRow: { display: 'flex', gap: 8, marginTop: 10 },

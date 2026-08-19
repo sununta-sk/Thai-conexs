@@ -7,6 +7,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { optimizeImage } from "../lib/imageUtils";
 import officialLogo from "../lib/LotusConnexs-full.jpeg";
+import { useOnline } from "../context/OnlineContext";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -139,13 +140,13 @@ const menuItemStyle = (variant) => ({
 export default function MobileRoomChat() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const { getTier } = useOnline();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [otherProfile, setOtherProfile] = useState(null);
-  const [isOnline, setIsOnline] = useState(false);
   const [sending, setSending] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -222,14 +223,9 @@ export default function MobileRoomChat() {
     // matching comment in RoomChat.jsx's identical effect.
   }, [otherUserId, session?.user?.id]);
 
-  // Presence channel — identical to RoomChat
-  useEffect(() => {
-    if (!session || !otherUserId) return;
-    const ch = supabase.channel(`presence:${chatId}`, { config: { presence: { key: session.user.id } } });
-    ch.on("presence", { event: "sync" }, () => { setIsOnline(!!ch.presenceState()[otherUserId]); })
-      .subscribe(async (s) => { if (s === "SUBSCRIBED") await ch.track({ online_at: new Date().toISOString() }); });
-    return () => { supabase.removeChannel(ch); };
-  }, [session, otherUserId, chatId]);
+  // Online/recently-active status for otherUserId comes from OnlineContext's
+  // shared getTier (below), which already tracks a single app-wide presence
+  // channel — no need for a second, chat-room-scoped presence channel here.
 
   // Messages fetch + realtime + polling — identical to RoomChat
   useEffect(() => {
@@ -356,7 +352,10 @@ export default function MobileRoomChat() {
   const extractedAvatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
   const allPhotos = [...(extractedAvatarUrl ? [extractedAvatarUrl] : []), ...photoUrls.filter(u => u !== extractedAvatarUrl)];
   const avatarUrl = otherUserId === OFFICIAL_ID ? officialLogo : (allPhotos[0] || null);
-  const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
+  const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
+  const isOnline = activityTier === 'online';
+  const isRecentlyActive = activityTier === 'recently_active';
+  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
     return (
@@ -398,7 +397,7 @@ export default function MobileRoomChat() {
           {avatarUrl
             ? <img src={avatarUrl} alt="" style={S.avatar} onError={(e) => { e.target.style.display = 'none'; }} />
             : <div style={S.avatarFallback}>{(otherProfile?.username?.[0] ?? "?").toUpperCase()}</div>}
-          <div style={{ ...S.presenceDot, background: isOnline ? "#4caf50" : "#64748b" }} />
+          <div style={{ ...S.presenceDot, background: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#64748b" }} />
         </div>
 
         <div style={S.headerInfo} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
@@ -408,7 +407,7 @@ export default function MobileRoomChat() {
           </div>
           <div style={S.headerSub}>
             {profileCity ? <span>📍 {profileCity} · </span> : null}
-            <span style={{ color: isOnline ? "#4caf50" : "#94a3b8" }}>{onlineStatusText}</span>
+            <span style={{ color: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#94a3b8" }}>{onlineStatusText}</span>
           </div>
         </div>
 

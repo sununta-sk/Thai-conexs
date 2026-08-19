@@ -151,7 +151,7 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [banInfo, setBanInfo] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const { onlineUsers } = useOnline();
+  const { onlineUsers, recentlyActiveUsers } = useOnline();
   const navigate = useNavigate();
 
   // ── TCN Referral promo boxes (side margins) ──
@@ -599,6 +599,7 @@ export default function Discover() {
           {filteredProfiles.map((profile) => {
             const photoUrl = getMainPhoto(profile);
             const isOnline = onlineUsers.has(profile.id);
+            const isRecentlyActive = !isOnline && recentlyActiveUsers.has(profile.id);
             const age = profile.details?.age ?? '';
             const gender = profile.details?.gender ?? '';
             const city = profile.city || profile.details?.city || '';
@@ -610,7 +611,10 @@ export default function Discover() {
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
                     {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
-                    <div style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : '#64748b' }} />
+                    <div
+                      style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
+                      title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
+                    />
                   </div>
                 </div>
                 <div style={S.info}>

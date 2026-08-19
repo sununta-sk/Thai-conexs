@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useIsMobile, useIsDesktop } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
+import { useOnline } from "../context/OnlineContext";
 import MobileRoomChat from "../components/MobileRoomChat";
 import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
@@ -217,7 +218,7 @@ const SC = {
   lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
-function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
+function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
   const d = profile?.details || {};
   const age = d.age || '';
   const gender = d.gender || '';
@@ -252,8 +253,8 @@ function DesktopSidebar({ profile, allPhotos, isOnline, onlineStatusText, isSubs
         </div>
 
         <div style={DS.statusRow}>
-          <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : '#64748b' }} />
-          <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : '#94a3b8' }}>{onlineStatusText}</span>
+          <div style={{ ...DS.statusDot, background: isOnline ? '#4caf50' : isRecentlyActive ? '#fbbf24' : '#64748b' }} />
+          <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : isRecentlyActive ? '#fbbf24' : '#94a3b8' }}>{onlineStatusText}</span>
         </div>
 
         {city && <div style={DS.city}>📍 {city}</div>}
@@ -371,13 +372,13 @@ function RoomChatDesktop() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const { lang } = useTranslation(['common']);
+  const { getTier } = useOnline();
 
   const [session, setSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [otherProfile, setOtherProfile] = useState(null);
-  const [isOnline, setIsOnline] = useState(false);
   const [sending, setSending] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showReport, setShowReport] = useState(false);
@@ -527,13 +528,9 @@ function RoomChatDesktop() {
     // chat open.
   }, [otherUserId, session?.user?.id]);
 
-  useEffect(() => {
-    if (!session || !otherUserId) return;
-    const ch = supabase.channel(`presence:${chatId}`, { config: { presence: { key: session.user.id } } });
-    ch.on("presence", { event: "sync" }, () => { setIsOnline(!!ch.presenceState()[otherUserId]); })
-      .subscribe(async (s) => { if (s === "SUBSCRIBED") await ch.track({ online_at: new Date().toISOString() }); });
-    return () => { supabase.removeChannel(ch); };
-  }, [session, otherUserId, chatId]);
+  // Online/recently-active status for otherUserId comes from OnlineContext's
+  // shared getTier (below), which already tracks a single app-wide presence
+  // channel — no need for a second, chat-room-scoped presence channel here.
 
   useEffect(() => {
     if (!session || !chatId) return;
@@ -623,7 +620,10 @@ function RoomChatDesktop() {
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
   const avatarUrl = extractPhotoUrl(otherProfile?.avatar_url);
   const allPhotos = [...(avatarUrl ? [avatarUrl] : []), ...photoUrls.filter(u => u !== avatarUrl)];
-  const onlineStatusText = isOnline ? "Online" : timeAgo(otherProfile?.last_seen_at);
+  const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
+  const isOnline = activityTier === 'online';
+  const isRecentlyActive = activityTier === 'recently_active';
+  const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : timeAgo(otherProfile?.last_seen_at);
 
   if (loading) {
     return (
@@ -663,8 +663,8 @@ function RoomChatDesktop() {
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
           <div style={S.onlineRow}>
-            <div style={{ ...S.onlineDot, background: isOnline ? "#4caf50" : "#64748b" }} />
-            <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : "#94a3b8" }}>{onlineStatusText}</span>
+            <div style={{ ...S.onlineDot, background: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#64748b" }} />
+            <span style={{ ...S.onlineText, color: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#94a3b8" }}>{onlineStatusText}</span>
           </div>
         </div>
         {!isDesktop && (
@@ -824,6 +824,7 @@ function RoomChatDesktop() {
           profile={otherProfile}
           allPhotos={allPhotos}
           isOnline={isOnline}
+          isRecentlyActive={isRecentlyActive}
           onlineStatusText={onlineStatusText}
           isSubscriber={isSubscriber}
           onUpgrade={handleUpgrade}
