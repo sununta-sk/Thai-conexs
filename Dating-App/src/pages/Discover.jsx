@@ -515,16 +515,23 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {/* Ad rails: 6 stacked slots per side (Task 4). Positioned absolute
-          (not fixed) relative to this page's own box — see S.page's
-          position:relative below — so the rail scrolls with the page instead
-          of being pinned to viewport height, which is what lets it track
-          the page instead of clipping against the viewport.
+      {/* Ad rails: 6 stacked slots per side (Task 4). Fixed to the viewport
+          (not absolute/scrolling with the page) so the ads stay visible the
+          whole time the user scrolls through Discover's 200+-profile grid,
+          per client follow-up — an ad nobody scrolls back up to see isn't
+          useful to an advertiser. Went with fixed over sticky: this is a
+          straight revert to how the very first (pre-Task-4) promo boxes
+          positioned themselves, so the horizontal calc()s below (already
+          written assuming viewport-relative %) and the vertical placement
+          need no changes; sticky would add containing-block edge cases
+          (unsticking at a parent's bottom edge, breaking under an
+          unnoticed overflow:hidden ancestor) for no benefit here — Discover
+          has no footer below the grid for the rail to need to "release" for.
           top: var(--tcn-ad-top) (90px) lines the rail's top edge up with the
           top of the search/filter bar, which sits immediately after that
           same 90px of paddingTop on S.page. Slot height (see --tcn-ad-slot-h
-          above) is computed from actual viewport height so all 6 fit on load
-          without needing to scroll the rail into view.
+          above) is computed from actual viewport height so all 6 always fit
+          on screen without overflow.
           Gated on currentUserId, matching the old promo boxes' timing so
           this still appears in step with WelcomeModal. */}
       {currentUserId && (
@@ -802,10 +809,17 @@ const S = {
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
   // Advertiser ad rails (side margins, desktop-wide only — see .tcn-promo-box
-  // media query). Absolute (not fixed) so the rail scrolls with the page —
-  // see the position:'relative' on S.page and the comment above the render.
+  // media query). Fixed (not absolute) per client follow-up: ads should stay
+  // on screen the whole time the user scrolls through Discover's 200+-profile
+  // grid, not scroll away after the first screen — see the comment above the
+  // render for why fixed over sticky. top/left/right are unchanged from the
+  // absolute version: they were already written as viewport-relative calc()s
+  // (this mirrors the very first, pre-Task-4 fixed promo boxes), and %/vh
+  // units resolve the same way for a fixed element as they did for an
+  // absolute one anchored to S.page, since S.page has no width/height
+  // constraint of its own (it just fills the viewport).
   adRail: {
-    position: 'absolute',
+    position: 'fixed',
     top: 'var(--tcn-ad-top)',
     width: 'var(--tcn-box-w)',
     display: 'flex',
