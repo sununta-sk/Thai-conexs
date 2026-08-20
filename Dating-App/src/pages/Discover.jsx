@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo, memo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
 import { getStatesForCountryName } from '../data/worldLocations';
@@ -102,6 +102,103 @@ function AdSlot({ slot, onDismiss }) {
   );
 }
 
+// Ad rails (side margins) — Task 4, extracted into their own component (was
+// previously state living directly in Discover()) so the 10s rotation timer
+// only re-renders this small subtree, not the ~150+-card profile grid that
+// used to share the same component and re-execute in full on every tick.
+// memo()'d on top of that so this also skips re-rendering when Discover
+// re-renders for unrelated reasons (filter changes, OnlineContext's own
+// 30-60s ticks) — currentUserId is the only prop, and it only ever changes
+// once per session (login), so this should render once, then only on its
+// own internal state changes.
+const AdRails = memo(function AdRails({ currentUserId }) {
+  const [ads, setAds] = useState([]);
+  const [adRotationTick, setAdRotationTick] = useState(0);
+  // In-memory only, on purpose: dismissing a slot hides it for this page view
+  // alone, not persisted (no localStorage) — reappears on refresh. Tracked by
+  // side+position, not by ad id, so a slot the visitor closed stays closed
+  // even as its rotating content changes underneath it.
+  const [dismissedAdSlots, setDismissedAdSlots] = useState(new Set());
+  const dismissAdSlot = (side, slotIndex) => {
+    setDismissedAdSlots(prev => { const next = new Set(prev); next.add(`${side}:${slotIndex}`); return next; });
+  };
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('ads').select('*').eq('is_active', true).order('display_order', { ascending: true });
+      if (!cancelled) setAds(data || []);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    // Client-side rotation only — no reload. Advancing this tick shifts which
+    // ad/placeholder each slot shows (see getAdSlotContent below). Scoped to
+    // this component now, so this re-render never touches the profile grid.
+    const timer = setInterval(() => setAdRotationTick(t => t + 1), 10000);
+    return () => clearInterval(timer);
+  }, [currentUserId]);
+
+  function getAdSlotContent(side, slotIndex) {
+    const realAds = ads.filter(a => a.side === side || a.side === 'both');
+    if (realAds.length === 0) {
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
+    }
+    if (realAds.length <= AD_SLOTS_PER_SIDE) {
+      // Everything already fits — no rotation needed, real ads first.
+      if (slotIndex < realAds.length) return { type: 'ad', ad: realAds[slotIndex] };
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
+    }
+    // More real ads than visible slots: rotate through the full pool over
+    // time so every configured ad eventually gets shown.
+    const idx = (adRotationTick + slotIndex) % realAds.length;
+    return { type: 'ad', ad: realAds[idx] };
+  }
+
+  // Gated on currentUserId, matching the old promo boxes' timing so this
+  // still appears in step with WelcomeModal. Returning null here (rather
+  // than the parent conditionally mounting/unmounting this component)
+  // means AdRails mounts once and its effects don't re-fire on login.
+  if (!currentUserId) return null;
+
+  return (
+    <>
+      {/* Fixed to the viewport (not absolute/scrolling with the page) so the
+          ads stay visible the whole time the user scrolls through Discover's
+          200+-profile grid, per client follow-up — an ad nobody scrolls back
+          up to see isn't useful to an advertiser. Fixed over sticky: this is
+          a straight revert to how the very first (pre-Task-4) promo boxes
+          positioned themselves, so the horizontal calc()s below (already
+          written assuming viewport-relative %) and the vertical placement
+          need no changes; sticky would add containing-block edge cases for
+          no benefit — Discover has no footer below the grid to release for.
+          top: var(--tcn-ad-top) (90px) lines the rail's top edge up with the
+          top of the search/filter bar (see Discover's <style> block for the
+          CSS vars — they're defined on :root, so available here too even
+          though this is a separate component). Slot height (--tcn-ad-slot-h)
+          is computed from actual viewport height so all 6 always fit without
+          overflow. */}
+      <div className="tcn-promo-box" style={{ ...S.adRail, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
+        {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
+          dismissedAdSlots.has(`left:${i}`) ? null : (
+            <AdSlot key={i} slot={getAdSlotContent('left', i)} onDismiss={() => dismissAdSlot('left', i)} />
+          )
+        ))}
+      </div>
+      <div className="tcn-promo-box" style={{ ...S.adRail, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
+        {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
+          dismissedAdSlots.has(`right:${i}`) ? null : (
+            <AdSlot key={i} slot={getAdSlotContent('right', i)} onDismiss={() => dismissAdSlot('right', i)} />
+          )
+        ))}
+      </div>
+    </>
+  );
+});
+
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
@@ -147,10 +244,6 @@ function inRange(value, range) {
 export default function Discover() {
   const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
   const isMobile = useIsMobile();
-  if (typeof window !== 'undefined') {
-    window.__debugWidth = window.innerWidth;
-    console.log('[DEBUG] window.innerWidth =', window.innerWidth, 'isMobile =', isMobile);
-  }
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
   const [passedIds, setPassedIds] = useState(new Set());
@@ -179,52 +272,6 @@ export default function Discover() {
     })();
     return () => { cancelled = true; };
   }, [currentUserId]);
-
-  // ── Advertiser ad rails (side margins) — Task 4 ──
-  const [ads, setAds] = useState([]);
-  const [adRotationTick, setAdRotationTick] = useState(0);
-  // In-memory only, on purpose: dismissing a slot hides it for this page view
-  // alone, not persisted (no localStorage) — reappears on refresh. Tracked by
-  // side+position, not by ad id, so a slot the visitor closed stays closed
-  // even as its rotating content changes underneath it.
-  const [dismissedAdSlots, setDismissedAdSlots] = useState(new Set());
-  const dismissAdSlot = (side, slotIndex) => {
-    setDismissedAdSlots(prev => { const next = new Set(prev); next.add(`${side}:${slotIndex}`); return next; });
-  };
-
-  useEffect(() => {
-    if (!currentUserId) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase.from('ads').select('*').eq('is_active', true).order('display_order', { ascending: true });
-      if (!cancelled) setAds(data || []);
-    })();
-    return () => { cancelled = true; };
-  }, [currentUserId]);
-
-  useEffect(() => {
-    if (!currentUserId) return;
-    // Client-side rotation only — no reload. Advancing this tick shifts which
-    // ad/placeholder each slot shows (see getAdSlotContent below).
-    const timer = setInterval(() => setAdRotationTick(t => t + 1), 10000);
-    return () => clearInterval(timer);
-  }, [currentUserId]);
-
-  function getAdSlotContent(side, slotIndex) {
-    const realAds = ads.filter(a => a.side === side || a.side === 'both');
-    if (realAds.length === 0) {
-      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
-    }
-    if (realAds.length <= AD_SLOTS_PER_SIDE) {
-      // Everything already fits — no rotation needed, real ads first.
-      if (slotIndex < realAds.length) return { type: 'ad', ad: realAds[slotIndex] };
-      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
-    }
-    // More real ads than visible slots: rotate through the full pool over
-    // time so every configured ad eventually gets shown.
-    const idx = (adRotationTick + slotIndex) % realAds.length;
-    return { type: 'ad', ad: realAds[idx] };
-  }
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -483,9 +530,35 @@ export default function Discover() {
   return (
     <div style={{ ...S.page, position: 'relative', paddingTop: isMobile ? 0 : 90 }}>
       <style>{`
-        @keyframes vipShimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        /* VIP shimmer border: was animating background-position, a
+           paint-triggering property (repaints the gradient every frame for
+           every visible VIP card, indefinitely). Replaced with a rotating
+           conic-gradient layer animated via transform:rotate() instead —
+           compositor-only, no layout/paint per frame — using the same
+           5-color loop (first/last color already matched for a seamless
+           conic wrap) so the visual read (a moving rainbow border) is the
+           same, just spinning instead of scrolling sideways.
+           The layer is 2x the frame's size (inset:-50%) and centered so
+           full rotation always covers every corner with no gaps; .tcn-vip-
+           frame's overflow:hidden (see S.vipFrame) clips it back down to
+           the frame's own shape. ">*  { z-index:1 }" lifts the actual photo
+           (which already paints its own #334155 background - see
+           S.photoWrap) above the spinning layer, so only the padding-width
+           ring shows the gradient underneath. */
+        @keyframes vipSpin {
+          to { transform: rotate(360deg); }
+        }
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * {
+          position: relative;
+          z-index: 1;
         }
         /* Ad rail width scales 120px->200px as viewport grows 768px->~1429px,
            then holds at 200px (matches the box width used before this was made
@@ -515,43 +588,12 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {/* Ad rails: 6 stacked slots per side (Task 4). Fixed to the viewport
-          (not absolute/scrolling with the page) so the ads stay visible the
-          whole time the user scrolls through Discover's 200+-profile grid,
-          per client follow-up — an ad nobody scrolls back up to see isn't
-          useful to an advertiser. Went with fixed over sticky: this is a
-          straight revert to how the very first (pre-Task-4) promo boxes
-          positioned themselves, so the horizontal calc()s below (already
-          written assuming viewport-relative %) and the vertical placement
-          need no changes; sticky would add containing-block edge cases
-          (unsticking at a parent's bottom edge, breaking under an
-          unnoticed overflow:hidden ancestor) for no benefit here — Discover
-          has no footer below the grid for the rail to need to "release" for.
-          top: var(--tcn-ad-top) (90px) lines the rail's top edge up with the
-          top of the search/filter bar, which sits immediately after that
-          same 90px of paddingTop on S.page. Slot height (see --tcn-ad-slot-h
-          above) is computed from actual viewport height so all 6 always fit
-          on screen without overflow.
-          Gated on currentUserId, matching the old promo boxes' timing so
-          this still appears in step with WelcomeModal. */}
-      {currentUserId && (
-        <>
-          <div className="tcn-promo-box" style={{ ...S.adRail, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
-              dismissedAdSlots.has(`left:${i}`) ? null : (
-                <AdSlot key={i} slot={getAdSlotContent('left', i)} onDismiss={() => dismissAdSlot('left', i)} />
-              )
-            ))}
-          </div>
-          <div className="tcn-promo-box" style={{ ...S.adRail, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
-              dismissedAdSlots.has(`right:${i}`) ? null : (
-                <AdSlot key={i} slot={getAdSlotContent('right', i)} onDismiss={() => dismissAdSlot('right', i)} />
-              )
-            ))}
-          </div>
-        </>
-      )}
+      {/* Ad rails: 6 stacked slots per side (Task 4), extracted into their
+          own AdRails component (defined above, near AdSlot) so its 10s
+          rotation timer only re-renders that small subtree — not this whole
+          Discover component and its ~150+-card grid below. All positioning/
+          styling comments now live on AdRails itself. */}
+      <AdRails currentUserId={currentUserId} />
       {isMobile && (
         <MobileDiscoverFilters
           filters={filters}
@@ -677,7 +719,7 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
-                <div style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
+                <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
                   <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
@@ -783,13 +825,15 @@ const S = {
   },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
   vipFrameOff: { display: 'block' },
+  // The animated gradient itself now lives in the .tcn-vip-frame CSS class
+  // (see the <style> block above) as a rotating ::before layer — this
+  // object just sets up the box that layer clips against.
   vipFrame: {
     display: 'block',
+    position: 'relative',
+    overflow: 'hidden',
     padding: 3,
     boxSizing: 'border-box',
-    background: 'linear-gradient(90deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292)',
-    backgroundSize: '300% 100%',
-    animation: 'vipShimmer 5s linear infinite',
   },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
