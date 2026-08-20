@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { icon: '🏷️', label: 'Plans',            path: '/admin/plans',                  module: 'finance' },
   { icon: '⚙️', label: 'Platform Settings', path: '/admin/platform/settings',     module: 'platform' },
   { icon: '📢', label: 'Announcements',     path: '/admin/platform/announcements', module: 'platform' },
+  { icon: '📣', label: 'Advertisers',       path: '/admin/ads',                    module: 'platform' },
   { icon: '🏆', label: 'Commission',        path: '/admin/commission-settings',    module: 'platform' },
   { icon: '👤', label: 'Team',              path: '/admin/team',                   module: 'platform' },
   { icon: '📜', label: 'Audit Log',         path: '/admin/audit-log',              module: 'platform' },
@@ -29,7 +30,7 @@ const NAV_GROUPS = [
   { label: 'MODERATION', paths: ['/admin/moderation/photos', '/admin/moderation/reports', '/admin/moderation/tickets'] },
   { label: 'AFFILIATES', paths: ['/admin/affiliates', '/admin/payouts'] },
   { label: 'FINANCE',    paths: ['/admin/revenue', '/admin/subscriptions', '/admin/plans'] },
-  { label: 'PLATFORM',   paths: ['/admin/platform/settings', '/admin/platform/announcements', '/admin/commission-settings'] },
+  { label: 'PLATFORM',   paths: ['/admin/platform/settings', '/admin/platform/announcements', '/admin/ads', '/admin/commission-settings'] },
   { label: 'TEAM',       paths: ['/admin/team', '/admin/audit-log'] },
 ];
 

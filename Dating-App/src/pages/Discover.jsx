@@ -51,48 +51,56 @@ function isVipProfile(p) {
   return p.subscription_plan === 'gold' || p.subscription_plan === 'platinum';
 }
 
-// Copy for the side-margin TCN Referral promo boxes.
-const REFERRAL_PROMO = {
-  en: {
-    eyebrow: 'TCN REFERRAL SYSTEM',
-    headline: 'Invite friends, earn €30',
-    body: "Share your code. When a friend joins and verifies their profile, you get €30 real credit added to your balance.",
-    copyBtn: '📋 Copy Code',
-    copiedBtn: '✅ Copied!',
-  },
-  th: {
-    eyebrow: 'ระบบแนะนำเพื่อน TCN',
-    headline: 'ชวนเพื่อน รับ €30',
-    body: 'แชร์โค้ดของคุณ เมื่อเพื่อนสมัครและยืนยันตัวตนสำเร็จ คุณจะได้รับเครดิตจริง €30 เข้ายอดคงเหลือทันที',
-    copyBtn: '📋 คัดลอกโค้ด',
-    copiedBtn: '✅ คัดลอกแล้ว!',
-  },
+// ── Advertiser ad rails (side margins, replaces the old TCN Referral / VIP
+// promo boxes — Task 4) ──
+// Placeholder designs shown in any slot with no real advertiser. Deliberately
+// more than one so the rotation timer visibly cycles through different looks
+// even at zero real ads configured — this is what lets the client visually
+// confirm the rotation mechanism works before any advertiser buys a slot
+// ("same words, different design, so you can see it's changing").
+const AD_PLACEHOLDER_VARIANTS = ['gradient-pink', 'gradient-gold', 'gradient-teal', 'dark-outline', 'light-ghost'];
+
+// Shared with the admin Ads page (AdsPage.jsx) — keep the variant keys in
+// sync if either side changes.
+const AD_VARIANT_STYLES = {
+  'gradient-pink': { background: 'linear-gradient(135deg, #e91e63, #9c27b0)', color: '#fff', border: 'none' },
+  'gradient-gold':  { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none' },
+  'gradient-teal':  { background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: '#fff', border: 'none' },
+  'dark-outline':   { background: '#1e293b', color: '#f1f5f9', border: '1.5px solid #e91e63' },
+  'light-ghost':    { background: 'rgba(255,255,255,0.07)', color: '#f1f5f9', border: '1.5px dashed rgba(255,255,255,0.35)' },
 };
 
-// Copy for the right-margin VIP membership promo box. Priority visibility is
-// live today (VIP-first search ranking); messaging + translate are on the
-// roadmap, so those two are phrased as upcoming rather than claimed as
-// already active.
-const VIP_PROMO = {
-  en: {
-    eyebrow: 'VIP MEMBERSHIP',
-    headline: 'More reasons to go VIP',
-    points: [
-      { icon: '🔝', text: 'Priority visibility — your profile shows first in Discover, every time.' },
-      { icon: '💬', text: 'Unlimited messaging — unlocking soon for VIP members.' },
-      { icon: '🌐', text: 'Free in-chat translation — unlocking soon for VIP members.' },
-    ],
-  },
-  th: {
-    eyebrow: 'สมาชิก VIP',
-    headline: 'เหตุผลดีๆ ที่ควรเป็น VIP',
-    points: [
-      { icon: '🔝', text: 'การมองเห็นสูงสุด — โปรไฟล์ของคุณแสดงเป็นอันดับแรกในหน้าค้นหาเสมอ' },
-      { icon: '💬', text: 'ส่งข้อความไม่จำกัด — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
-      { icon: '🌐', text: 'แปลข้อความในแชทฟรี — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
-    ],
-  },
-};
+const AD_SLOTS_PER_SIDE = 6;
+
+// One ad rail slot — either a real active ad (clickable, opens destination_url
+// in a new tab) or a placeholder design. The close button sits as a sibling
+// of the <a>, not inside it, so dismissing never triggers a navigation.
+function AdSlot({ slot, onDismiss }) {
+  const variantKey = slot.type === 'ad' ? (slot.ad.design_variant || 'gradient-pink') : slot.variant;
+  const variantStyle = AD_VARIANT_STYLES[variantKey] || AD_VARIANT_STYLES['gradient-pink'];
+  return (
+    <div style={{ ...S.adSlot, ...variantStyle }}>
+      <button type="button" style={S.adSlotClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
+      {slot.type === 'ad' ? (
+        <a href={slot.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.adSlotLink}>
+          {slot.ad.image_url && <img src={slot.ad.image_url} alt="" style={S.adSlotImg} />}
+          <div style={{ minWidth: 0 }}>
+            {slot.ad.advertiser_name && <p style={S.adEyebrow}>{slot.ad.advertiser_name}</p>}
+            <h4 style={S.adHeadline}>{slot.ad.headline}</h4>
+            {slot.ad.body_text && <p style={S.adBody}>{slot.ad.body_text}</p>}
+          </div>
+        </a>
+      ) : (
+        <div style={S.adSlotLink}>
+          <div style={{ minWidth: 0 }}>
+            <p style={S.adEyebrow}>AD SPACE AVAILABLE</p>
+            <h4 style={S.adHeadline}>Your Advertisement Here</h4>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
@@ -154,33 +162,69 @@ export default function Discover() {
   const { onlineUsers, recentlyActiveUsers, botIds } = useOnline();
   const navigate = useNavigate();
 
-  // ── TCN Referral promo boxes (side margins) ──
-  const [referralCode, setReferralCode] = useState('');
-  const [referralCopied, setReferralCopied] = useState(false);
-  // In-memory only, on purpose: closing the boxes should hide them for this
-  // page view alone, not persist across refreshes/new loads (no localStorage).
-  const [referralDismissed, setReferralDismissed] = useState(false);
-  const dismissReferralPromo = () => setReferralDismissed(true);
-
   useEffect(() => {
     // Quietly ensure the current user has a referral code, reusing the exact
     // same generation formula ProfileSetup.jsx uses (TCN-<first 6 of uid>),
-    // so codes stay consistent across the app. Only touches this one column.
-    if (!currentUserId || referralDismissed) return;
+    // so codes stay consistent across the app. No longer displayed on this
+    // page (that surface is now the ad rails below) — UserPayoutPage is
+    // where users actually see/use their code — but kept as a backstop so
+    // older accounts that predate ProfileSetup's own generation still get one.
+    if (!currentUserId) return;
     let cancelled = false;
     (async () => {
       const { data } = await supabase.from('profiles').select('referral_code').eq('id', currentUserId).maybeSingle();
-      if (cancelled) return;
-      if (data?.referral_code) {
-        setReferralCode(data.referral_code);
-      } else {
-        const code = `TCN-${currentUserId.slice(0, 6).toUpperCase()}`;
-        const { error } = await supabase.from('profiles').update({ referral_code: code }).eq('id', currentUserId);
-        if (!cancelled && !error) setReferralCode(code);
-      }
+      if (cancelled || data?.referral_code) return;
+      const code = `TCN-${currentUserId.slice(0, 6).toUpperCase()}`;
+      await supabase.from('profiles').update({ referral_code: code }).eq('id', currentUserId);
     })();
     return () => { cancelled = true; };
-  }, [currentUserId, referralDismissed]);
+  }, [currentUserId]);
+
+  // ── Advertiser ad rails (side margins) — Task 4 ──
+  const [ads, setAds] = useState([]);
+  const [adRotationTick, setAdRotationTick] = useState(0);
+  // In-memory only, on purpose: dismissing a slot hides it for this page view
+  // alone, not persisted (no localStorage) — reappears on refresh. Tracked by
+  // side+position, not by ad id, so a slot the visitor closed stays closed
+  // even as its rotating content changes underneath it.
+  const [dismissedAdSlots, setDismissedAdSlots] = useState(new Set());
+  const dismissAdSlot = (side, slotIndex) => {
+    setDismissedAdSlots(prev => { const next = new Set(prev); next.add(`${side}:${slotIndex}`); return next; });
+  };
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('ads').select('*').eq('is_active', true).order('display_order', { ascending: true });
+      if (!cancelled) setAds(data || []);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    // Client-side rotation only — no reload. Advancing this tick shifts which
+    // ad/placeholder each slot shows (see getAdSlotContent below).
+    const timer = setInterval(() => setAdRotationTick(t => t + 1), 10000);
+    return () => clearInterval(timer);
+  }, [currentUserId]);
+
+  function getAdSlotContent(side, slotIndex) {
+    const realAds = ads.filter(a => a.side === side || a.side === 'both');
+    if (realAds.length === 0) {
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
+    }
+    if (realAds.length <= AD_SLOTS_PER_SIDE) {
+      // Everything already fits — no rotation needed, real ads first.
+      if (slotIndex < realAds.length) return { type: 'ad', ad: realAds[slotIndex] };
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
+    }
+    // More real ads than visible slots: rotate through the full pool over
+    // time so every configured ad eventually gets shown.
+    const idx = (adRotationTick + slotIndex) % realAds.length;
+    return { type: 'ad', ad: realAds[idx] };
+  }
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -209,7 +253,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, created_at').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -427,29 +471,36 @@ export default function Discover() {
   const metaStyle = isMobile ? S.meta : { ...S.meta, fontSize: 'clamp(11px, 0.8vw + 6px, 14px)' };
   const verifiedBadgeStyle = isMobile ? S.verifiedBadge : { ...S.verifiedBadge, fontSize: 'clamp(9px, 0.5vw + 6px, 11px)' };
   const vipBadgeStyle = isMobile ? S.vipBadge : { ...S.vipBadge, fontSize: 'clamp(8px, 0.5vw + 5px, 10px)' };
+  const founderBadgeStyle = isMobile ? S.founderBadge : { ...S.founderBadge, fontSize: 'clamp(9px, 0.5vw + 6px, 12px)' };
 
   return (
-    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
+    <div style={{ ...S.page, position: 'relative', paddingTop: isMobile ? 0 : 90 }}>
       <style>{`
         @keyframes vipShimmer {
           0% { background-position: 0% 50%; }
           100% { background-position: 200% 50%; }
         }
-        /* Promo box width scales 120px->200px as viewport grows 768px->~1429px,
+        /* Ad rail width scales 120px->200px as viewport grows 768px->~1429px,
            then holds at 200px (matches the box width used before this was made
-           responsive). Grid max-width is solved so grid + both boxes + gaps +
+           responsive). Grid max-width is solved so grid + both rails + gaps +
            edge insets always sum to <=100vw, reaching the original fixed
            1100px cap once there's room (at ~1560px+), unchanged above that. */
-        /* Box vertical position: roughly centered in the viewport, but never
-           above 260px from the top — verified (header 77px + searchBar
-           bottom at 242px, see commit notes) so the box can never overlap
-           the fixed nav bar or the filter/search bar. --tcn-box-h (464px) is
-           the box's height floor (see promoBox.minHeight) used here so the
-           centering math matches the box's real rendered size. */
+        /* Ad rail: top aligns with the top of the search/filter bar (i.e.
+           right at the bottom of the fixed 90px navbar — matches S.page's
+           paddingTop below), not with the card grid. Slot height is solved
+           from actual available viewport height so all 6 stacked slots +
+           their gaps fit within one screen on load: 100vh minus the navbar
+           (90px) minus a small bottom margin (20px) minus 5 inter-slot gaps,
+           divided across 6 slots. clamp() floors it at 60px (still legible)
+           and caps it at 130px (so very tall monitors don't get oversized
+           slots) — outside that band a *little* scroll may be needed, but
+           800/900/1080px-tall viewports all land comfortably inside it. */
         :root {
           --tcn-box-w: clamp(120px, 14vw, 200px);
           --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
-          --tcn-box-h: 464px;
+          --tcn-ad-top: 90px;
+          --tcn-ad-gap: clamp(6px, 1vh, 10px);
+          --tcn-ad-slot-h: clamp(60px, calc((100vh - var(--tcn-ad-top) - 20px - (5 * var(--tcn-ad-gap))) / 6), 130px);
         }
         .tcn-promo-box { display: none; }
         @media (min-width: 768px) {
@@ -457,39 +508,33 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {/* Gated on currentUserId (set as soon as the session check resolves),
-          not referralCode (which needs its own extra DB round-trip) - this
-          keeps the boxes' appearance in step with WelcomeModal, which shows
-          right after that same session check with no further fetch. The
-          referral code text/copy button still just fill in once loaded. */}
-      {!referralDismissed && currentUserId && (
+      {/* Ad rails: 6 stacked slots per side (Task 4). Positioned absolute
+          (not fixed) relative to this page's own box — see S.page's
+          position:relative below — so the rail scrolls with the page instead
+          of being pinned to viewport height, which is what lets it track
+          the page instead of clipping against the viewport.
+          top: var(--tcn-ad-top) (90px) lines the rail's top edge up with the
+          top of the search/filter bar, which sits immediately after that
+          same 90px of paddingTop on S.page. Slot height (see --tcn-ad-slot-h
+          above) is computed from actual viewport height so all 6 fit on load
+          without needing to scroll the rail into view.
+          Gated on currentUserId, matching the old promo boxes' timing so
+          this still appears in step with WelcomeModal. */}
+      {currentUserId && (
         <>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
-            <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
-            <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
-            <p style={S.promoBody}>{REFERRAL_PROMO[lang]?.body || REFERRAL_PROMO.en.body}</p>
-            <div style={S.promoCode}>{referralCode}</div>
-            <button
-              type="button"
-              style={S.promoCopyBtn}
-              onClick={() => { navigator.clipboard.writeText(referralCode); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
-            >
-              {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
-            </button>
+          <div className="tcn-promo-box" style={{ ...S.adRail, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
+            {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
+              dismissedAdSlots.has(`left:${i}`) ? null : (
+                <AdSlot key={i} slot={getAdSlotContent('left', i)} onDismiss={() => dismissAdSlot('left', i)} />
+              )
+            ))}
           </div>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
-            <p style={S.promoEyebrow}>{VIP_PROMO[lang]?.eyebrow || VIP_PROMO.en.eyebrow}</p>
-            <h3 style={S.promoHeadline}>{VIP_PROMO[lang]?.headline || VIP_PROMO.en.headline}</h3>
-            <ul style={S.promoList}>
-              {(VIP_PROMO[lang]?.points || VIP_PROMO.en.points).map((point, i) => (
-                <li key={i} style={S.promoListItem}>
-                  <span style={S.promoListIcon}>{point.icon}</span>
-                  <span>{point.text}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="tcn-promo-box" style={{ ...S.adRail, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
+            {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
+              dismissedAdSlots.has(`right:${i}`) ? null : (
+                <AdSlot key={i} slot={getAdSlotContent('right', i)} onDismiss={() => dismissAdSlot('right', i)} />
+              )
+            ))}
           </div>
         </>
       )}
@@ -623,6 +668,7 @@ export default function Discover() {
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
                     {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                    {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
                     <div
                       style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
                       title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
@@ -735,6 +781,7 @@ const S = {
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   vipBadge: { position: 'absolute', bottom: 5, left: 5, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
+  founderBadge: { position: 'absolute', bottom: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
   info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
@@ -747,47 +794,46 @@ const S = {
   btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
-  // TCN Referral promo boxes (side margins, desktop-wide only — see .tcn-promo-box media query)
-  // top/minHeight: see the --tcn-box-h comment in the <style> block — the
-  // 260px floor and 464px height together guarantee the box can never
-  // overlap the fixed nav bar (77px) or searchBar (bottom edge 242px).
-  promoBox: {
-    position: 'fixed',
-    top: 'max(260px, calc(50vh - var(--tcn-box-h) / 2))',
+  // Advertiser ad rails (side margins, desktop-wide only — see .tcn-promo-box
+  // media query). Absolute (not fixed) so the rail scrolls with the page —
+  // see the position:'relative' on S.page and the comment above the render.
+  adRail: {
+    position: 'absolute',
+    top: 'var(--tcn-ad-top)',
     width: 'var(--tcn-box-w)',
-    minHeight: 'var(--tcn-box-h)',
-    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    padding: '20px 16px',
-    background: 'linear-gradient(135deg, #e91e63, #9c27b0)',
-    borderRadius: 14,
-    boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+    gap: 'var(--tcn-ad-gap)',
     zIndex: 30,
   },
-  promoClose: {
+  adSlot: {
+    position: 'relative',
+    minHeight: 'var(--tcn-ad-slot-h)',
+    boxSizing: 'border-box',
+    borderRadius: 12,
+    padding: '10px 12px',
+    boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+    overflow: 'hidden',
+  },
+  adSlotClose: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 22,
-    height: 22,
+    top: 6,
+    right: 6,
+    width: 18,
+    height: 18,
     borderRadius: '50%',
     border: 'none',
     background: 'rgba(255,255,255,0.2)',
-    color: '#fff',
-    fontSize: 12,
-    lineHeight: '22px',
+    color: 'inherit',
+    fontSize: 10,
+    lineHeight: '18px',
     padding: 0,
     cursor: 'pointer',
+    zIndex: 1,
   },
-  promoEyebrow: { margin: '0 22px 6px 0', fontSize: 11, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9, color: '#fff' },
-  promoHeadline: { margin: '0 0 8px', fontSize: 19, fontWeight: 900, color: '#fff', lineHeight: 1.2 },
-  promoBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, color: 'rgba(255,255,255,0.9)' },
-  promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 10px', fontSize: 15, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 12, wordBreak: 'break-all' },
-  promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
-  // Right box's 3-point VIP benefit list (bullet-point format, same visual language as the left box)
-  promoList: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 },
-  promoListItem: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, lineHeight: 1.35, color: 'rgba(255,255,255,0.95)' },
-  promoListIcon: { fontSize: 13, lineHeight: 1.3, flexShrink: 0 },
+  adSlotLink: { display: 'flex', alignItems: 'center', gap: 8, height: '100%', textDecoration: 'none', color: 'inherit' },
+  adSlotImg: { width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 },
+  adEyebrow: { margin: '0 18px 3px 0', fontSize: 9, fontWeight: 800, letterSpacing: 0.3, opacity: 0.85 },
+  adHeadline: { margin: 0, fontSize: 12.5, fontWeight: 800, lineHeight: 1.25 },
+  adBody: { margin: '3px 0 0', fontSize: 10, lineHeight: 1.3, opacity: 0.9 },
 };

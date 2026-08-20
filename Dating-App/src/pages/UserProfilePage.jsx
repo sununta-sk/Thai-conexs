@@ -219,7 +219,7 @@ export default function UserProfilePage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified, subscription_plan')
+        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified, subscription_plan, is_founder_member')
         .eq('id', userId)
         .maybeSingle();
 
@@ -361,6 +361,7 @@ export default function UserProfilePage() {
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
           {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+          {profile.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
         </div>
 
         <div style={S.subRow}>
@@ -492,6 +493,7 @@ const S = {
   ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
   verifiedBadge: { background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
   vipBadge: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
+  founderBadge: { background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.3 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   recentlyActiveDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, boxShadow: '0 0 6px #fbbf24' },
