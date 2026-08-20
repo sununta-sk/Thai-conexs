@@ -1,4 +1,11 @@
-import logoImg from '../lib/LotusConnexs-full.jpeg';
+// Dedicated 220x220 (2x for the 110px display size below), pre-cropped to
+// match the same square region the full 1942x809 banner's objectFit:cover
+// was already center-cropping down to at runtime - this was the single
+// largest asset on the app's guaranteed-first-paint path (rendered before
+// the auth session check even resolves, on every visit): 331.7KB for a
+// 110px circle. This version is 26.6KB (92% smaller) at the same visual
+// result. See performance audit (Task A) for the full measurement.
+import logoImg from '../lib/LotusConnexs-loading.jpeg';
 
 export default function LoadingScreen({ message = 'Loading...' }) {
   return (

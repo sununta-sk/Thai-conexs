@@ -646,8 +646,17 @@ function RoomChatDesktop() {
 
   const chatColumn = (
     <div style={S.page}>
+      {/* Was a `@import url(...)` inside the <style> tag below - that can't
+          be discovered by the browser until this component has already
+          rendered (page-chat is a lazy chunk), and a nested @import is
+          lower network priority than a real <link>. React 19 hoists a
+          rendered <link rel="stylesheet"> into <head> and dedupes by href,
+          so this is fetched as soon as this component mounts instead of
+          after the enclosing <style> block gets parsed. index.html has the
+          matching preconnect hints so the connection is already warm by the
+          time this fires. Performance audit Area 3 / Task D. */}
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 0; height: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }

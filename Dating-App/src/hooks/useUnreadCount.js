@@ -1,6 +1,6 @@
 // src/hooks/useUnreadCount.js
 // Returns total count of unread messages addressed to current user.
-// Live-updates via realtime subscription + 3s polling backup.
+// Live-updates via realtime subscription + a 60s polling safety net.
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
@@ -61,7 +61,19 @@ export function useUnreadCount() {
         })
       .subscribe();
 
-    const interval = setInterval(fetchCount, 3000);
+    // Safety-net fallback only, not the primary update mechanism - the
+    // realtime subscription above (with its client-side filter) is what
+    // actually drives updates. This was 3s, running globally on every
+    // authenticated page via Navbar/MobileNavbar, calling the same
+    // known-expensive LIKE '%uid%' query as the realtime handler on every
+    // single tick regardless of whether anything changed. Widened to 60s so
+    // it still self-corrects if a realtime event is ever missed (tab
+    // backgrounded, brief disconnect), without polling ~20x more often than
+    // a fallback needs to. Deliberately not removed - see perf audit's
+    // Area 1 for why this exists (intentional belt-and-suspenders design,
+    // not a leftover) - and NOT touching the underlying query itself, which
+    // is the separately-flagged, out-of-scope schema issue.
+    const interval = setInterval(fetchCount, 60000);
 
     return () => {
       cancelled = true;

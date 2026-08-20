@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- Warms the connection for RoomChat/MobileRoomChat's Nunito <link
+         rel="stylesheet"> (see those files) - cheap on every page (just a
+         DNS+TLS handshake, no download) even for visits that never open a
+         chat, and means the actual font request has no connection setup
+         latency once it does fire. Performance audit Area 3 / Task D. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Lotus Connexs - Thailand</title>
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://www.google.com https://lh3.googleusercontent.com https://media.giphy.com https://media0.giphy.com https://media1.giphy.com https://media2.giphy.com https://media3.giphy.com https://media4.giphy.com https://placehold.co https://www.lotusconnexs.com https://lotusconnexs.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.lotusconnexs.com https://lotusconnexs.com https://api.anthropic.com https://nominatim.openstreetmap.org https://api.giphy.com; frame-src 'none'; object-src 'none';">
