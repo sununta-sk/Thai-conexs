@@ -465,6 +465,13 @@ export default function Discover() {
     ? S.grid
     : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px', maxWidth: 'var(--tcn-grid-max)' };
 
+  // Same --tcn-grid-max narrowing as gridStyle above, applied to the filter
+  // bar too, so both stay the same width (and same left/right edges) at
+  // every viewport instead of the filter bar staying frozen at 1100px and
+  // getting overlapped by the ad rail once the grid — but not the filter
+  // bar — started narrowing to make room for it.
+  const searchBarStyle = { ...S.searchBar, maxWidth: 'var(--tcn-grid-max)' };
+
   // Card text/badges: fixed sizes preserved exactly on mobile; scale up via
   // clamp() on laptop/desktop as cards get wider.
   const nameStyle = isMobile ? S.name : { ...S.name, fontSize: 'clamp(13px, 1vw + 7px, 16px)' };
@@ -549,7 +556,7 @@ export default function Discover() {
         />
       )}
       {!isMobile && (
-      <div style={S.searchBar}>
+      <div style={searchBarStyle}>
         {/* Row 1 */}
         <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
