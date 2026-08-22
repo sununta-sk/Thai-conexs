@@ -180,17 +180,12 @@ const AdRails = memo(function AdRails({ currentUserId }) {
           200+-profile grid, per client follow-up — an ad nobody scrolls back
           up to see isn't useful to an advertiser. Fixed over sticky: this is
           a straight revert to how the very first (pre-Task-4) promo boxes
-          positioned themselves, so the horizontal calc()s below (already
-          written assuming viewport-relative %) need no changes; sticky would
-          add containing-block edge cases for no benefit — Discover has no
-          footer below the grid to release for.
-          top: var(--tcn-ad-top) (90px) lines the box's top edge up with the
-          top of the search/filter bar (see Discover's <style> block for the
-          CSS vars — they're defined on :root, so available here too even
-          though this is a separate component). Box height (--tcn-ad-box-h)
-          is computed from actual viewport height so it always fits without
-          overflow, capped at 928px (2x the original single promo box's
-          fixed 464px height — see that <style> block for the full baseline). */}
+          positioned themselves. Both the horizontal calc()s below and the
+          vertical centering (top: max(260px, calc(50vh - var(--tcn-ad-box-h)
+          / 2)), set on S.adBox itself) are a literal 2x scale-up of that
+          original box's own positioning — see Discover's <style> block for
+          the CSS vars (defined on :root, so available here too even though
+          this is a separate component) and the full original-value baseline. */}
       {!dismissedSides.has('left') && (
         <AdBox content={getAdContent('left')} onDismiss={() => dismissSide('left')} sideStyle={{ left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }} />
       )}
@@ -563,28 +558,28 @@ export default function Discover() {
           z-index: 1;
         }
         /* One ad box per side (reverted from the "6 stacked slots" version of
-           Task 4 per client correction). Sized at ~2x the original (pre-Task-4)
-           single promo box: that box was width clamp(120px, 14vw, 200px) /
-           fixed height 464px (see git history at commit 4016d76^ if this ever
-           needs re-verifying) — doubled here to clamp(240px, 28vw, 400px) /
-           up-to-928px. Grid max-width is solved the same way as before so the
-           grid + both boxes + gaps + edge insets always sum to <=100vw,
-           reaching the original fixed 1100px cap once there's enough room
-           (now ~1950px+, later than pre-revert since the box itself is wider
-           — see Task 2 in the commit message for the tradeoff). */
-        /* Ad box: top aligns with the top of the search/filter bar (i.e.
-           right at the bottom of the fixed 90px navbar — matches S.page's
-           paddingTop below), not with the card grid — unchanged from the
-           6-slot version. Height is solved from actual available viewport
-           height so the box always fits on screen without overflow: 100vh
-           minus the navbar (90px) minus a small bottom margin (20px), floored
-           at 320px (still comfortable for content) and capped at 928px (the
-           2x target above) so very tall monitors don't get an oversized box. */
+           Task 4 per client correction). Sized/positioned as a LITERAL 2x
+           scale-up of the original (pre-Task-4) single promo box's own fixed
+           values, not a viewport-filling formula (that was the bug in the
+           first pass at this revert — clamp()'s middle term nearly always
+           won on real screens, reproducing the old rail's "fill available
+           height" footprint). Original values, re-verified via git history
+           at commit 4016d76^: width clamp(120px, 14vw, 200px), height a flat
+           464px (not vh-based), top 'max(260px, calc(50vh - 232px))' i.e.
+           232 = 464/2. Doubled here to width clamp(240px, 28vw, 400px),
+           height a flat 928px, top 'max(260px, calc(50vh - 464px))' — same
+           formula, same 260px floor (that's a screen-position constant tied
+           to the fixed navbar/filter-bar, not a box dimension, so it isn't
+           itself doubled), just centering a taller box. Grid max-width is
+           solved the same way as before so the grid + both boxes + gaps +
+           edge insets always sum to <=100vw, reaching the original fixed
+           1100px cap once there's enough room (now ~1950px+, later than
+           pre-revert since the box itself is wider — see Task 2 in the
+           commit message for the tradeoff). */
         :root {
           --tcn-box-w: clamp(240px, 28vw, 400px);
           --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
-          --tcn-ad-top: 90px;
-          --tcn-ad-box-h: clamp(320px, calc(100vh - var(--tcn-ad-top) - 20px), 928px);
+          --tcn-ad-box-h: 928px;
         }
         .tcn-promo-box { display: none; }
         @media (min-width: 768px) {
@@ -860,54 +855,59 @@ const S = {
 
   // Advertiser ad box (side margins, desktop-wide only — see .tcn-promo-box
   // media query). One box per side (reverted from Task 4's 6-stacked-slots
-  // version) sized at ~2x the original pre-Task-4 single promo box (200px
-  // wide/464px tall -> up to 400px/928px — see the <style> block's CSS vars),
-  // styled to match that same original box: rounded card, gradient background
-  // (per AD_VARIANT_STYLES, 'gradient-pink' is byte-for-byte the original's
-  // gradient), centered content, generous shadow. Fixed (not absolute) per
-  // client follow-up: the ad should stay on screen the whole time the user
-  // scrolls through Discover's 200+-profile grid, not scroll away after the
-  // first screen — see the comment above the render for why fixed over
-  // sticky. top/left/right are unchanged from the 6-slot version: already
-  // written as viewport-relative calc()s (this mirrors the very first,
-  // pre-Task-4 fixed promo boxes), and %/vh units resolve the same way for a
-  // fixed element as they did for an absolute one anchored to S.page, since
-  // S.page has no width/height constraint of its own (it just fills the
-  // viewport).
+  // version), styled and sized as a LITERAL 2x scale-up of the original
+  // pre-Task-4 single promo box's own exact values (verified via git history
+  // at commit 4016d76^ — S.promoBox/promoClose/promoEyebrow/promoHeadline/
+  // promoBody there): width clamp(120,14vw,200) -> clamp(240,28vw,400) (var,
+  // see <style> block), height 464 -> 928 (var), padding '20px 16px' ->
+  // '40px 32px', borderRadius 14 -> 28, boxShadow '0 8px 24px rgba(233,30,
+  // 99,.3)' -> '0 16px 48px rgba(233,30,99,.3)' (that exact color is the
+  // original's own pink-tinted shadow — reused as-is, not neutralized, since
+  // 'gradient-pink' below is the byte-for-byte original gradient this is
+  // shadowing). Content sizes (close button, eyebrow/headline/body) are each
+  // their original number x2 as well — see the individual style objects
+  // below. adBoxImg has no original counterpart (the referral/VIP boxes
+  // never had an image) — its 64px is 2x the pre-revert 6-slot AdSlot's own
+  // 32px image, i.e. the ad-system's own prior baseline, doubled the same way.
+  // Fixed (not absolute) per client follow-up: the ad should stay on screen
+  // the whole time the user scrolls through Discover's 200+-profile grid,
+  // not scroll away after the first screen. top/left/right calc()s mirror
+  // the original fixed promo boxes' own positioning (see the render's
+  // comment for the exact top formula).
   adBox: {
     position: 'fixed',
-    top: 'var(--tcn-ad-top)',
+    top: 'max(260px, calc(50vh - var(--tcn-ad-box-h) / 2))',
     width: 'var(--tcn-box-w)',
     minHeight: 'var(--tcn-ad-box-h)',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    padding: '28px 22px',
-    borderRadius: 16,
-    boxShadow: '0 8px 28px rgba(0,0,0,0.3)',
+    padding: '40px 32px',
+    borderRadius: 28,
+    boxShadow: '0 16px 48px rgba(233, 30, 99, 0.3)',
     overflow: 'hidden',
     zIndex: 30,
   },
   adBoxClose: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 26,
-    height: 26,
+    top: 20,
+    right: 20,
+    width: 44,
+    height: 44,
     borderRadius: '50%',
     border: 'none',
     background: 'rgba(255,255,255,0.2)',
     color: 'inherit',
-    fontSize: 13,
-    lineHeight: '26px',
+    fontSize: 24,
+    lineHeight: '44px',
     padding: 0,
     cursor: 'pointer',
     zIndex: 1,
   },
-  adBoxLink: { display: 'flex', alignItems: 'center', gap: 14, width: '100%', textDecoration: 'none', color: 'inherit' },
-  adBoxImg: { width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0 },
-  adEyebrow: { margin: '0 26px 6px 0', fontSize: 13, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9 },
-  adHeadline: { margin: '0 0 6px', fontSize: 22, fontWeight: 900, lineHeight: 1.25 },
-  adBody: { margin: '4px 0 0', fontSize: 14, lineHeight: 1.45, opacity: 0.9 },
+  adBoxLink: { display: 'flex', alignItems: 'center', gap: 16, width: '100%', textDecoration: 'none', color: 'inherit' },
+  adBoxImg: { width: 64, height: 64, borderRadius: 12, objectFit: 'cover', flexShrink: 0 },
+  adEyebrow: { margin: '0 44px 12px 0', fontSize: 22, fontWeight: 800, letterSpacing: 0.6, opacity: 0.9 },
+  adHeadline: { margin: '0 0 16px', fontSize: 38, fontWeight: 900, lineHeight: 1.2 },
+  adBody: { margin: '0 0 28px', fontSize: 24, lineHeight: 1.45, opacity: 0.9 },
 };
