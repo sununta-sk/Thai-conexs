@@ -51,17 +51,20 @@ function isVipProfile(p) {
   return p.subscription_plan === 'gold' || p.subscription_plan === 'platinum';
 }
 
-// ── Advertiser ad rails (side margins, replaces the old TCN Referral / VIP
-// promo boxes — Task 4) ──
-// Placeholder designs shown in any slot with no real advertiser. Deliberately
-// more than one so the rotation timer visibly cycles through different looks
-// even at zero real ads configured — this is what lets the client visually
-// confirm the rotation mechanism works before any advertiser buys a slot
-// ("same words, different design, so you can see it's changing").
+// ── Advertiser ad rail (side margins, replaces the old TCN Referral / VIP
+// promo boxes — Task 4, then reverted from "6 stacked slots" back to a
+// single box per side per client correction) ──
+// Placeholder designs shown in the box when there's no real advertiser yet.
+// Deliberately more than one so the rotation timer visibly cycles through
+// different looks even at zero real ads configured — this is what lets the
+// client visually confirm the rotation mechanism works before any advertiser
+// buys a slot ("same words, different design, so you can see it's changing").
 const AD_PLACEHOLDER_VARIANTS = ['gradient-pink', 'gradient-gold', 'gradient-teal', 'dark-outline', 'light-ghost'];
 
 // Shared with the admin Ads page (AdsPage.jsx) — keep the variant keys in
-// sync if either side changes.
+// sync if either side changes. 'gradient-pink' is deliberately identical to
+// the original (pre-Task-4) TCN Referral/VIP promo box's gradient, so the
+// default look here matches "the original promo boxes" per the reverted spec.
 const AD_VARIANT_STYLES = {
   'gradient-pink': { background: 'linear-gradient(135deg, #e91e63, #9c27b0)', color: '#fff', border: 'none' },
   'gradient-gold':  { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none' },
@@ -70,28 +73,32 @@ const AD_VARIANT_STYLES = {
   'light-ghost':    { background: 'rgba(255,255,255,0.07)', color: '#f1f5f9', border: '1.5px dashed rgba(255,255,255,0.35)' },
 };
 
-const AD_SLOTS_PER_SIDE = 6;
+// The single box per side rotates through up to this many configured ads
+// (by display_order), looping back to the first after the last — not 6
+// simultaneous boxes any more, just the rotation pool size.
+const AD_POOL_SIZE = 6;
 
-// One ad rail slot — either a real active ad (clickable, opens destination_url
-// in a new tab) or a placeholder design. The close button sits as a sibling
-// of the <a>, not inside it, so dismissing never triggers a navigation.
-function AdSlot({ slot, onDismiss }) {
-  const variantKey = slot.type === 'ad' ? (slot.ad.design_variant || 'gradient-pink') : slot.variant;
+// The single ad box for one side — either a real active ad (clickable, opens
+// destination_url in a new tab) or a placeholder design. The close button
+// sits as a sibling of the <a>, not inside it, so dismissing never triggers
+// a navigation.
+function AdBox({ content, onDismiss, sideStyle }) {
+  const variantKey = content.type === 'ad' ? (content.ad.design_variant || 'gradient-pink') : content.variant;
   const variantStyle = AD_VARIANT_STYLES[variantKey] || AD_VARIANT_STYLES['gradient-pink'];
   return (
-    <div style={{ ...S.adSlot, ...variantStyle }}>
-      <button type="button" style={S.adSlotClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
-      {slot.type === 'ad' ? (
-        <a href={slot.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.adSlotLink}>
-          {slot.ad.image_url && <img src={slot.ad.image_url} alt="" style={S.adSlotImg} />}
+    <div className="tcn-promo-box" style={{ ...S.adBox, ...sideStyle, ...variantStyle }}>
+      <button type="button" style={S.adBoxClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
+      {content.type === 'ad' ? (
+        <a href={content.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.adBoxLink}>
+          {content.ad.image_url && <img src={content.ad.image_url} alt="" style={S.adBoxImg} />}
           <div style={{ minWidth: 0 }}>
-            {slot.ad.advertiser_name && <p style={S.adEyebrow}>{slot.ad.advertiser_name}</p>}
-            <h4 style={S.adHeadline}>{slot.ad.headline}</h4>
-            {slot.ad.body_text && <p style={S.adBody}>{slot.ad.body_text}</p>}
+            {content.ad.advertiser_name && <p style={S.adEyebrow}>{content.ad.advertiser_name}</p>}
+            <h4 style={S.adHeadline}>{content.ad.headline}</h4>
+            {content.ad.body_text && <p style={S.adBody}>{content.ad.body_text}</p>}
           </div>
         </a>
       ) : (
-        <div style={S.adSlotLink}>
+        <div style={S.adBoxLink}>
           <div style={{ minWidth: 0 }}>
             <p style={S.adEyebrow}>AD SPACE AVAILABLE</p>
             <h4 style={S.adHeadline}>Your Advertisement Here</h4>
@@ -111,16 +118,21 @@ function AdSlot({ slot, onDismiss }) {
 // 30-60s ticks) — currentUserId is the only prop, and it only ever changes
 // once per session (login), so this should render once, then only on its
 // own internal state changes.
+// Reverted from "6 stacked slots per side" back to one box per side (client
+// correction of the original Task 4 spec) — the fetch/rotation-timer/isolation
+// structure above is untouched, only what gets rendered from `ads` changed:
+// a single box's content now advances through the ad pool one at a time
+// instead of 6 boxes each showing a different pool entry simultaneously.
 const AdRails = memo(function AdRails({ currentUserId }) {
   const [ads, setAds] = useState([]);
   const [adRotationTick, setAdRotationTick] = useState(0);
-  // In-memory only, on purpose: dismissing a slot hides it for this page view
-  // alone, not persisted (no localStorage) — reappears on refresh. Tracked by
-  // side+position, not by ad id, so a slot the visitor closed stays closed
+  // In-memory only, on purpose: dismissing a side's box hides it for this
+  // page view alone, not persisted (no localStorage) — reappears on refresh.
+  // Tracked by side, not by ad id, so a box the visitor closed stays closed
   // even as its rotating content changes underneath it.
-  const [dismissedAdSlots, setDismissedAdSlots] = useState(new Set());
-  const dismissAdSlot = (side, slotIndex) => {
-    setDismissedAdSlots(prev => { const next = new Set(prev); next.add(`${side}:${slotIndex}`); return next; });
+  const [dismissedSides, setDismissedSides] = useState(new Set());
+  const dismissSide = (side) => {
+    setDismissedSides(prev => { const next = new Set(prev); next.add(side); return next; });
   };
 
   useEffect(() => {
@@ -135,27 +147,24 @@ const AdRails = memo(function AdRails({ currentUserId }) {
 
   useEffect(() => {
     if (!currentUserId) return;
-    // Client-side rotation only — no reload. Advancing this tick shifts which
-    // ad/placeholder each slot shows (see getAdSlotContent below). Scoped to
-    // this component now, so this re-render never touches the profile grid.
+    // Client-side rotation only — no reload. Advancing this tick moves the
+    // box on each side to the next ad/placeholder in its pool (see
+    // getAdContent below). Scoped to this component, so this re-render
+    // never touches the profile grid.
     const timer = setInterval(() => setAdRotationTick(t => t + 1), 10000);
     return () => clearInterval(timer);
   }, [currentUserId]);
 
-  function getAdSlotContent(side, slotIndex) {
-    const realAds = ads.filter(a => a.side === side || a.side === 'both');
+  // One box per side: content advances by adRotationTick through up to
+  // AD_POOL_SIZE real ads (display_order first), looping back to the first
+  // after the last; falls back to the placeholder-design cycle when the side
+  // has no real ads configured yet.
+  function getAdContent(side) {
+    const realAds = ads.filter(a => a.side === side || a.side === 'both').slice(0, AD_POOL_SIZE);
     if (realAds.length === 0) {
-      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[adRotationTick % AD_PLACEHOLDER_VARIANTS.length] };
     }
-    if (realAds.length <= AD_SLOTS_PER_SIDE) {
-      // Everything already fits — no rotation needed, real ads first.
-      if (slotIndex < realAds.length) return { type: 'ad', ad: realAds[slotIndex] };
-      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[(adRotationTick + slotIndex) % AD_PLACEHOLDER_VARIANTS.length] };
-    }
-    // More real ads than visible slots: rotate through the full pool over
-    // time so every configured ad eventually gets shown.
-    const idx = (adRotationTick + slotIndex) % realAds.length;
-    return { type: 'ad', ad: realAds[idx] };
+    return { type: 'ad', ad: realAds[adRotationTick % realAds.length] };
   }
 
   // Gated on currentUserId, matching the old promo boxes' timing so this
@@ -167,34 +176,27 @@ const AdRails = memo(function AdRails({ currentUserId }) {
   return (
     <>
       {/* Fixed to the viewport (not absolute/scrolling with the page) so the
-          ads stay visible the whole time the user scrolls through Discover's
+          ad stays visible the whole time the user scrolls through Discover's
           200+-profile grid, per client follow-up — an ad nobody scrolls back
           up to see isn't useful to an advertiser. Fixed over sticky: this is
           a straight revert to how the very first (pre-Task-4) promo boxes
           positioned themselves, so the horizontal calc()s below (already
-          written assuming viewport-relative %) and the vertical placement
-          need no changes; sticky would add containing-block edge cases for
-          no benefit — Discover has no footer below the grid to release for.
-          top: var(--tcn-ad-top) (90px) lines the rail's top edge up with the
+          written assuming viewport-relative %) need no changes; sticky would
+          add containing-block edge cases for no benefit — Discover has no
+          footer below the grid to release for.
+          top: var(--tcn-ad-top) (90px) lines the box's top edge up with the
           top of the search/filter bar (see Discover's <style> block for the
           CSS vars — they're defined on :root, so available here too even
-          though this is a separate component). Slot height (--tcn-ad-slot-h)
-          is computed from actual viewport height so all 6 always fit without
-          overflow. */}
-      <div className="tcn-promo-box" style={{ ...S.adRail, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-        {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
-          dismissedAdSlots.has(`left:${i}`) ? null : (
-            <AdSlot key={i} slot={getAdSlotContent('left', i)} onDismiss={() => dismissAdSlot('left', i)} />
-          )
-        ))}
-      </div>
-      <div className="tcn-promo-box" style={{ ...S.adRail, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-        {Array.from({ length: AD_SLOTS_PER_SIDE }).map((_, i) => (
-          dismissedAdSlots.has(`right:${i}`) ? null : (
-            <AdSlot key={i} slot={getAdSlotContent('right', i)} onDismiss={() => dismissAdSlot('right', i)} />
-          )
-        ))}
-      </div>
+          though this is a separate component). Box height (--tcn-ad-box-h)
+          is computed from actual viewport height so it always fits without
+          overflow, capped at 928px (2x the original single promo box's
+          fixed 464px height — see that <style> block for the full baseline). */}
+      {!dismissedSides.has('left') && (
+        <AdBox content={getAdContent('left')} onDismiss={() => dismissSide('left')} sideStyle={{ left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }} />
+      )}
+      {!dismissedSides.has('right') && (
+        <AdBox content={getAdContent('right')} onDismiss={() => dismissSide('right')} sideStyle={{ right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }} />
+      )}
     </>
   );
 });
@@ -560,27 +562,29 @@ export default function Discover() {
           position: relative;
           z-index: 1;
         }
-        /* Ad rail width scales 120px->200px as viewport grows 768px->~1429px,
-           then holds at 200px (matches the box width used before this was made
-           responsive). Grid max-width is solved so grid + both rails + gaps +
-           edge insets always sum to <=100vw, reaching the original fixed
-           1100px cap once there's room (at ~1560px+), unchanged above that. */
-        /* Ad rail: top aligns with the top of the search/filter bar (i.e.
+        /* One ad box per side (reverted from the "6 stacked slots" version of
+           Task 4 per client correction). Sized at ~2x the original (pre-Task-4)
+           single promo box: that box was width clamp(120px, 14vw, 200px) /
+           fixed height 464px (see git history at commit 4016d76^ if this ever
+           needs re-verifying) — doubled here to clamp(240px, 28vw, 400px) /
+           up-to-928px. Grid max-width is solved the same way as before so the
+           grid + both boxes + gaps + edge insets always sum to <=100vw,
+           reaching the original fixed 1100px cap once there's enough room
+           (now ~1950px+, later than pre-revert since the box itself is wider
+           — see Task 2 in the commit message for the tradeoff). */
+        /* Ad box: top aligns with the top of the search/filter bar (i.e.
            right at the bottom of the fixed 90px navbar — matches S.page's
-           paddingTop below), not with the card grid. Slot height is solved
-           from actual available viewport height so all 6 stacked slots +
-           their gaps fit within one screen on load: 100vh minus the navbar
-           (90px) minus a small bottom margin (20px) minus 5 inter-slot gaps,
-           divided across 6 slots. clamp() floors it at 60px (still legible)
-           and caps it at 130px (so very tall monitors don't get oversized
-           slots) — outside that band a *little* scroll may be needed, but
-           800/900/1080px-tall viewports all land comfortably inside it. */
+           paddingTop below), not with the card grid — unchanged from the
+           6-slot version. Height is solved from actual available viewport
+           height so the box always fits on screen without overflow: 100vh
+           minus the navbar (90px) minus a small bottom margin (20px), floored
+           at 320px (still comfortable for content) and capped at 928px (the
+           2x target above) so very tall monitors don't get an oversized box. */
         :root {
-          --tcn-box-w: clamp(120px, 14vw, 200px);
+          --tcn-box-w: clamp(240px, 28vw, 400px);
           --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
           --tcn-ad-top: 90px;
-          --tcn-ad-gap: clamp(6px, 1vh, 10px);
-          --tcn-ad-slot-h: clamp(60px, calc((100vh - var(--tcn-ad-top) - 20px - (5 * var(--tcn-ad-gap))) / 6), 130px);
+          --tcn-ad-box-h: clamp(320px, calc(100vh - var(--tcn-ad-top) - 20px), 928px);
         }
         .tcn-promo-box { display: none; }
         @media (min-width: 768px) {
@@ -588,11 +592,13 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {/* Ad rails: 6 stacked slots per side (Task 4), extracted into their
-          own AdRails component (defined above, near AdSlot) so its 10s
-          rotation timer only re-renders that small subtree — not this whole
-          Discover component and its ~150+-card grid below. All positioning/
-          styling comments now live on AdRails itself. */}
+      {/* Ad rail: one box per side, content rotating every 10s through the ad
+          pool (reverted from Task 4's "6 stacked slots" per client
+          correction) — extracted into its own AdRails component (defined
+          above, near AdBox) so its 10s rotation timer only re-renders that
+          small subtree, not this whole Discover component and its
+          ~150+-card grid below. All positioning/styling comments now live on
+          AdRails itself. */}
       <AdRails currentUserId={currentUserId} />
       {isMobile && (
         <MobileDiscoverFilters
@@ -852,53 +858,56 @@ const S = {
   btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
-  // Advertiser ad rails (side margins, desktop-wide only — see .tcn-promo-box
-  // media query). Fixed (not absolute) per client follow-up: ads should stay
-  // on screen the whole time the user scrolls through Discover's 200+-profile
-  // grid, not scroll away after the first screen — see the comment above the
-  // render for why fixed over sticky. top/left/right are unchanged from the
-  // absolute version: they were already written as viewport-relative calc()s
-  // (this mirrors the very first, pre-Task-4 fixed promo boxes), and %/vh
-  // units resolve the same way for a fixed element as they did for an
-  // absolute one anchored to S.page, since S.page has no width/height
-  // constraint of its own (it just fills the viewport).
-  adRail: {
+  // Advertiser ad box (side margins, desktop-wide only — see .tcn-promo-box
+  // media query). One box per side (reverted from Task 4's 6-stacked-slots
+  // version) sized at ~2x the original pre-Task-4 single promo box (200px
+  // wide/464px tall -> up to 400px/928px — see the <style> block's CSS vars),
+  // styled to match that same original box: rounded card, gradient background
+  // (per AD_VARIANT_STYLES, 'gradient-pink' is byte-for-byte the original's
+  // gradient), centered content, generous shadow. Fixed (not absolute) per
+  // client follow-up: the ad should stay on screen the whole time the user
+  // scrolls through Discover's 200+-profile grid, not scroll away after the
+  // first screen — see the comment above the render for why fixed over
+  // sticky. top/left/right are unchanged from the 6-slot version: already
+  // written as viewport-relative calc()s (this mirrors the very first,
+  // pre-Task-4 fixed promo boxes), and %/vh units resolve the same way for a
+  // fixed element as they did for an absolute one anchored to S.page, since
+  // S.page has no width/height constraint of its own (it just fills the
+  // viewport).
+  adBox: {
     position: 'fixed',
     top: 'var(--tcn-ad-top)',
     width: 'var(--tcn-box-w)',
+    minHeight: 'var(--tcn-ad-box-h)',
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    gap: 'var(--tcn-ad-gap)',
+    justifyContent: 'center',
+    padding: '28px 22px',
+    borderRadius: 16,
+    boxShadow: '0 8px 28px rgba(0,0,0,0.3)',
+    overflow: 'hidden',
     zIndex: 30,
   },
-  adSlot: {
-    position: 'relative',
-    minHeight: 'var(--tcn-ad-slot-h)',
-    boxSizing: 'border-box',
-    borderRadius: 12,
-    padding: '10px 12px',
-    boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-    overflow: 'hidden',
-  },
-  adSlotClose: {
+  adBoxClose: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 18,
-    height: 18,
+    top: 12,
+    right: 12,
+    width: 26,
+    height: 26,
     borderRadius: '50%',
     border: 'none',
     background: 'rgba(255,255,255,0.2)',
     color: 'inherit',
-    fontSize: 10,
-    lineHeight: '18px',
+    fontSize: 13,
+    lineHeight: '26px',
     padding: 0,
     cursor: 'pointer',
     zIndex: 1,
   },
-  adSlotLink: { display: 'flex', alignItems: 'center', gap: 8, height: '100%', textDecoration: 'none', color: 'inherit' },
-  adSlotImg: { width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 },
-  adEyebrow: { margin: '0 18px 3px 0', fontSize: 9, fontWeight: 800, letterSpacing: 0.3, opacity: 0.85 },
-  adHeadline: { margin: 0, fontSize: 12.5, fontWeight: 800, lineHeight: 1.25 },
-  adBody: { margin: '3px 0 0', fontSize: 10, lineHeight: 1.3, opacity: 0.9 },
+  adBoxLink: { display: 'flex', alignItems: 'center', gap: 14, width: '100%', textDecoration: 'none', color: 'inherit' },
+  adBoxImg: { width: 64, height: 64, borderRadius: 10, objectFit: 'cover', flexShrink: 0 },
+  adEyebrow: { margin: '0 26px 6px 0', fontSize: 13, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9 },
+  adHeadline: { margin: '0 0 6px', fontSize: 22, fontWeight: 900, lineHeight: 1.25 },
+  adBody: { margin: '4px 0 0', fontSize: 14, lineHeight: 1.45, opacity: 0.9 },
 };
