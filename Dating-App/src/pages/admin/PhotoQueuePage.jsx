@@ -24,13 +24,18 @@ export default function PhotoQueuePage() {
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
     setSelected(new Set());
+    // Newest-first, per tab: Pending sorts by submission time (created_at)
+    // so freshly-uploaded photos surface at the top; Approved/Rejected sort
+    // by reviewed_at so a photo an admin just actioned shows up immediately
+    // instead of requiring a scroll to find it.
+    const orderColumn = activeTab === 'pending' ? 'created_at' : 'reviewed_at';
     const { data } = await supabase
       .from('photo_moderation_queue')
       .select(`
         id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id
       `)
       .eq('status', activeTab)
-      .order('created_at', { ascending: true })
+      .order(orderColumn, { ascending: false, nullsFirst: false })
       .limit(300);
     setPhotos(data || []);
     if (data && data.length > 0) {
