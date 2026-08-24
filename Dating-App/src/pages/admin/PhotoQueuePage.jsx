@@ -7,6 +7,25 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const STATUS_TABS = ['pending', 'approved', 'rejected'];
 const MOBILE_PAGE_SIZE = 40;
 
+// Does this queue photo actually appear anywhere on the user's live
+// profile? Mirrors how UserProfilePage/RoomChat render a profile's
+// photos: avatar_url is always shown first, with profiles.photos (an
+// array of either JSON-stringified {url,...} crop objects, or legacy
+// plain URL strings) appended after. A pending/approved queue entry
+// that matches neither is "orphaned" — the user removed it from their
+// gallery (or never saved it) after it was queued, so approving it
+// won't do anything visible.
+function isPhotoLiveOnProfile(photoUrl, profile) {
+  if (!profile) return false; // handled separately by the "no profile" note
+  if (profile.avatar_url === photoUrl) return true;
+  const photos = Array.isArray(profile.photos) ? profile.photos : [];
+  return photos.some(p => {
+    if (typeof p !== 'string') return p?.url === photoUrl;
+    try { return JSON.parse(p)?.url === photoUrl; }
+    catch { return p === photoUrl; }
+  });
+}
+
 export default function PhotoQueuePage() {
   const isMobile = useIsMobile();
   const [mobilePage,    setMobilePage]    = useState(0);
@@ -40,10 +59,19 @@ export default function PhotoQueuePage() {
     setPhotos(data || []);
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map(p => p.user_id))];
-      const { data: profileData } = await supabase.from('profiles').select('id, username, avatar_url').in('id', userIds);
+      const { data: profileData } = await supabase.from('profiles').select('id, username, avatar_url, photos').in('id', userIds);
       if (profileData) {
         const profileMap = Object.fromEntries(profileData.map(p => [p.id, p]));
-        setPhotos(prev => prev.map(photo => ({ ...photo, profiles: profileMap[photo.user_id] })));
+        setPhotos(prev => prev.map(photo => {
+          const profile = profileMap[photo.user_id];
+          return {
+            ...photo,
+            profiles: profile,
+            // Rejected entries are expected to be absent from the profile —
+            // only flag pending/approved ones as orphaned.
+            isOrphaned: photo.status !== 'rejected' && !!profile && !isPhotoLiveOnProfile(photo.photo_url, profile),
+          };
+        }));
       }
     }
     setLoading(false);
@@ -239,6 +267,11 @@ export default function PhotoQueuePage() {
                       ⚠ No active profile yet
                     </div>
                   )}
+                  {photo.isOrphaned && (
+                    <div style={S.orphanedNote} title="This photo isn't in the user's current profile photos/avatar — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.">
+                      🔗 Not on profile
+                    </div>
+                  )}
                 </div>
 
                 {/* Quick action (pending only) */}
@@ -316,6 +349,11 @@ export default function PhotoQueuePage() {
                 {!preview.profiles && (
                   <div style={{ ...S.noProfileNote, marginBottom: 12 }}>
                     ⚠ No active profile yet — this user hasn't completed onboarding, so approving won't show up on a live profile.
+                  </div>
+                )}
+                {preview.isOrphaned && (
+                  <div style={{ ...S.orphanedNote, marginBottom: 12 }}>
+                    🔗 Not on this user's current profile — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.
                   </div>
                 )}
 
@@ -436,6 +474,10 @@ const S = {
   },
   noProfileNote: {
     color: '#fbbf24', fontSize: 10.5, fontWeight: 600,
+    marginTop: 3, lineHeight: 1.3,
+  },
+  orphanedNote: {
+    color: '#f97316', fontSize: 10.5, fontWeight: 600,
     marginTop: 3, lineHeight: 1.3,
   },
   actionedBadge: {
