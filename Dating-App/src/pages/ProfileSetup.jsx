@@ -19,6 +19,7 @@ const T = {
     education:'การศึกษา', preferences:'ความต้องการ', gender:'เพศ', lookingFor:'มองหา',
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
+    continueBtn:'ไปที่หน้าค้นหา →', savingStatus:'กำลังบันทึก...', savedStatus:'บันทึกแล้ว ✓', errorStatus:'บันทึกไม่สำเร็จ กำลังลองใหม่...',
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
     genderOptions:['ชาย','หญิง','ทรานส์เจนเดอร์','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
     copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
@@ -34,6 +35,7 @@ const T = {
     education:'Education', preferences:'Preferences', gender:'Gender', lookingFor:'Looking For',
     referralLabel:"Enter a friend's code to get €30 bonus",
     saveBtn:'Save Profile', logoutBtn:'Logout',
+    continueBtn:'Continue to Discover →', savingStatus:'Saving...', savedStatus:'Saved ✓', errorStatus:"Couldn't save — retrying...",
     eduOptions:['High School','Bachelor Degree','Master Degree','PhD'],
     genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
     copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
@@ -118,6 +120,19 @@ export default function ProfileSetup() {
   const [cropperImage, setCropperImage]     = useState(null); // data URL or http URL
   const [recropIndex, setRecropIndex]       = useState(null); // null=new upload, number=re-crop existing
 
+  // ─── Auto-save ──────────────────────────────────────────────
+  // Replaces the old "click Save Profile or lose everything" flow: ~9 real
+  // users lost profile data (mainly photos) by filling the form and never
+  // clicking Save. See saveProfileRef below for the actual persistence call.
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | error
+  const readyRef          = useRef(false); // true only once fetchProfile() has populated state — guards against an empty initial render overwriting a real profile
+  const skipPhotoEffectRef = useRef(true);  // swallow the effect's mount-time run (fetch itself sets photos/mainPhoto)
+  const skipFieldEffectRef = useRef(true);  // same, for the debounced text/select group
+  const fieldDebounceRef   = useRef(null);
+  const errorRetryRef      = useRef(null);
+  const savedStatusTimerRef = useRef(null);
+  const saveProfileRef     = useRef(null); // always holds the latest save closure (see effect below) so any handler can call saveProfileRef.current?.()
+
   const openCamera = async () => {
     setCameraError(''); setCapturedImage(null); setVerifyResult(null); setVerifyMessage('');
     setCameraOpen(true);
@@ -176,6 +191,12 @@ export default function ProfileSetup() {
           setMyReferralCode(data.referral_code);
         }
       }
+      // Only now is it safe for autosave to react to state changes — before
+      // this, "state changes" are just the fetch above populating the form,
+      // not the user editing anything, and autosaving THAT would either be a
+      // pointless no-op write (existing user) or — far worse — a blank
+      // upsert that wipes a real profile (if this ran before fetch resolved).
+      readyRef.current = true;
     }
     fetchProfile();
   }, []);
@@ -358,12 +379,18 @@ export default function ProfileSetup() {
     } finally { setVerifying(false); }
   };
 
-  const handleSave = async () => {
+  // The actual persistence call — same full-overwrite upsert shape
+  // handleSave used to do, just no longer gated behind a button click.
+  // Deliberately does NOT validate country/province/city: those stay
+  // required for the "Continue to Discover" action below, but autosave
+  // itself must never refuse to persist partial data (that refusal is
+  // exactly how photo-only edits used to get lost). Confirmed via a
+  // throwaway-user probe against the real DB that `profiles` accepts
+  // null city/province/country on upsert.
+  const doSaveProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!details.country || !details.province || !details.city) {
-      alert(lang === 'th' ? '⚠️ กรุณากรอก Country, Province และ City ให้ครบ' : '⚠️ Please fill Country, Province and City');
-      return;
-    }
+    if (!user) return;
+    setSaveStatus('saving');
     const { error } = await supabase.from('profiles').upsert({
       id: user.id, username, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
@@ -374,12 +401,74 @@ export default function ProfileSetup() {
       updated_at: new Date(),
       referred_by: friendCode.trim().toUpperCase() || null,
     }, { onConflict: 'id' });
-    if (!error) {
-      alert('✅ ' + tx.saveBtn);
-      navigate('/discover');
+
+    if (savedStatusTimerRef.current) clearTimeout(savedStatusTimerRef.current);
+    if (errorRetryRef.current) clearTimeout(errorRetryRef.current);
+
+    if (error) {
+      console.error('Autosave failed:', error.message);
+      setSaveStatus('error');
+      // One best-effort retry — covers a transient blip without risking a
+      // retry storm if Supabase is genuinely down (the next real edit will
+      // naturally trigger another attempt regardless).
+      errorRetryRef.current = setTimeout(() => { saveProfileRef.current?.(); }, 4000);
     } else {
-      alert('Error: ' + error.message);
+      setSaveStatus('saved');
+      savedStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000);
     }
+  };
+
+  // Kept fresh every render so any handler — effects, blur, unload — can
+  // call saveProfileRef.current?.() and always run against current state,
+  // without re-deriving a dependency array for every field involved.
+  useEffect(() => { saveProfileRef.current = doSaveProfile; });
+
+  // Immediate save: photos + mainPhoto. This is the path that actually
+  // matters for tonight's fix — a photo add/remove/recrop/re-main is now
+  // persisted the moment it happens in local state, so it's never orphaned
+  // by the user leaving before an explicit Save.
+  useEffect(() => {
+    if (skipPhotoEffectRef.current) { skipPhotoEffectRef.current = false; return; }
+    if (!readyRef.current) return;
+    saveProfileRef.current?.();
+  }, [photos, mainPhoto]);
+
+  // Debounced save: text fields, selects, chip toggles, referral code entry.
+  // 900ms after the last change in this group; blur/tab-away/backgrounding
+  // (below) flush it sooner so a quick "pick a dropdown value then leave"
+  // doesn't get lost waiting on the timer.
+  useEffect(() => {
+    if (skipFieldEffectRef.current) { skipFieldEffectRef.current = false; return; }
+    if (!readyRef.current) return;
+    if (fieldDebounceRef.current) clearTimeout(fieldDebounceRef.current);
+    fieldDebounceRef.current = setTimeout(() => { saveProfileRef.current?.(); }, 900);
+    return () => clearTimeout(fieldDebounceRef.current);
+  }, [username, bio, details, lifestyle, friendCode]);
+
+  // Flush the pending debounce on blur (event delegation — see onBlur on the
+  // Sidebar/MainContent wrappers below) and when the tab is backgrounded or
+  // closed, so a debounced edit isn't stranded behind an unfired timer.
+  const flushSave = () => {
+    if (fieldDebounceRef.current) { clearTimeout(fieldDebounceRef.current); fieldDebounceRef.current = null; }
+    saveProfileRef.current?.();
+  };
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flushSave(); };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', flushSave);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', flushSave);
+    };
+  }, []);
+
+  const handleContinue = async () => {
+    if (!details.country || !details.province || !details.city) {
+      alert(lang === 'th' ? '⚠️ กรุณากรอก Country, Province และ City ให้ครบ' : '⚠️ Please fill Country, Province and City');
+      return;
+    }
+    flushSave();
+    navigate('/discover');
   };
 
   const referralDisabled = isVerified && !!friendCode;
@@ -393,7 +482,7 @@ export default function ProfileSetup() {
   // SIDEBAR (Desktop only)
   // ──────────────────────────────────────────────
   const Sidebar = (
-    <div style={S.sidebar}>
+    <div style={S.sidebar} onBlur={flushSave}>
       <div style={S.avatarWrap}>
         {mainPhoto ? (
           <img src={mainPhoto} alt="me" style={S.avatarImg} />
@@ -566,7 +655,12 @@ export default function ProfileSetup() {
   // MAIN CONTENT (forms)
   // ──────────────────────────────────────────────
   const MainContent = (
-    <div style={S.main}>
+    <div style={S.main} onBlur={flushSave}>
+      {saveStatus !== 'idle' && (
+        <div style={{ ...S.saveStatus, color: saveStatus === 'error' ? '#f87171' : saveStatus === 'saving' ? '#94a3b8' : '#4ade80' }}>
+          {saveStatus === 'saving' ? tx.savingStatus : saveStatus === 'error' ? tx.errorStatus : tx.savedStatus}
+        </div>
+      )}
       {/* Profile Photos */}
       <SectionTitle>{tx.profilePhotos}</SectionTitle>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '20px' }}>
@@ -874,7 +968,7 @@ export default function ProfileSetup() {
         {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
       </div>
 
-      <button onClick={handleSave} style={S.saveBtn}>{tx.saveBtn}</button>
+      <button onClick={handleContinue} style={S.saveBtn}>{tx.continueBtn}</button>
 
       <button onClick={() => navigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
         💸 {lang === 'th' ? 'ถอนเงิน / Request Payout' : 'Request Payout'} · €{balance}
@@ -956,6 +1050,7 @@ const S = {
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  saveStatus: { fontSize: '12px', fontWeight: 700, textAlign: 'right', marginBottom: '10px', transition: 'color 0.2s' },
   langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
   logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
   langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.5)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },
