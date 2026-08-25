@@ -55,11 +55,19 @@ function isVipProfile(p) {
 // promo boxes — Task 4, then reverted from "6 stacked slots" back to a
 // single box per side per client correction) ──
 // Placeholder designs shown in the box when there's no real advertiser yet.
-// Deliberately more than one so the rotation timer visibly cycles through
-// different looks even at zero real ads configured — this is what lets the
-// client visually confirm the rotation mechanism works before any advertiser
-// buys a slot ("same words, different design, so you can see it's changing").
-const AD_PLACEHOLDER_VARIANTS = ['gradient-pink', 'gradient-gold', 'gradient-teal', 'dark-outline', 'light-ghost'];
+// Originally "same words, different design" (only the background/border
+// cycled) — client reported that as "static, not rotating", since the one
+// thing a viewer actually reads (the headline) never changed; a color/border
+// shift 10s apart is easy to miss entirely. Each variant now carries its own
+// eyebrow/headline too, so the visible copy itself changes every tick, not
+// just the styling underneath it.
+const AD_PLACEHOLDER_VARIANTS = [
+  { variant: 'gradient-pink',  eyebrow: 'AD SPACE AVAILABLE',   headline: 'Your Advertisement Here' },
+  { variant: 'gradient-gold',  eyebrow: 'PROMOTE YOUR BUSINESS', headline: 'Reach Real Singles Today' },
+  { variant: 'gradient-teal',  eyebrow: 'AD SPACE AVAILABLE',   headline: 'Get Seen By Thousands' },
+  { variant: 'dark-outline',   eyebrow: 'ADVERTISE HERE',       headline: 'Your Brand, Your Audience' },
+  { variant: 'light-ghost',    eyebrow: 'AD SPACE AVAILABLE',   headline: 'Contact Us To Advertise' },
+];
 
 // Shared with the admin Ads page (AdsPage.jsx) — keep the variant keys in
 // sync if either side changes. 'gradient-pink' is deliberately identical to
@@ -100,8 +108,8 @@ function AdBox({ content, onDismiss, sideStyle }) {
       ) : (
         <div style={S.adBoxLink}>
           <div style={{ minWidth: 0 }}>
-            <p style={S.adEyebrow}>AD SPACE AVAILABLE</p>
-            <h4 style={S.adHeadline}>Your Advertisement Here</h4>
+            <p style={S.adEyebrow}>{content.eyebrow}</p>
+            <h4 style={S.adHeadline}>{content.headline}</h4>
           </div>
         </div>
       )}
@@ -162,7 +170,7 @@ const AdRails = memo(function AdRails({ currentUserId }) {
   function getAdContent(side) {
     const realAds = ads.filter(a => a.side === side || a.side === 'both').slice(0, AD_POOL_SIZE);
     if (realAds.length === 0) {
-      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[adRotationTick % AD_PLACEHOLDER_VARIANTS.length] };
+      return { type: 'placeholder', ...AD_PLACEHOLDER_VARIANTS[adRotationTick % AD_PLACEHOLDER_VARIANTS.length] };
     }
     return { type: 'ad', ad: realAds[adRotationTick % realAds.length] };
   }
