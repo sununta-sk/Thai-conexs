@@ -187,7 +187,7 @@ const S = {
     borderRadius: 20,
     maxWidth: 560,
     width: '100%',
-    maxHeight: '95vh',
+    maxHeight: '94vh',
     display: 'flex',
     flexDirection: 'column',
     border: `1px solid ${BORDER}`,
@@ -198,6 +198,7 @@ const S = {
     padding: '20px 24px 14px',
     textAlign: 'center',
     borderBottom: `1px solid ${BORDER}`,
+    flexShrink: 0,
   },
   title: {
     fontSize: 18,
@@ -210,11 +211,25 @@ const S = {
     color: TEXT_MUTED,
     margin: 0,
   },
+  // Previously a padding-bottom aspect-ratio hack that sized this area purely
+  // off the modal's WIDTH — on a short viewport (~768px laptop height) that
+  // produced a near-560px-tall crop box regardless of how little vertical
+  // room was actually left, pushing the zoom slider and Save/Cancel buttons
+  // off-screen with no way to reach them (no scroll on the modal, so they
+  // were simply unreachable). `.modal` sizes to its content (shrink-wrap
+  // under maxHeight), so a plain flex:1 here has no resolved parent height to
+  // grow into — it needs an explicit height. The 280px reserved below is
+  // header (~80px) + controls/zoom row (~56px) + footer (~80px) + backdrop
+  // padding (32px, 16px top/bottom) rounded up for a little slack; clamped so
+  // it never collapses illegibly small on a very short window nor balloons
+  // into an oversized rectangle on a tall monitor (an uncapped vh formula is
+  // exactly what caused the ad-box regression fixed earlier this session,
+  // commit 8468ac6).
   cropArea: {
     position: 'relative',
     width: '100%',
-    height: 0,
-    paddingBottom: '100%',
+    height: 'clamp(200px, calc(100vh - 280px), 560px)',
+    flexShrink: 0,
     background: '#000',
   },
   controls: {
@@ -223,6 +238,7 @@ const S = {
     display: 'flex',
     alignItems: 'center',
     gap: 14,
+    flexShrink: 0,
   },
   zoomLabel: {
     fontSize: 12,
@@ -239,6 +255,7 @@ const S = {
     gap: 10,
     padding: '14px 24px 18px',
     borderTop: `1px solid ${BORDER}`,
+    flexShrink: 0,
   },
   cancelBtn: {
     flex: 1,
