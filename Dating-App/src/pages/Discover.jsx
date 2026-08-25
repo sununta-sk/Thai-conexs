@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo, memo } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
 import { getStatesForCountryName } from '../data/worldLocations';
@@ -51,48 +51,151 @@ function isVipProfile(p) {
   return p.subscription_plan === 'gold' || p.subscription_plan === 'platinum';
 }
 
-// Copy for the side-margin TCN Referral promo boxes.
-const REFERRAL_PROMO = {
-  en: {
-    eyebrow: 'TCN REFERRAL SYSTEM',
-    headline: 'Invite friends, earn €30',
-    body: "Share your code. When a friend joins and verifies their profile, you get €30 real credit added to your balance.",
-    copyBtn: '📋 Copy Code',
-    copiedBtn: '✅ Copied!',
-  },
-  th: {
-    eyebrow: 'ระบบแนะนำเพื่อน TCN',
-    headline: 'ชวนเพื่อน รับ €30',
-    body: 'แชร์โค้ดของคุณ เมื่อเพื่อนสมัครและยืนยันตัวตนสำเร็จ คุณจะได้รับเครดิตจริง €30 เข้ายอดคงเหลือทันที',
-    copyBtn: '📋 คัดลอกโค้ด',
-    copiedBtn: '✅ คัดลอกแล้ว!',
-  },
+// ── Advertiser ad rail (side margins, replaces the old TCN Referral / VIP
+// promo boxes — Task 4, then reverted from "6 stacked slots" back to a
+// single box per side per client correction) ──
+// Placeholder designs shown in the box when there's no real advertiser yet.
+// Deliberately more than one so the rotation timer visibly cycles through
+// different looks even at zero real ads configured — this is what lets the
+// client visually confirm the rotation mechanism works before any advertiser
+// buys a slot ("same words, different design, so you can see it's changing").
+const AD_PLACEHOLDER_VARIANTS = ['gradient-pink', 'gradient-gold', 'gradient-teal', 'dark-outline', 'light-ghost'];
+
+// Shared with the admin Ads page (AdsPage.jsx) — keep the variant keys in
+// sync if either side changes. 'gradient-pink' is deliberately identical to
+// the original (pre-Task-4) TCN Referral/VIP promo box's gradient, so the
+// default look here matches "the original promo boxes" per the reverted spec.
+const AD_VARIANT_STYLES = {
+  'gradient-pink': { background: 'linear-gradient(135deg, #e91e63, #9c27b0)', color: '#fff', border: 'none' },
+  'gradient-gold':  { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', border: 'none' },
+  'gradient-teal':  { background: 'linear-gradient(135deg, #0ea5e9, #0284c7)', color: '#fff', border: 'none' },
+  'dark-outline':   { background: '#1e293b', color: '#f1f5f9', border: '1.5px solid #e91e63' },
+  'light-ghost':    { background: 'rgba(255,255,255,0.07)', color: '#f1f5f9', border: '1.5px dashed rgba(255,255,255,0.35)' },
 };
 
-// Copy for the right-margin VIP membership promo box. Priority visibility is
-// live today (VIP-first search ranking); messaging + translate are on the
-// roadmap, so those two are phrased as upcoming rather than claimed as
-// already active.
-const VIP_PROMO = {
-  en: {
-    eyebrow: 'VIP MEMBERSHIP',
-    headline: 'More reasons to go VIP',
-    points: [
-      { icon: '🔝', text: 'Priority visibility — your profile shows first in Discover, every time.' },
-      { icon: '💬', text: 'Unlimited messaging — unlocking soon for VIP members.' },
-      { icon: '🌐', text: 'Free in-chat translation — unlocking soon for VIP members.' },
-    ],
-  },
-  th: {
-    eyebrow: 'สมาชิก VIP',
-    headline: 'เหตุผลดีๆ ที่ควรเป็น VIP',
-    points: [
-      { icon: '🔝', text: 'การมองเห็นสูงสุด — โปรไฟล์ของคุณแสดงเป็นอันดับแรกในหน้าค้นหาเสมอ' },
-      { icon: '💬', text: 'ส่งข้อความไม่จำกัด — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
-      { icon: '🌐', text: 'แปลข้อความในแชทฟรี — กำลังจะเปิดให้สมาชิก VIP เร็วๆ นี้' },
-    ],
-  },
-};
+// The single box per side rotates through up to this many configured ads
+// (by display_order), looping back to the first after the last — not 6
+// simultaneous boxes any more, just the rotation pool size.
+const AD_POOL_SIZE = 6;
+
+// The single ad box for one side — either a real active ad (clickable, opens
+// destination_url in a new tab) or a placeholder design. The close button
+// sits as a sibling of the <a>, not inside it, so dismissing never triggers
+// a navigation.
+function AdBox({ content, onDismiss, sideStyle }) {
+  const variantKey = content.type === 'ad' ? (content.ad.design_variant || 'gradient-pink') : content.variant;
+  const variantStyle = AD_VARIANT_STYLES[variantKey] || AD_VARIANT_STYLES['gradient-pink'];
+  return (
+    <div className="tcn-promo-box" style={{ ...S.adBox, ...sideStyle, ...variantStyle }}>
+      <button type="button" style={S.adBoxClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
+      {content.type === 'ad' ? (
+        <a href={content.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.adBoxLink}>
+          {content.ad.image_url && <img src={content.ad.image_url} alt="" style={S.adBoxImg} />}
+          <div style={{ minWidth: 0 }}>
+            {content.ad.advertiser_name && <p style={S.adEyebrow}>{content.ad.advertiser_name}</p>}
+            <h4 style={S.adHeadline}>{content.ad.headline}</h4>
+            {content.ad.body_text && <p style={S.adBody}>{content.ad.body_text}</p>}
+          </div>
+        </a>
+      ) : (
+        <div style={S.adBoxLink}>
+          <div style={{ minWidth: 0 }}>
+            <p style={S.adEyebrow}>AD SPACE AVAILABLE</p>
+            <h4 style={S.adHeadline}>Your Advertisement Here</h4>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Ad rails (side margins) — Task 4, extracted into their own component (was
+// previously state living directly in Discover()) so the 10s rotation timer
+// only re-renders this small subtree, not the ~150+-card profile grid that
+// used to share the same component and re-execute in full on every tick.
+// memo()'d on top of that so this also skips re-rendering when Discover
+// re-renders for unrelated reasons (filter changes, OnlineContext's own
+// 30-60s ticks) — currentUserId is the only prop, and it only ever changes
+// once per session (login), so this should render once, then only on its
+// own internal state changes.
+// Reverted from "6 stacked slots per side" back to one box per side (client
+// correction of the original Task 4 spec) — the fetch/rotation-timer/isolation
+// structure above is untouched, only what gets rendered from `ads` changed:
+// a single box's content now advances through the ad pool one at a time
+// instead of 6 boxes each showing a different pool entry simultaneously.
+const AdRails = memo(function AdRails({ currentUserId }) {
+  const [ads, setAds] = useState([]);
+  const [adRotationTick, setAdRotationTick] = useState(0);
+  // In-memory only, on purpose: dismissing a side's box hides it for this
+  // page view alone, not persisted (no localStorage) — reappears on refresh.
+  // Tracked by side, not by ad id, so a box the visitor closed stays closed
+  // even as its rotating content changes underneath it.
+  const [dismissedSides, setDismissedSides] = useState(new Set());
+  const dismissSide = (side) => {
+    setDismissedSides(prev => { const next = new Set(prev); next.add(side); return next; });
+  };
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('ads').select('*').eq('is_active', true).order('display_order', { ascending: true });
+      if (!cancelled) setAds(data || []);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    // Client-side rotation only — no reload. Advancing this tick moves the
+    // box on each side to the next ad/placeholder in its pool (see
+    // getAdContent below). Scoped to this component, so this re-render
+    // never touches the profile grid.
+    const timer = setInterval(() => setAdRotationTick(t => t + 1), 10000);
+    return () => clearInterval(timer);
+  }, [currentUserId]);
+
+  // One box per side: content advances by adRotationTick through up to
+  // AD_POOL_SIZE real ads (display_order first), looping back to the first
+  // after the last; falls back to the placeholder-design cycle when the side
+  // has no real ads configured yet.
+  function getAdContent(side) {
+    const realAds = ads.filter(a => a.side === side || a.side === 'both').slice(0, AD_POOL_SIZE);
+    if (realAds.length === 0) {
+      return { type: 'placeholder', variant: AD_PLACEHOLDER_VARIANTS[adRotationTick % AD_PLACEHOLDER_VARIANTS.length] };
+    }
+    return { type: 'ad', ad: realAds[adRotationTick % realAds.length] };
+  }
+
+  // Gated on currentUserId, matching the old promo boxes' timing so this
+  // still appears in step with WelcomeModal. Returning null here (rather
+  // than the parent conditionally mounting/unmounting this component)
+  // means AdRails mounts once and its effects don't re-fire on login.
+  if (!currentUserId) return null;
+
+  return (
+    <>
+      {/* Fixed to the viewport (not absolute/scrolling with the page) so the
+          ad stays visible the whole time the user scrolls through Discover's
+          200+-profile grid, per client follow-up — an ad nobody scrolls back
+          up to see isn't useful to an advertiser. Fixed over sticky: this is
+          a straight revert to how the very first (pre-Task-4) promo boxes
+          positioned themselves — byte-identical, not scaled. Both the
+          horizontal calc()s below and the vertical centering (top:
+          max(260px, calc(50vh - var(--tcn-ad-box-h) / 2)), set on S.adBox
+          itself) are copied as-is from that original box's own positioning
+          — see Discover's <style> block for the CSS vars (defined on :root,
+          so available here too even though this is a separate component)
+          and the full original-value baseline. */}
+      {!dismissedSides.has('left') && (
+        <AdBox content={getAdContent('left')} onDismiss={() => dismissSide('left')} sideStyle={{ left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }} />
+      )}
+      {!dismissedSides.has('right') && (
+        <AdBox content={getAdContent('right')} onDismiss={() => dismissSide('right')} sideStyle={{ right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }} />
+      )}
+    </>
+  );
+});
 
 function formatLastSeen(dateStr, tx) {
   if (!dateStr) return '';
@@ -139,10 +242,6 @@ function inRange(value, range) {
 export default function Discover() {
   const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
   const isMobile = useIsMobile();
-  if (typeof window !== 'undefined') {
-    window.__debugWidth = window.innerWidth;
-    console.log('[DEBUG] window.innerWidth =', window.innerWidth, 'isMobile =', isMobile);
-  }
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
   const [passedIds, setPassedIds] = useState(new Set());
@@ -154,33 +253,23 @@ export default function Discover() {
   const { onlineUsers, recentlyActiveUsers, botIds } = useOnline();
   const navigate = useNavigate();
 
-  // ── TCN Referral promo boxes (side margins) ──
-  const [referralCode, setReferralCode] = useState('');
-  const [referralCopied, setReferralCopied] = useState(false);
-  // In-memory only, on purpose: closing the boxes should hide them for this
-  // page view alone, not persist across refreshes/new loads (no localStorage).
-  const [referralDismissed, setReferralDismissed] = useState(false);
-  const dismissReferralPromo = () => setReferralDismissed(true);
-
   useEffect(() => {
     // Quietly ensure the current user has a referral code, reusing the exact
     // same generation formula ProfileSetup.jsx uses (TCN-<first 6 of uid>),
-    // so codes stay consistent across the app. Only touches this one column.
-    if (!currentUserId || referralDismissed) return;
+    // so codes stay consistent across the app. No longer displayed on this
+    // page (that surface is now the ad rails below) — UserPayoutPage is
+    // where users actually see/use their code — but kept as a backstop so
+    // older accounts that predate ProfileSetup's own generation still get one.
+    if (!currentUserId) return;
     let cancelled = false;
     (async () => {
       const { data } = await supabase.from('profiles').select('referral_code').eq('id', currentUserId).maybeSingle();
-      if (cancelled) return;
-      if (data?.referral_code) {
-        setReferralCode(data.referral_code);
-      } else {
-        const code = `TCN-${currentUserId.slice(0, 6).toUpperCase()}`;
-        const { error } = await supabase.from('profiles').update({ referral_code: code }).eq('id', currentUserId);
-        if (!cancelled && !error) setReferralCode(code);
-      }
+      if (cancelled || data?.referral_code) return;
+      const code = `TCN-${currentUserId.slice(0, 6).toUpperCase()}`;
+      await supabase.from('profiles').update({ referral_code: code }).eq('id', currentUserId);
     })();
     return () => { cancelled = true; };
-  }, [currentUserId, referralDismissed]);
+  }, [currentUserId]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -209,7 +298,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, created_at').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -421,35 +510,73 @@ export default function Discover() {
     ? S.grid
     : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px', maxWidth: 'var(--tcn-grid-max)' };
 
+  // Same --tcn-grid-max narrowing as gridStyle above, applied to the filter
+  // bar too, so both stay the same width (and same left/right edges) at
+  // every viewport instead of the filter bar staying frozen at 1100px and
+  // getting overlapped by the ad rail once the grid — but not the filter
+  // bar — started narrowing to make room for it.
+  const searchBarStyle = { ...S.searchBar, maxWidth: 'var(--tcn-grid-max)' };
+
   // Card text/badges: fixed sizes preserved exactly on mobile; scale up via
   // clamp() on laptop/desktop as cards get wider.
   const nameStyle = isMobile ? S.name : { ...S.name, fontSize: 'clamp(13px, 1vw + 7px, 16px)' };
   const metaStyle = isMobile ? S.meta : { ...S.meta, fontSize: 'clamp(11px, 0.8vw + 6px, 14px)' };
   const verifiedBadgeStyle = isMobile ? S.verifiedBadge : { ...S.verifiedBadge, fontSize: 'clamp(9px, 0.5vw + 6px, 11px)' };
   const vipBadgeStyle = isMobile ? S.vipBadge : { ...S.vipBadge, fontSize: 'clamp(8px, 0.5vw + 5px, 10px)' };
+  const founderBadgeStyle = isMobile ? S.founderBadge : { ...S.founderBadge, fontSize: 'clamp(9px, 0.5vw + 6px, 12px)' };
 
   return (
-    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
+    <div style={{ ...S.page, position: 'relative', paddingTop: isMobile ? 0 : 90 }}>
       <style>{`
-        @keyframes vipShimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        /* VIP shimmer border: was animating background-position, a
+           paint-triggering property (repaints the gradient every frame for
+           every visible VIP card, indefinitely). Replaced with a rotating
+           conic-gradient layer animated via transform:rotate() instead —
+           compositor-only, no layout/paint per frame — using the same
+           5-color loop (first/last color already matched for a seamless
+           conic wrap) so the visual read (a moving rainbow border) is the
+           same, just spinning instead of scrolling sideways.
+           The layer is 2x the frame's size (inset:-50%) and centered so
+           full rotation always covers every corner with no gaps; .tcn-vip-
+           frame's overflow:hidden (see S.vipFrame) clips it back down to
+           the frame's own shape. ">*  { z-index:1 }" lifts the actual photo
+           (which already paints its own #334155 background - see
+           S.photoWrap) above the spinning layer, so only the padding-width
+           ring shows the gradient underneath. */
+        @keyframes vipSpin {
+          to { transform: rotate(360deg); }
         }
-        /* Promo box width scales 120px->200px as viewport grows 768px->~1429px,
-           then holds at 200px (matches the box width used before this was made
-           responsive). Grid max-width is solved so grid + both boxes + gaps +
-           edge insets always sum to <=100vw, reaching the original fixed
-           1100px cap once there's room (at ~1560px+), unchanged above that. */
-        /* Box vertical position: roughly centered in the viewport, but never
-           above 260px from the top — verified (header 77px + searchBar
-           bottom at 242px, see commit notes) so the box can never overlap
-           the fixed nav bar or the filter/search bar. --tcn-box-h (464px) is
-           the box's height floor (see promoBox.minHeight) used here so the
-           centering math matches the box's real rendered size. */
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * {
+          position: relative;
+          z-index: 1;
+        }
+        /* One ad box per side (reverted from the "6 stacked slots" version of
+           Task 4 per client correction). Sizing/positioning is now a BYTE-
+           IDENTICAL match to the original (pre-Task-4) single promo box —
+           no 2x scaling, no viewport-fit math, nothing recalculated. Two
+           earlier passes at this revert tried scaling the box up (first via
+           a viewport-filling height formula, then via a literal 2x of every
+           original value) — both replaced per explicit client correction;
+           this is a plain revert of size/position/spacing to exactly what
+           shipped for hours before tonight's ad-rail work, re-verified via
+           git history at commit 4016d76^ (S.promoBox et al): width
+           clamp(120px, 14vw, 200px), height a flat 464px, top
+           'max(260px, calc(50vh - 232px))' (232 = 464/2). Grid max-width
+           uses the same formula as pre-Task-4 too, so it reaches the
+           original fixed 1100px cap at the same ~1560px+ viewports as
+           before any of tonight's ad-rail changes. */
         :root {
           --tcn-box-w: clamp(120px, 14vw, 200px);
           --tcn-grid-max: min(1100px, calc(100vw - 60px - 2 * var(--tcn-box-w)));
-          --tcn-box-h: 464px;
+          --tcn-ad-box-h: 464px;
         }
         .tcn-promo-box { display: none; }
         @media (min-width: 768px) {
@@ -457,42 +584,14 @@ export default function Discover() {
           .tcn-promo-box { display: block; }
         }
       `}</style>
-      {/* Gated on currentUserId (set as soon as the session check resolves),
-          not referralCode (which needs its own extra DB round-trip) - this
-          keeps the boxes' appearance in step with WelcomeModal, which shows
-          right after that same session check with no further fetch. The
-          referral code text/copy button still just fill in once loaded. */}
-      {!referralDismissed && currentUserId && (
-        <>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, left: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
-            <p style={S.promoEyebrow}>{REFERRAL_PROMO[lang]?.eyebrow || REFERRAL_PROMO.en.eyebrow}</p>
-            <h3 style={S.promoHeadline}>{REFERRAL_PROMO[lang]?.headline || REFERRAL_PROMO.en.headline}</h3>
-            <p style={S.promoBody}>{REFERRAL_PROMO[lang]?.body || REFERRAL_PROMO.en.body}</p>
-            <div style={S.promoCode}>{referralCode}</div>
-            <button
-              type="button"
-              style={S.promoCopyBtn}
-              onClick={() => { navigator.clipboard.writeText(referralCode); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
-            >
-              {referralCopied ? (REFERRAL_PROMO[lang]?.copiedBtn || REFERRAL_PROMO.en.copiedBtn) : (REFERRAL_PROMO[lang]?.copyBtn || REFERRAL_PROMO.en.copyBtn)}
-            </button>
-          </div>
-          <div className="tcn-promo-box" style={{ ...S.promoBox, right: 'calc(50% - var(--tcn-grid-max) / 2 - 24px - var(--tcn-box-w))' }}>
-            <button type="button" style={S.promoClose} onClick={dismissReferralPromo} aria-label="Dismiss">✕</button>
-            <p style={S.promoEyebrow}>{VIP_PROMO[lang]?.eyebrow || VIP_PROMO.en.eyebrow}</p>
-            <h3 style={S.promoHeadline}>{VIP_PROMO[lang]?.headline || VIP_PROMO.en.headline}</h3>
-            <ul style={S.promoList}>
-              {(VIP_PROMO[lang]?.points || VIP_PROMO.en.points).map((point, i) => (
-                <li key={i} style={S.promoListItem}>
-                  <span style={S.promoListIcon}>{point.icon}</span>
-                  <span>{point.text}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
+      {/* Ad rail: one box per side, content rotating every 10s through the ad
+          pool (reverted from Task 4's "6 stacked slots" per client
+          correction) — extracted into its own AdRails component (defined
+          above, near AdBox) so its 10s rotation timer only re-renders that
+          small subtree, not this whole Discover component and its
+          ~150+-card grid below. All positioning/styling comments now live on
+          AdRails itself. */}
+      <AdRails currentUserId={currentUserId} />
       {isMobile && (
         <MobileDiscoverFilters
           filters={filters}
@@ -504,7 +603,7 @@ export default function Discover() {
         />
       )}
       {!isMobile && (
-      <div style={S.searchBar}>
+      <div style={searchBarStyle}>
         {/* Row 1 */}
         <div style={S.row}>
           <select value={filters.gender} onChange={e => updateFilter('gender', e.target.value)} style={S.input}>
@@ -618,11 +717,12 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
-                <div style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
+                <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
                   <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
                     {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                    {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
                     <div
                       style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
                       title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
@@ -723,18 +823,21 @@ const S = {
   },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
   vipFrameOff: { display: 'block' },
+  // The animated gradient itself now lives in the .tcn-vip-frame CSS class
+  // (see the <style> block above) as a rotating ::before layer — this
+  // object just sets up the box that layer clips against.
   vipFrame: {
     display: 'block',
+    position: 'relative',
+    overflow: 'hidden',
     padding: 3,
     boxSizing: 'border-box',
-    background: 'linear-gradient(90deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292)',
-    backgroundSize: '300% 100%',
-    animation: 'vipShimmer 5s linear infinite',
   },
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   vipBadge: { position: 'absolute', bottom: 5, left: 5, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
+  founderBadge: { position: 'absolute', bottom: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
   info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
@@ -747,26 +850,42 @@ const S = {
   btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
-  // TCN Referral promo boxes (side margins, desktop-wide only — see .tcn-promo-box media query)
-  // top/minHeight: see the --tcn-box-h comment in the <style> block — the
-  // 260px floor and 464px height together guarantee the box can never
-  // overlap the fixed nav bar (77px) or searchBar (bottom edge 242px).
-  promoBox: {
+  // Advertiser ad box (side margins, desktop-wide only — see .tcn-promo-box
+  // media query). One box per side (reverted from Task 4's 6-stacked-slots
+  // version), sized/styled as a BYTE-IDENTICAL match to the original
+  // (pre-Task-4) single promo box — no scaling of any kind, per explicit
+  // client correction of two earlier passes that tried 2x'ing this. Every
+  // value below is copied as-is from S.promoBox/promoClose/promoEyebrow/
+  // promoHeadline/promoBody at commit 4016d76^: width var(--tcn-box-w)
+  // (clamp(120,14vw,200) — see <style> block), height var(--tcn-ad-box-h)
+  // (464px), padding '20px 16px', borderRadius 14, boxShadow '0 8px 24px
+  // rgba(233,30,99,.3)' (the original's own pink-tinted shadow — matches
+  // 'gradient-pink' below, the byte-for-byte original gradient). Close
+  // button and eyebrow/headline/body sizes are likewise the original's exact
+  // numbers, unscaled. adBoxImg/adBoxLink's gap have no original counterpart
+  // (the referral/VIP boxes never had an image) — left at the pre-revert
+  // 6-slot AdSlot's own values (32px/radius 6, gap 8) rather than inventing
+  // new numbers, for the same "don't scale/recalculate anything" reason.
+  // Fixed (not absolute) per client follow-up: the ad should stay on screen
+  // the whole time the user scrolls through Discover's 200+-profile grid,
+  // not scroll away after the first screen. top/left/right calc()s mirror
+  // the original fixed promo boxes' own positioning exactly.
+  adBox: {
     position: 'fixed',
-    top: 'max(260px, calc(50vh - var(--tcn-box-h) / 2))',
+    top: 'max(260px, calc(50vh - var(--tcn-ad-box-h) / 2))',
     width: 'var(--tcn-box-w)',
-    minHeight: 'var(--tcn-box-h)',
+    minHeight: 'var(--tcn-ad-box-h)',
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     padding: '20px 16px',
-    background: 'linear-gradient(135deg, #e91e63, #9c27b0)',
     borderRadius: 14,
     boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+    overflow: 'hidden',
     zIndex: 30,
   },
-  promoClose: {
+  adBoxClose: {
     position: 'absolute',
     top: 10,
     right: 10,
@@ -775,19 +894,16 @@ const S = {
     borderRadius: '50%',
     border: 'none',
     background: 'rgba(255,255,255,0.2)',
-    color: '#fff',
+    color: 'inherit',
     fontSize: 12,
     lineHeight: '22px',
     padding: 0,
     cursor: 'pointer',
+    zIndex: 1,
   },
-  promoEyebrow: { margin: '0 22px 6px 0', fontSize: 11, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9, color: '#fff' },
-  promoHeadline: { margin: '0 0 8px', fontSize: 19, fontWeight: 900, color: '#fff', lineHeight: 1.2 },
-  promoBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, color: 'rgba(255,255,255,0.9)' },
-  promoCode: { background: 'rgba(255,255,255,0.15)', border: '1px dashed rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 10px', fontSize: 15, fontWeight: 800, color: '#fff', textAlign: 'center', letterSpacing: 0.5, marginBottom: 12, wordBreak: 'break-all' },
-  promoCopyBtn: { width: '100%', background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: 20, padding: '8px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
-  // Right box's 3-point VIP benefit list (bullet-point format, same visual language as the left box)
-  promoList: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 },
-  promoListItem: { display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 11, lineHeight: 1.35, color: 'rgba(255,255,255,0.95)' },
-  promoListIcon: { fontSize: 13, lineHeight: 1.3, flexShrink: 0 },
+  adBoxLink: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', textDecoration: 'none', color: 'inherit' },
+  adBoxImg: { width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 },
+  adEyebrow: { margin: '0 22px 6px 0', fontSize: 11, fontWeight: 800, letterSpacing: 0.3, opacity: 0.9 },
+  adHeadline: { margin: '0 0 8px', fontSize: 19, fontWeight: 900, lineHeight: 1.2 },
+  adBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, opacity: 0.9 },
 };

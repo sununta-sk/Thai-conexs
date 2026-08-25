@@ -60,6 +60,7 @@ const AnnouncementsPage    = lazy(() => import('./pages/admin/AnnouncementsPage'
 const TeamPage     = lazy(() => import('./pages/admin/TeamPage'));
 const AuditLogPage = lazy(() => import('./pages/admin/AuditLogPage'));
 const PlansPage    = lazy(() => import('./pages/admin/PlansPage'));
+const AdsPage       = lazy(() => import('./pages/admin/AdsPage'));
 
 const AdminFallback = () => <LoadingScreen />;
 
@@ -321,6 +322,7 @@ function AppContent() {
             <Route path="/admin/platform/settings"      element={<AdminRoute><PlatformSettingsPage /></AdminRoute>} />
             <Route path="/admin/platform/announcements" element={<AdminRoute><AnnouncementsPage /></AdminRoute>} />
             <Route path="/admin/plans"                  element={<AdminRoute><PlansPage /></AdminRoute>} />
+            <Route path="/admin/ads"                    element={<AdminRoute><AdsPage /></AdminRoute>} />
 
             <Route path="/admin/team"      element={<SuperAdminRoute><TeamPage /></SuperAdminRoute>} />
             <Route path="/admin/audit-log" element={<SuperAdminRoute><AuditLogPage /></SuperAdminRoute>} />
