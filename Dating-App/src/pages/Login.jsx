@@ -5,6 +5,11 @@ import { useTranslation } from '../hooks/useTranslation';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
+// These 3 are resized to 600px on the longest side (~79% smaller combined,
+// 1.5MB -> 323KB) - their largest actual display size anywhere (this file,
+// Register.jsx, LandingPage.jsx) is 320px (LandingPage's hero phone frame),
+// so 600px keeps comfortable retina headroom without shipping full
+// 2048px stock-photo originals. Task C, performance audit Area 2.
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';

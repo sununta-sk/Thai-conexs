@@ -7,6 +7,25 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const STATUS_TABS = ['pending', 'approved', 'rejected'];
 const MOBILE_PAGE_SIZE = 40;
 
+// Does this queue photo actually appear anywhere on the user's live
+// profile? Mirrors how UserProfilePage/RoomChat render a profile's
+// photos: avatar_url is always shown first, with profiles.photos (an
+// array of either JSON-stringified {url,...} crop objects, or legacy
+// plain URL strings) appended after. A pending/approved queue entry
+// that matches neither is "orphaned" — the user removed it from their
+// gallery (or never saved it) after it was queued, so approving it
+// won't do anything visible.
+function isPhotoLiveOnProfile(photoUrl, profile) {
+  if (!profile) return false; // handled separately by the "no profile" note
+  if (profile.avatar_url === photoUrl) return true;
+  const photos = Array.isArray(profile.photos) ? profile.photos : [];
+  return photos.some(p => {
+    if (typeof p !== 'string') return p?.url === photoUrl;
+    try { return JSON.parse(p)?.url === photoUrl; }
+    catch { return p === photoUrl; }
+  });
+}
+
 export default function PhotoQueuePage() {
   const isMobile = useIsMobile();
   const [mobilePage,    setMobilePage]    = useState(0);
@@ -17,26 +36,42 @@ export default function PhotoQueuePage() {
   const [selected,      setSelected]      = useState(new Set());
   const [preview,       setPreview]       = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [justActioned,  setJustActioned]  = useState({}); // { [photoId]: 'approved' | 'rejected' } — transient, shown before the tile leaves the list
+  const [toasts,        setToasts]        = useState([]);
 
   /* ── Fetch photos ── */
   const fetchPhotos = useCallback(async () => {
     setLoading(true);
     setSelected(new Set());
+    // Newest-first, per tab: Pending sorts by submission time (created_at)
+    // so freshly-uploaded photos surface at the top; Approved/Rejected sort
+    // by reviewed_at so a photo an admin just actioned shows up immediately
+    // instead of requiring a scroll to find it.
+    const orderColumn = activeTab === 'pending' ? 'created_at' : 'reviewed_at';
     const { data } = await supabase
       .from('photo_moderation_queue')
       .select(`
         id, photo_url, status, created_at, is_profile_photo, flag_reason, user_id
       `)
       .eq('status', activeTab)
-      .order('created_at', { ascending: true })
+      .order(orderColumn, { ascending: false, nullsFirst: false })
       .limit(300);
     setPhotos(data || []);
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map(p => p.user_id))];
-      const { data: profileData } = await supabase.from('profiles').select('id, username, avatar_url').in('id', userIds);
+      const { data: profileData } = await supabase.from('profiles').select('id, username, avatar_url, photos').in('id', userIds);
       if (profileData) {
         const profileMap = Object.fromEntries(profileData.map(p => [p.id, p]));
-        setPhotos(prev => prev.map(photo => ({ ...photo, profiles: profileMap[photo.user_id] })));
+        setPhotos(prev => prev.map(photo => {
+          const profile = profileMap[photo.user_id];
+          return {
+            ...photo,
+            profiles: profile,
+            // Rejected entries are expected to be absent from the profile —
+            // only flag pending/approved ones as orphaned.
+            isOrphaned: photo.status !== 'rejected' && !!profile && !isPhotoLiveOnProfile(photo.photo_url, profile),
+          };
+        }));
       }
     }
     setLoading(false);
@@ -54,15 +89,49 @@ export default function PhotoQueuePage() {
 
   useEffect(() => { fetchPhotos(); fetchStats(); }, [fetchPhotos]);
 
+  /* ── Toasts ── */
+  const addToast = (message, tone) => {
+    const toastId = Date.now() + Math.random();
+    setToasts(prev => [...prev, { toastId, message, tone }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.toastId !== toastId)), 2500);
+  };
+
   /* ── Moderate ── */
   const moderate = async (action, ids) => {
     setActionLoading(true);
     const statusMap = { approve: 'approved', reject: 'rejected' };
+    const newStatus = statusMap[action];
+
+    // Show the success state on the tile(s) right away, so approving
+    // doesn't just make the photo silently vanish from the list.
+    setJustActioned(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { next[id] = newStatus; });
+      return next;
+    });
+
     await supabase
       .from('photo_moderation_queue')
-      .update({ status: statusMap[action], reviewed_at: new Date().toISOString() })
+      .update({ status: newStatus, reviewed_at: new Date().toISOString() })
       .in('id', ids);
+
+    addToast(
+      ids.length > 1
+        ? `${action === 'approve' ? '✓' : '✕'} ${ids.length} photos ${newStatus}`
+        : `${action === 'approve' ? '✓' : '✕'} Photo ${newStatus}`,
+      newStatus
+    );
+
+    // Give the checkmark a beat to register before the tile leaves the
+    // (filtered-by-status) list and the modal closes.
+    await new Promise(resolve => setTimeout(resolve, 700));
+
     setPreview(null);
+    setJustActioned(prev => {
+      const next = { ...prev };
+      ids.forEach(id => { delete next[id]; });
+      return next;
+    });
     await fetchPhotos();
     await fetchStats();
     setActionLoading(false);
@@ -159,6 +228,8 @@ export default function PhotoQueuePage() {
                 style={{
                   ...S.card,
                   outline: selected.has(photo.id) ? '2px solid #e91e63' : '2px solid transparent',
+                  opacity: justActioned[photo.id] ? 0.85 : 1,
+                  pointerEvents: justActioned[photo.id] ? 'none' : 'auto',
                 }}
               >
                 {/* Image */}
@@ -171,7 +242,7 @@ export default function PhotoQueuePage() {
                 </div>
 
                 {/* Checkbox (pending only) */}
-                {activeTab === 'pending' && (
+                {activeTab === 'pending' && !justActioned[photo.id] && (
                   <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 2 }}>
                     <input
                       type="checkbox"
@@ -191,22 +262,44 @@ export default function PhotoQueuePage() {
                   <div style={{ color: '#475569', fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {photo.user?.email}
                   </div>
+                  {!photo.profiles && (
+                    <div style={S.noProfileNote} title="This user hasn't completed onboarding — nothing will visibly change on a live profile.">
+                      ⚠ No active profile yet
+                    </div>
+                  )}
+                  {photo.isOrphaned && (
+                    <div style={S.orphanedNote} title="This photo isn't in the user's current profile photos/avatar — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.">
+                      🔗 Not on profile
+                    </div>
+                  )}
                 </div>
 
                 {/* Quick action (pending only) */}
                 {activeTab === 'pending' && (
-                  <div style={S.quickActions}>
-                    <button
-                      style={{ ...S.quickBtn, background: '#10b98122', color: '#10b981' }}
-                      onClick={e => { e.stopPropagation(); moderate('approve', [photo.id]); }}
-                      disabled={actionLoading}
-                    >✓</button>
-                    <button
-                      style={{ ...S.quickBtn, background: '#ef444422', color: '#ef4444' }}
-                      onClick={e => { e.stopPropagation(); moderate('reject', [photo.id]); }}
-                      disabled={actionLoading}
-                    >✕</button>
-                  </div>
+                  justActioned[photo.id] ? (
+                    <div style={{ ...S.quickActions, justifyContent: 'center' }}>
+                      <span style={{
+                        ...S.actionedBadge,
+                        color:      justActioned[photo.id] === 'approved' ? '#10b981' : '#ef4444',
+                        background: justActioned[photo.id] === 'approved' ? '#10b98122' : '#ef444422',
+                      }}>
+                        {justActioned[photo.id] === 'approved' ? '✓ Approved' : '✕ Rejected'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={S.quickActions}>
+                      <button
+                        style={{ ...S.quickBtn, background: '#10b98122', color: '#10b981' }}
+                        onClick={e => { e.stopPropagation(); moderate('approve', [photo.id]); }}
+                        disabled={actionLoading}
+                      >✓</button>
+                      <button
+                        style={{ ...S.quickBtn, background: '#ef444422', color: '#ef4444' }}
+                        onClick={e => { e.stopPropagation(); moderate('reject', [photo.id]); }}
+                        disabled={actionLoading}
+                      >✕</button>
+                    </div>
+                  )
                 )}
               </div>
             ))}
@@ -253,9 +346,19 @@ export default function PhotoQueuePage() {
                 <div style={{ color: '#475569', fontSize: 12, marginBottom: 16 }}>
                   Uploaded: {new Date(preview.created_at).toLocaleString('th-TH')}
                 </div>
+                {!preview.profiles && (
+                  <div style={{ ...S.noProfileNote, marginBottom: 12 }}>
+                    ⚠ No active profile yet — this user hasn't completed onboarding, so approving won't show up on a live profile.
+                  </div>
+                )}
+                {preview.isOrphaned && (
+                  <div style={{ ...S.orphanedNote, marginBottom: 12 }}>
+                    🔗 Not on this user's current profile — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.
+                  </div>
+                )}
 
-                {/* Actions */}
-                {preview.status === 'pending' ? (
+                {/* Actions — falls back to preview.status once justActioned clears on refetch */}
+                {(justActioned[preview.id] || preview.status) === 'pending' ? (
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
                       style={{ ...S.modalActionBtn, background: '#10b981', flex: 1 }}
@@ -271,14 +374,29 @@ export default function PhotoQueuePage() {
                 ) : (
                   <div style={{
                     textAlign: 'center', padding: '10px 0', borderRadius: 10, fontWeight: 700, fontSize: 14,
-                    background: preview.status === 'approved' ? '#10b98122' : '#ef444422',
-                    color:      preview.status === 'approved' ? '#10b981'   : '#ef4444',
+                    background: (justActioned[preview.id] || preview.status) === 'approved' ? '#10b98122' : '#ef444422',
+                    color:      (justActioned[preview.id] || preview.status) === 'approved' ? '#10b981'   : '#ef4444',
                   }}>
-                    {preview.status === 'approved' ? '✓ Approved' : '✕ Rejected'}
+                    {(justActioned[preview.id] || preview.status) === 'approved' ? '✓ Approved' : '✕ Rejected'}
                   </div>
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ── Toasts ── */}
+        {toasts.length > 0 && (
+          <div style={S.toastContainer}>
+            {toasts.map(t => (
+              <div key={t.toastId} style={{
+                ...S.toast,
+                borderColor: t.tone === 'approved' ? '#10b98155' : '#ef444455',
+                color:       t.tone === 'approved' ? '#10b981'   : '#ef4444',
+              }}>
+                {t.message}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -353,6 +471,28 @@ const S = {
     background: '#3b82f666', color: '#93c5fd',
     fontSize: 10, fontWeight: 700, padding: '2px 8px',
     borderRadius: 20, backdropFilter: 'blur(4px)',
+  },
+  noProfileNote: {
+    color: '#fbbf24', fontSize: 10.5, fontWeight: 600,
+    marginTop: 3, lineHeight: 1.3,
+  },
+  orphanedNote: {
+    color: '#f97316', fontSize: 10.5, fontWeight: 600,
+    marginTop: 3, lineHeight: 1.3,
+  },
+  actionedBadge: {
+    flex: 1, textAlign: 'center', padding: '5px 0',
+    borderRadius: 8, fontSize: 12, fontWeight: 700,
+  },
+
+  toastContainer: {
+    position: 'fixed', bottom: 20, right: 20, zIndex: 1100,
+    display: 'flex', flexDirection: 'column', gap: 8,
+  },
+  toast: {
+    background: '#1e293b', border: '1px solid', borderRadius: 10,
+    padding: '10px 16px', fontSize: 13, fontWeight: 700,
+    boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
   },
   skeleton: {
     aspectRatio: '1', borderRadius: 12,

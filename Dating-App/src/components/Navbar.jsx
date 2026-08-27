@@ -98,12 +98,28 @@ function NavbarDesktop() {
       boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       boxSizing: 'border-box',
     }}>
-      {/* Same @keyframes name/definition as Discover's VIP card shimmer -
-          identical rule, so this is a reuse, not a second animation. */}
+      {/* Same .tcn-vip-frame class/keyframes as Discover's VIP card shimmer -
+          identical rules, so this is a reuse, not a second animation. See
+          Discover.jsx's <style> block for the full rationale: rotating
+          conic-gradient + transform:rotate() instead of animating
+          background-position, so it's compositor-only (no per-frame
+          repaint) instead of forcing a paint on every VIP-badged element,
+          every frame, for as long as the tab is open. */}
       <style>{`
-        @keyframes vipShimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        @keyframes vipSpin {
+          to { transform: rotate(360deg); }
+        }
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * {
+          position: relative;
+          z-index: 1;
         }
       `}</style>
 
@@ -201,7 +217,7 @@ function NavbarDesktop() {
                 colors, same 5s linear shimmer) - here just circular padding
                 instead of Discover's square-card padding, sized so the
                 overall 38x38 footprint is unchanged. */}
-            <div style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
+            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
               {myAvatar ? (
                 <img src={myAvatar} alt="" style={isPremium ? avatarImgVipStyle : avatarImgStyle} />
               ) : (
@@ -283,21 +299,23 @@ function MenuItem({ children, onClick, color = '#94a3b8', background = 'none', h
   );
 }
 
-// Navbar avatar VIP ring - same gradient/backgroundSize/animation as
-// Discover's S.vipFrame, just circular (borderRadius 50%) and a fixed 38px
-// footprint instead of Discover's square card. avatarImgVipStyle shrinks the
-// avatar by the ring's padding so the overall footprint stays 38x38.
+// Navbar avatar VIP ring - same .tcn-vip-frame rotating-gradient technique as
+// Discover's S.vipFrame (see the <style> block above), just circular
+// (borderRadius 50%) and a fixed 38px footprint instead of Discover's square
+// card. avatarImgVipStyle shrinks the avatar by the ring's padding so the
+// overall footprint stays 38x38. The animated gradient itself lives in the
+// .tcn-vip-frame CSS class (applied via className, not this style object) -
+// this just sets up the box (incl. overflow:hidden) that layer clips against.
 const avatarFrameOffStyle = { display: 'block' };
 const avatarVipFrameStyle = {
   display: 'block',
+  position: 'relative',
+  overflow: 'hidden',
   width: 38,
   height: 38,
   padding: 3,
   boxSizing: 'border-box',
   borderRadius: '50%',
-  background: 'linear-gradient(90deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292)',
-  backgroundSize: '300% 100%',
-  animation: 'vipShimmer 5s linear infinite',
 };
 const avatarImgStyle = { width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #334155' };
 const avatarImgVipStyle = { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' };

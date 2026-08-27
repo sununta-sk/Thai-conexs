@@ -402,7 +402,6 @@ export default function MobileRoomChat() {
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
   const otherIsVip = otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum';
-  const otherIsFounder = !!otherProfile?.is_founder_member;
   // "Xd ago" hidden, same principle as the Discover-card fix (2408ea6) and
   // RoomChat.jsx's matching change - tier labels stay, raw stale time doesn't.
   const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";
@@ -427,8 +426,12 @@ export default function MobileRoomChat() {
         transform: vp.offsetTop ? `translateY(${vp.offsetTop}px)` : undefined,
       }}
     >
+      {/* See RoomChat.jsx's matching comment - swapped the old nested
+          @import for a real <link> (React 19 hoists it into <head> and
+          dedupes by href against RoomChat's own copy), plus preconnect
+          hints in index.html. Performance audit Area 3 / Task D. */}
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 0; height: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -478,7 +481,7 @@ export default function MobileRoomChat() {
             <span style={S.headerNameText}>{otherProfile?.username ?? "User"}</span>
             <div style={S.headerBadges}>
               {otherIsVip && <span style={S.vipBadge}>VIP</span>}
-              {otherIsFounder && <span style={S.founderBadge}>🌟 Founder</span>}
+              {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
             </div>
           </div>
           <div style={S.headerSub}>

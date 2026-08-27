@@ -13,6 +13,8 @@ const ACTION_CONFIG = {
   restore: { label: 'Restore', icon: '✅', color: '#10b981', desc: 'Restore account to active status' },
   note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
   verify:  { label: 'Verify',  icon: '✓',  color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
+  markFounder:   { label: 'Mark as Founder',  icon: '🌟', color: '#a855f7', desc: 'Grant this user the Founder Member badge' },
+  unmarkFounder: { label: 'Remove Founder',   icon: '🌟', color: '#a855f7', desc: 'Remove the Founder Member badge from this user' },
   editUsername: { label: 'Edit Username', icon: 'EDIT', color: '#0891b2', desc: 'Change the username (user will be notified)' },
   deleteAccount: { label: 'Delete Account', icon: 'DEL', color: '#dc2626', desc: 'Permanently delete this account and all associated data. This cannot be undone.' },
 };
@@ -103,7 +105,7 @@ export default function UserDetailPage() {
   }
 
   async function submitAction() {
-    if (!reason.trim() && modal.action !== 'restore' && modal.action !== 'verify') return;
+    if (!reason.trim() && modal.action !== 'restore' && modal.action !== 'verify' && modal.action !== 'markFounder' && modal.action !== 'unmarkFounder') return;
     setSubmitting(true);
 
     try {
@@ -114,6 +116,17 @@ export default function UserDetailPage() {
         const { error } = await supabase.from('profiles').update({ is_verified: true }).eq('id', userId);
         if (error) throw error;
         showToast('✅ Verified successfully', 'success');
+        closeModal();
+        fetchAll();
+        return;
+      }
+
+      // ── Founder Member toggle ──
+      if (modal.action === 'markFounder' || modal.action === 'unmarkFounder') {
+        const nextValue = modal.action === 'markFounder';
+        const { error } = await supabase.from('profiles').update({ is_founder_member: nextValue }).eq('id', userId);
+        if (error) throw error;
+        showToast(nextValue ? '🌟 Marked as Founder Member' : 'Founder badge removed', 'success');
         closeModal();
         fetchAll();
         return;
@@ -275,6 +288,7 @@ export default function UserDetailPage() {
             <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
               <span style={S.infoBadge}>🆔 {profile.id.slice(0,8)}...</span>
               {profile.is_verified && <span style={{ ...S.infoBadge, color: '#10b981' }}>✅ Verified</span>}
+              {profile.is_founder_member && <span style={{ ...S.infoBadge, color: '#a855f7' }}>🌟 Founder</span>}
               <span style={S.infoBadge}>{profile.subscription_plan?.toUpperCase() || 'FREE'}</span>
               <span style={S.infoBadge}>Joined {new Date(profile.created_at).toLocaleDateString('en-GB')}</span>
               <AccountStatusBadge status={accountStatus} />
@@ -294,6 +308,11 @@ export default function UserDetailPage() {
             )}
             {!profile.is_verified && (
               <ActionBtn cfg={ACTION_CONFIG.verify} onClick={() => openModal('verify')} />
+            )}
+            {!profile.is_founder_member ? (
+              <ActionBtn cfg={ACTION_CONFIG.markFounder} onClick={() => openModal('markFounder')} />
+            ) : (
+              <ActionBtn cfg={ACTION_CONFIG.unmarkFounder} onClick={() => openModal('unmarkFounder')} />
             )}
             <ActionBtn cfg={ACTION_CONFIG.editUsername} onClick={() => { setNewUsername(profile.username || ''); setUsernameError(''); openModal('editUsername'); }} />
             <ActionBtn cfg={ACTION_CONFIG.note} onClick={() => openModal('note')} />
@@ -325,6 +344,7 @@ export default function UserDetailPage() {
               <Row label="Education" value={profile.education} />
               <Row label="Language"  value={profile.preferred_lang} />
               <Row label="Verified"  value={profile.is_verified ? 'Yes ✅' : 'No ❌'} />
+              <Row label="Founder Member" value={profile.is_founder_member ? 'Yes 🌟' : 'No'} />
               <Row label="Status"    value={accountStatus.toUpperCase()} />
               {(() => {
                 function extractPhotoUrl(p) {
@@ -453,6 +473,14 @@ export default function UserDetailPage() {
               </div>
             )}
 
+            {(modal.action === 'markFounder' || modal.action === 'unmarkFounder') && (
+              <div style={{ background: '#a855f711', border: '1px solid #a855f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#a855f7', margin: '0 20px 16px' }}>
+                {modal.action === 'markFounder'
+                  ? <>Grant <strong>{profile.username}</strong> the 🌟 Founder Member badge</>
+                  : <>Remove the 🌟 Founder Member badge from <strong>{profile.username}</strong></>}
+              </div>
+            )}
+
             {modal.action === 'suspend' && (
               <div style={S.formGroup}>
                 <label style={S.label}>Suspend duration (days)</label>
@@ -469,7 +497,7 @@ export default function UserDetailPage() {
               </div>
             )}
 
-            {modal.action !== 'restore' && modal.action !== 'verify' && (
+            {modal.action !== 'restore' && modal.action !== 'verify' && modal.action !== 'markFounder' && modal.action !== 'unmarkFounder' && (
               <div style={S.formGroup}>
                 <label style={S.label}>
                   Reason (internal) {modal.action !== 'note' && <span style={{ color: '#ef4444' }}>*</span>}
@@ -523,8 +551,8 @@ export default function UserDetailPage() {
               ) : (
               <button
                 onClick={submitAction}
-                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')}
-                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername')) ? 0.5 : 1 }}>
+                disabled={submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername' && modal.action !== 'markFounder' && modal.action !== 'unmarkFounder')}
+                style={{ ...S.confirmBtn, background: ACTION_CONFIG[modal.action].color, opacity: (submitting || (!reason.trim() && modal.action !== 'restore' && modal.action !== 'note' && modal.action !== 'verify' && modal.action !== 'editUsername' && modal.action !== 'markFounder' && modal.action !== 'unmarkFounder')) ? 0.5 : 1 }}>
                 {submitting ? 'Processing...' : `Confirm ${ACTION_CONFIG[modal.action].label}`}
               </button>
               )}

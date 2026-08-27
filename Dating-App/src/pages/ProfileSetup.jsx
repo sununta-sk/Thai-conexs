@@ -216,6 +216,39 @@ export default function ProfileSetup() {
     reader.readAsDataURL(file);
   };
 
+  // Cancels a still-pending moderation-queue entry for a photo the user
+  // removed from their own gallery (delete, recrop-replace, or the
+  // ban-evasion auto-removal below) before ever saving it onto their
+  // profile. Without this, the queue entry sits there forever — an admin
+  // eventually reviews/approves it, but there's nothing left for it to
+  // promote into, since the user already decided against that photo.
+  // Only touches 'pending' rows — never removes an admin's existing
+  // approve/reject decision. Fail open: never blocks the user's edit.
+  const cancelQueueEntry = async (photoUrl) => {
+    if (!photoUrl) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase
+        .from('photo_moderation_queue')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('photo_url', photoUrl)
+        .eq('status', 'pending');
+    } catch {
+      // Fail open — this is best-effort cleanup, not required for the edit to succeed.
+    }
+  };
+
+  // Step 1b: User removes a photo from their gallery before saving
+  const handleDeletePhoto = (index) => {
+    const removed = photos[index];
+    const remaining = photos.filter((_, idx) => idx !== index);
+    setPhotos(remaining);
+    if (removed?.url === mainPhoto) setMainPhoto(remaining[0]?.url || '');
+    cancelQueueEntry(removed?.url);
+  };
+
   // Step 2: User opens cropper for an existing photo
   const handleRecrop = (index) => {
     const photo = photos[index];
@@ -246,6 +279,7 @@ export default function ProfileSetup() {
           i === recropIndex ? { url: publicUrl, cropX: 50, cropY: 50, scale: 1 } : p
         ));
         if (wasMain) setMainPhoto(publicUrl);
+        cancelQueueEntry(oldPhoto?.url);
       } else {
         // New upload
         const isFirst = photos.length === 0;
@@ -290,6 +324,7 @@ export default function ProfileSetup() {
             setPhotos(prev => prev.filter(p => p.url !== publicUrl));
             setMainPhoto(prev => (prev === publicUrl ? '' : prev));
             await supabase.storage.from('avatars').remove([filePath]);
+            cancelQueueEntry(publicUrl);
             alert(lang === 'th' ? '⚠️ รูปนี้ถูกลบเนื่องจากตรงกับรูปของบัญชีที่ถูกระงับ' : '⚠️ This photo was removed — it matches one previously used by a banned account.');
           }
         } catch {
@@ -667,7 +702,7 @@ export default function ProfileSetup() {
         {photos.map((p, i) => (
           <div key={i} style={{ aspectRatio: '4/5', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
             <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
-            <button onClick={() => setPhotos(photos.filter((_, idx) => idx !== i))} style={S.delBtn}>✕</button>
+            <button onClick={() => handleDeletePhoto(i)} style={S.delBtn}>✕</button>
             <button onClick={() => handleRecrop(i)} style={S.recropBtn} title="Re-crop">✂</button>
             {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>

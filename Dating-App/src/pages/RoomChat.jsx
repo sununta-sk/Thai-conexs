@@ -319,10 +319,6 @@ const DS = {
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
   verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
   vip: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
-  // Same purple gradient as Discover.jsx's founderBadge - reused here as a
-  // pill (matching this sidebar's own vip/verified pill shape) instead of
-  // Discover's circular photo-corner overlay, same adaptation the VIP pill
-  // above already makes from Discover's vipBadge.
   founder: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
@@ -664,8 +660,17 @@ function RoomChatDesktop() {
 
   const chatColumn = (
     <div style={S.page}>
+      {/* Was a `@import url(...)` inside the <style> tag below - that can't
+          be discovered by the browser until this component has already
+          rendered (page-chat is a lazy chunk), and a nested @import is
+          lower network priority than a real <link>. React 19 hoists a
+          rendered <link rel="stylesheet"> into <head> and dedupes by href,
+          so this is fetched as soon as this component mounts instead of
+          after the enclosing <style> block gets parsed. index.html has the
+          matching preconnect hints so the connection is already warm by the
+          time this fires. Performance audit Area 3 / Task D. */}
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 0; height: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
