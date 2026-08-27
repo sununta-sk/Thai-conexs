@@ -8,6 +8,7 @@ import { supabase } from "../lib/supabaseClient";
 import { optimizeImage } from "../lib/imageUtils";
 import officialLogo from "../lib/LotusConnexs-full.jpeg";
 import { useOnline } from "../context/OnlineContext";
+import { useAuditLogger } from "../hooks/useAuditLogger";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -153,6 +154,15 @@ export default function MobileRoomChat() {
   const [reportReason, setReportReason] = useState("");
   const [showTicket, setShowTicket] = useState(false);
   const [ticketMsg, setTicketMsg] = useState("");
+  // ── Admin: quick "Official Account" private message - identical
+  // state/handler shape to RoomChat.jsx's (desktop) equivalent. ──
+  const { logAction } = useAuditLogger();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [otherIsAdmin, setOtherIsAdmin] = useState(false);
+  const [showOfficialMsg, setShowOfficialMsg] = useState(false);
+  const [officialTitle, setOfficialTitle] = useState("");
+  const [officialBody, setOfficialBody] = useState("");
+  const [officialSending, setOfficialSending] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
@@ -209,6 +219,20 @@ export default function MobileRoomChat() {
 
   // Derive other user id — same logic as RoomChat
   const otherUserId = session ? chatId.split("_").find((id) => id !== session.user.id) : null;
+
+  // Admin checks for the "Send Official Message" gate — identical to
+  // RoomChat.jsx's (desktop) equivalent effects.
+  useEffect(() => {
+    if (!session) { setIsAdmin(false); return; }
+    supabase.from("admin_users").select("id").eq("auth_user_id", session.user.id).eq("is_active", true).maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
+  }, [session]);
+
+  useEffect(() => {
+    if (!otherUserId) { setOtherIsAdmin(false); return; }
+    supabase.from("admin_users").select("id").eq("auth_user_id", otherUserId).eq("is_active", true).maybeSingle()
+      .then(({ data }) => setOtherIsAdmin(!!data));
+  }, [otherUserId]);
 
   // Other user profile + profile view — identical to RoomChat
   useEffect(() => {
@@ -348,6 +372,25 @@ export default function MobileRoomChat() {
     await supabase.from("support_tickets").insert({ user_id: session.user.id, subject: "Chat issue", message: ticketMsg, status: "open", priority: "medium" });
     setShowTicket(false); setTicketMsg(""); alert("ส่ง Ticket เรียบร้อยแล้ว");
   };
+  // Send Official Message — identical logic to RoomChat.jsx's (desktop)
+  // submitOfficialMessage.
+  const submitOfficialMessage = async () => {
+    if (!officialTitle.trim() || !officialBody.trim() || !otherUserId) return;
+    setOfficialSending(true);
+    const announceEmoji = String.fromCodePoint(0x1F4E2);
+    const content = announceEmoji + " " + officialTitle.trim() + "\n\n" + officialBody.trim();
+    const chat_id = [otherUserId, OFFICIAL_ID].sort().join("_");
+    const { error } = await supabase.from("messages").insert({ chat_id, room_id: chat_id, sender_id: OFFICIAL_ID, content });
+    if (error) { alert("Failed to send: " + error.message); setOfficialSending(false); return; }
+    await logAction({
+      action_type: "announcement_publish",
+      target_type: "app_user",
+      target_id: otherUserId,
+      metadata: { title: officialTitle.trim(), private: true, to_username: otherProfile?.username },
+    }).catch(console.error);
+    setShowOfficialMsg(false); setOfficialTitle(""); setOfficialBody(""); setOfficialSending(false);
+    alert("Sent to " + (otherProfile?.username || "user") + " via Official Account");
+  };
   // Derived display values
   const profileCity = otherProfile?.city ?? otherProfile?.details?.city ?? "";
   const rawPhotos = Array.isArray(otherProfile?.photos) ? otherProfile.photos : [];
@@ -358,6 +401,7 @@ export default function MobileRoomChat() {
   const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
+  const otherIsVip = otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum';
   // "Xd ago" hidden, same principle as the Discover-card fix (2408ea6) and
   // RoomChat.jsx's matching change - tier labels stay, raw stale time doesn't.
   const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";
@@ -396,6 +440,19 @@ export default function MobileRoomChat() {
         .mc-send:active { transform: scale(0.92); }
         .mc-icon:active { transform: scale(0.88); }
         textarea::placeholder { color: #64748b; }
+        /* Same .tcn-vip-frame class/keyframes as MobileNavbar's avatar ring
+           and Discover's VIP card shimmer - identical rules, reused here for
+           the header avatar. */
+        @keyframes vipSpin { to { transform: rotate(360deg); } }
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * { position: relative; z-index: 1; }
       `}</style>
 
       {/* ── Header ── */}
@@ -403,16 +460,21 @@ export default function MobileRoomChat() {
         <button style={S.backBtn} onClick={() => navigate(-1)}>←</button>
 
         <div style={S.avatarWrap} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
-          {avatarUrl
-            ? <img src={avatarUrl} alt="" style={S.avatar} onError={(e) => { e.target.style.display = 'none'; }} />
-            : <div style={S.avatarFallback}>{(otherProfile?.username?.[0] ?? "?").toUpperCase()}</div>}
+          {/* VIP ring: same .tcn-vip-frame technique as MobileNavbar's own
+              avatar ring, scaled to this header's 36px footprint (padding
+              2/image 32 - matches MobileNavbar's ~8% ring-to-total ratio). */}
+          <div className={otherIsVip ? 'tcn-vip-frame' : undefined} style={otherIsVip ? S.avatarVipFrame : S.avatarFrameOff}>
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={otherIsVip ? S.avatarImgVip : S.avatar} onError={(e) => { e.target.style.display = 'none'; }} />
+              : <div style={otherIsVip ? { ...S.avatarImgVip, background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e91e63', fontWeight: 800, fontSize: 13 } : S.avatarFallback}>{(otherProfile?.username?.[0] ?? "?").toUpperCase()}</div>}
+          </div>
           <div style={{ ...S.presenceDot, background: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#64748b" }} />
         </div>
 
         <div style={S.headerInfo} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           <div style={S.headerName}>
             {otherProfile?.username ?? "User"}
-            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+            {otherIsVip && <span style={S.vipBadge}>VIP</span>}
             {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
           </div>
           <div style={S.headerSub}>
@@ -422,6 +484,14 @@ export default function MobileRoomChat() {
         </div>
 
         <div style={{ flex: 1 }} />
+
+        {/* Same isAdmin && !otherIsAdmin gate and placement (right before the
+            overflow menu) as RoomChat.jsx's (desktop) standalone button -
+            icon-only here since the full "📢 Send Official Message" label
+            doesn't fit this header's much tighter width. */}
+        {isAdmin && !otherIsAdmin && (
+          <button style={S.officialMsgBtnMobile} onClick={() => setShowOfficialMsg(true)} aria-label="Send Official Message" title="Send Official Message">📢</button>
+        )}
 
         <div ref={menuRef} style={{ position: "relative" }}>
           <button style={S.menuBtn} onClick={() => setShowMenu(v => !v)}>⋯</button>
@@ -582,6 +652,39 @@ export default function MobileRoomChat() {
         </div>,
         document.body
       )}
+
+      {/* ── Send Official Message Modal — same fields/handler/copy as
+          RoomChat.jsx's (desktop) equivalent, in this file's own
+          portal+modal shell (same one Report/Ticket above use). ── */}
+      {showOfficialMsg && createPortal(
+        <div style={S.modalOverlay} onClick={() => setShowOfficialMsg(false)}>
+          <div style={S.modal} onClick={e => e.stopPropagation()}>
+            <div style={{ ...S.modalTitle, marginBottom: 4 }}>📢 Send Official Message</div>
+            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>To {otherProfile?.username ?? "this user"}, via Official Account</div>
+            <input
+              value={officialTitle}
+              onChange={e => setOfficialTitle(e.target.value)}
+              placeholder="Title..."
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#f1f5f9", fontSize: 14, marginBottom: 10, boxSizing: "border-box" }}
+            />
+            <textarea
+              value={officialBody}
+              onChange={e => setOfficialBody(e.target.value)}
+              placeholder="Message..."
+              rows={4}
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #334155", background: "#0f172a", color: "#f1f5f9", fontSize: 14, resize: "vertical", boxSizing: "border-box" }}
+            />
+            <button
+              onClick={submitOfficialMessage}
+              disabled={officialSending || !officialTitle.trim() || !officialBody.trim()}
+              style={{ marginTop: 12, width: "100%", padding: 10, background: "#f59e0b", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: 15, opacity: (officialSending || !officialTitle.trim() || !officialBody.trim()) ? 0.6 : 1 }}
+            >
+              {officialSending ? "Sending…" : "Send"}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -598,6 +701,12 @@ const S = {
   avatarWrap: { position: "relative", cursor: "pointer", flexShrink: 0 },
   avatar: { width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "2px solid #334155", display: "block" },
   avatarFallback: { width: 36, height: 36, borderRadius: "50%", background: "#1e293b", border: "2px solid #334155", display: "flex", alignItems: "center", justifyContent: "center", color: "#e91e63", fontWeight: 800, fontSize: 15 },
+  // VIP ring: same .tcn-vip-frame rotating-gradient technique as
+  // MobileNavbar's avatar ring, scaled to this 36px header avatar (padding
+  // 2/image 32 keeps the same ~8% ring-to-total ratio).
+  avatarFrameOff: { display: "block" },
+  avatarVipFrame: { display: "block", position: "relative", overflow: "hidden", width: 36, height: 36, padding: 2, boxSizing: "border-box", borderRadius: "50%" },
+  avatarImgVip: { width: 32, height: 32, borderRadius: "50%", objectFit: "cover", display: "block" },
   presenceDot: { position: "absolute", bottom: 1, right: 1, width: 9, height: 9, borderRadius: "50%", border: "2px solid #0f172a" },
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, cursor: "pointer", minWidth: 0, flex: 1 },
   headerName: { fontSize: 15, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
@@ -605,6 +714,10 @@ const S = {
   founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 22, padding: "4px 6px", letterSpacing: 1, fontWeight: 900, lineHeight: 1, flexShrink: 0 },
+  // Icon-only counterpart to RoomChat.jsx's (desktop) officialMsgBtn pill -
+  // same amber outline treatment, compacted to a round icon button to fit
+  // this header's tighter width.
+  officialMsgBtnMobile: { background: "transparent", border: "1px solid #f59e0b66", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, cursor: "pointer", flexShrink: 0, marginRight: 2 },
   menuDropdown: { position: "absolute", right: 0, top: "110%", background: "#1e293b", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", zIndex: 100, minWidth: 160, overflow: "hidden", border: "1px solid #334155" },
 
   // Messages

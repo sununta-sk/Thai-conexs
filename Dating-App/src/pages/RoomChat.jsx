@@ -93,7 +93,7 @@ function timeAgo(dateStr) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
+function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
   const [current, setCurrent] = useState(0);
   const [enlarged, setEnlarged] = useState(false);
 
@@ -128,23 +128,30 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
   return (
     <div style={SC.wrap}>
-      <img
-        key={current}
-        // Reverted from optimizeImage(src, {...}) back to the raw URL: that
-        // routed every photo through Supabase Storage's image-transform
-        // ("/storage/v1/render/image/") endpoint, which is a plan-gated
-        // feature not confirmed enabled on this project - real photos
-        // started failing to load and silently falling back to the
-        // onError silhouette below. Raw object URLs are the same ones
-        // that were already working before Task C.
-        src={src}
-        alt=""
-        style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
-        onClick={() => { if (!isLocked) setEnlarged(true); }}
-        onError={(e) => {
-          e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
-        }}
-      />
+      {/* VIP ring: same .tcn-vip-frame technique as Discover's card photo
+          and Navbar's avatar - here wrapping just the <img> (not the
+          arrows/dots/counter/lock-overlay siblings below, which stay
+          positioned against SC.wrap itself) so the shimmer reads as a
+          border inset from SC.wrap's own rounded edge. */}
+      <div className={isVip ? 'tcn-vip-frame' : undefined} style={isVip ? SC.vipFrame : SC.vipFrameOff}>
+        <img
+          key={current}
+          // Reverted from optimizeImage(src, {...}) back to the raw URL: that
+          // routed every photo through Supabase Storage's image-transform
+          // ("/storage/v1/render/image/") endpoint, which is a plan-gated
+          // feature not confirmed enabled on this project - real photos
+          // started failing to load and silently falling back to the
+          // onError silhouette below. Raw object URLs are the same ones
+          // that were already working before Task C.
+          src={src}
+          alt=""
+          style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
+          onClick={() => { if (!isLocked) setEnlarged(true); }}
+          onError={(e) => {
+            e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
+          }}
+        />
+      </div>
 
       {enlarged && !isLocked && (
         <PhotoEnlargeModal
@@ -201,6 +208,13 @@ const SC = {
   // SC.wrap's own background (#0f172a, the app's dark theme color) through
   // the img's own transparent, unpainted space.
   img: { width: '100%', height: '100%', objectFit: 'contain', display: 'block', transition: 'filter 0.3s, transform 0.3s' },
+  // VIP ring: same .tcn-vip-frame rotating-gradient technique as Discover's
+  // vipFrame, just wrapping this fixed-height rectangular photo box instead
+  // of Discover's aspect-ratio square card. width/height 100% (of SC.wrap)
+  // + padding 3, boxSizing border-box, so the wrapped <img> (itself
+  // width/height 100%) shrinks by the padding automatically.
+  vipFrameOff: { display: 'block', width: '100%', height: '100%' },
+  vipFrame: { display: 'block', position: 'relative', overflow: 'hidden', width: '100%', height: '100%', padding: 3, boxSizing: 'border-box' },
   // Same fixed height as SC.wrap, so the empty-state box is identically
   // sized to the photo-filled one - the sidebar shouldn't shift depending
   // on whether a profile happens to have photos.
@@ -244,7 +258,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
   return (
     <div style={DS.wrap}>
       <div style={DS.inner}>
-        <SidebarPhotoCarousel photos={allPhotos} isSubscriber={isSubscriber} onUpgrade={onUpgrade} />
+        <SidebarPhotoCarousel photos={allPhotos} isSubscriber={isSubscriber} onUpgrade={onUpgrade} isVip={profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum'} />
 
         <div style={DS.nameRow}>
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
@@ -667,6 +681,19 @@ function RoomChatDesktop() {
         .photo-thumb { transition: transform 0.15s; cursor: pointer; }
         .photo-thumb:hover { transform: scale(1.05); }
         .back-btn-big:hover { background: rgba(233, 30, 99, 0.15); }
+        /* Same .tcn-vip-frame class/keyframes as Navbar.jsx's avatar ring and
+           Discover's VIP card shimmer - identical rules, reused here for the
+           sidebar photo carousel (see SidebarPhotoCarousel/SC.vipFrame). */
+        @keyframes vipSpin { to { transform: rotate(360deg); } }
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * { position: relative; z-index: 1; }
       `}</style>
 
       <div style={S.header}>

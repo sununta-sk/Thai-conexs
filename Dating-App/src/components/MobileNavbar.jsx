@@ -11,22 +11,42 @@ import { useUnreadCount } from '../hooks/useUnreadCount';
 
 const TOP_H = 68;
 const BOTTOM_H = 64;
+
+// Mobile menu-button avatar VIP ring - same .tcn-vip-frame rotating-gradient
+// technique as Navbar.jsx's (desktop) avatarVipFrameStyle, scaled to this
+// button's 26px footprint instead of desktop's 38px (padding 2/image 22
+// keeps the same ~8% ring-to-total ratio desktop's 3/32-of-38 uses).
+const avatarFrameOffStyle = { display: 'block' };
+const avatarVipFrameStyle = {
+  display: 'block',
+  position: 'relative',
+  overflow: 'hidden',
+  width: 26,
+  height: 26,
+  padding: 2,
+  boxSizing: 'border-box',
+  borderRadius: '50%',
+};
+const avatarImgVipStyle = { width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' };
 // Fired when the funnel icon (Discover only) is tapped; MobileDiscoverFilters
 // listens for this to open its filter popup.
 export const OPEN_DISCOVER_FILTERS_EVENT = 'open-discover-filters';
 
-function MenuItem({ onClick, color = '#f1f5f9', children }) {
+// background/hoverBackground ported from Navbar.jsx's (desktop) MenuItem, so
+// a highlighted item (e.g. Upgrade Account below) can use the exact same
+// values there - defaults keep every other item's look unchanged.
+function MenuItem({ onClick, color = '#f1f5f9', background = 'none', hoverBackground = '#0f172a', children }) {
   return (
     <button
       onClick={onClick}
       style={{
         display: 'block', width: '100%', padding: '12px 16px',
-        background: 'none', border: 'none', textAlign: 'left',
+        background, border: 'none', textAlign: 'left',
         cursor: 'pointer', color, fontSize: 13, fontWeight: 600,
         whiteSpace: 'nowrap',
       }}
-      onMouseEnter={(e) => e.currentTarget.style.background = '#0f172a'}
-      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}>
+      onMouseEnter={(e) => e.currentTarget.style.background = hoverBackground}
+      onMouseLeave={(e) => e.currentTarget.style.background = background}>
       {children}
     </button>
   );
@@ -39,6 +59,7 @@ export default function MobileNavbar() {
   const { onlineCount } = useOnline();
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
   const unreadCount = useUnreadCount();
@@ -78,11 +99,12 @@ export default function MobileNavbar() {
       setIsAdmin(!!adminData);
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url, photos')
+        .select('avatar_url, photos, subscription_plan')
         .eq('id', session.user.id)
         .maybeSingle();
       if (cancelled) return;
       setMyAvatar(profile?.avatar_url || profile?.photos?.[0] || null);
+      setIsPremium(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum');
     });
     return () => { cancelled = true; };
   }, []);
@@ -118,6 +140,28 @@ export default function MobileNavbar() {
 
   return (
     <>
+      {/* Same .tcn-vip-frame class/keyframes as Navbar.jsx's (desktop) VIP
+          avatar ring and Discover's VIP card shimmer - identical rules, so
+          this is a reuse, not a second animation. Navbar and MobileNavbar
+          are never mounted together (one or the other per useIsMobile()),
+          so there's no duplicate-animation cost from repeating this block. */}
+      <style>{`
+        @keyframes vipSpin {
+          to { transform: rotate(360deg); }
+        }
+        .tcn-vip-frame::before {
+          content: '';
+          position: absolute;
+          inset: -50%;
+          background: conic-gradient(from 0deg, #f06292, #ffb74d, #4fc3f7, #ba68c8, #f06292);
+          animation: vipSpin 5s linear infinite;
+          will-change: transform;
+        }
+        .tcn-vip-frame > * {
+          position: relative;
+          z-index: 1;
+        }
+      `}</style>
       {/* Top bar */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
@@ -216,18 +260,26 @@ export default function MobileNavbar() {
           <button
             onClick={() => setShowMenu(v => !v)}
             style={{ ...navBtn(showMenu), width: '100%' }}>
-            {myAvatar ? (
-              <img
-                src={myAvatar} alt=""
-                style={{
-                  width: 26, height: 26, borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: showMenu ? '2px solid #e91e63' : '2px solid #334155',
-                }}
-              />
-            ) : (
-              <span style={{ fontSize: 22 }}>👤</span>
-            )}
+            {/* VIP ring: same .tcn-vip-frame technique as Navbar.jsx's
+                (desktop) avatar ring, just scaled to this 26px footprint
+                instead of desktop's 38px (padding 2/image 22 keeps the same
+                ~8% ring-to-total ratio desktop uses at 3/32-of-38). */}
+            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
+              {myAvatar ? (
+                <img
+                  src={myAvatar} alt=""
+                  style={isPremium ? avatarImgVipStyle : {
+                    width: 26, height: 26, borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: showMenu ? '2px solid #e91e63' : '2px solid #334155',
+                  }}
+                />
+              ) : isPremium ? (
+                <div style={{ ...avatarImgVipStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>👤</div>
+              ) : (
+                <span style={{ fontSize: 22 }}>👤</span>
+              )}
+            </div>
             <span>{tx.you || 'You'}</span>
           </button>
           {showMenu && (
@@ -250,7 +302,15 @@ export default function MobileNavbar() {
               <MenuItem onClick={() => goTo('/notifications')}>
                 🔔 {tx.notifications || 'Notifications'}
               </MenuItem>
-              <MenuItem onClick={() => goTo('/subscription')}>
+              {/* Same green highlight values as Navbar.jsx's (desktop)
+                  Upgrade Profile item - same /subscription destination,
+                  just this mobile menu's existing label kept as-is. */}
+              <MenuItem
+                onClick={() => goTo('/subscription')}
+                color="#fff"
+                background="linear-gradient(135deg, #22c55e, #16a34a)"
+                hoverBackground="linear-gradient(135deg, #16a34a, #15803d)"
+              >
                 💎 {tx.upgradeAccount || 'Upgrade Account'}
               </MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
