@@ -238,7 +238,7 @@ export default function MobileRoomChat() {
   useEffect(() => {
     if (!otherUserId || !session) return;
     supabase.from("profiles")
-      .select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan")
+      .select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan, is_founder_member")
       .eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
     supabase.from("profile_views").insert({ viewer_id: session.user.id, viewed_id: otherUserId })
@@ -402,6 +402,7 @@ export default function MobileRoomChat() {
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
   const otherIsVip = otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum';
+  const otherIsFounder = !!otherProfile?.is_founder_member;
   // "Xd ago" hidden, same principle as the Discover-card fix (2408ea6) and
   // RoomChat.jsx's matching change - tier labels stay, raw stale time doesn't.
   const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";
@@ -471,6 +472,7 @@ export default function MobileRoomChat() {
           <div style={S.headerName}>
             {otherProfile?.username ?? "User"}
             {otherIsVip && <span style={S.vipBadge}>VIP</span>}
+            {otherIsFounder && <span style={S.founderBadge}>🌟 Founder</span>}
           </div>
           <div style={S.headerSub}>
             {profileCity ? <span>📍 {profileCity} · </span> : null}
@@ -706,6 +708,7 @@ const S = {
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, cursor: "pointer", minWidth: 0, flex: 1 },
   headerName: { fontSize: 15, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   vipBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
+  founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 22, padding: "4px 6px", letterSpacing: 1, fontWeight: 900, lineHeight: 1, flexShrink: 0 },
   // Icon-only counterpart to RoomChat.jsx's (desktop) officialMsgBtn pill -
