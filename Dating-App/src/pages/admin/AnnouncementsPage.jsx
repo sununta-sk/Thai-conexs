@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuditLogger } from '../../hooks/useAuditLogger'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 export default function AnnouncementsPage() {
+  const isMobile = useIsMobile()
   const [list, setList]     = useState([])
   const [loading, setLoad]  = useState(true)
   const [showForm, setForm] = useState(false)
@@ -149,9 +151,12 @@ export default function AnnouncementsPage() {
           <div style={S.formCard}>
             <div style={S.field}>
               <label style={S.lbl}>Audience</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" onClick={() => { setMode('public'); setSelectedUser(null); }} style={{ ...S.actionBtn, padding: '8px 16px', background: mode === 'public' ? '#e91e63' : 'transparent', color: mode === 'public' ? '#fff' : '#94a3b8', borderColor: mode === 'public' ? '#e91e63' : '#334155' }}>Public (all users)</button>
-                <button type="button" onClick={() => setMode('private')} style={{ ...S.actionBtn, padding: '8px 16px', background: mode === 'private' ? '#e91e63' : 'transparent', color: mode === 'private' ? '#fff' : '#94a3b8', borderColor: mode === 'private' ? '#e91e63' : '#334155' }}>Private (select user)</button>
+              {/* Stacked full-width on mobile - "Public (all users)" /
+                  "Private (select user)" side-by-side left these two
+                  buttons cramped/clipped at phone widths. */}
+              <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 8 }}>
+                <button type="button" onClick={() => { setMode('public'); setSelectedUser(null); }} style={{ ...S.actionBtn, padding: '8px 16px', width: isMobile ? '100%' : undefined, boxSizing: 'border-box', background: mode === 'public' ? '#e91e63' : 'transparent', color: mode === 'public' ? '#fff' : '#94a3b8', borderColor: mode === 'public' ? '#e91e63' : '#334155' }}>Public (all users)</button>
+                <button type="button" onClick={() => setMode('private')} style={{ ...S.actionBtn, padding: '8px 16px', width: isMobile ? '100%' : undefined, boxSizing: 'border-box', background: mode === 'private' ? '#e91e63' : 'transparent', color: mode === 'private' ? '#fff' : '#94a3b8', borderColor: mode === 'private' ? '#e91e63' : '#334155' }}>Private (select user)</button>
               </div>
             </div>
             {mode === 'private' && (
@@ -181,14 +186,17 @@ export default function AnnouncementsPage() {
               <input value={form.title} onChange={e => setF(p => ({ ...p, title: e.target.value }))} style={S.input} placeholder="Title..." /></div>
             <div style={S.field}><label style={S.lbl}>Message</label>
               <textarea value={form.body} onChange={e => setF(p => ({ ...p, body: e.target.value }))} rows={3} style={S.textarea} /></div>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end' }}>
+            {/* Stacked full-width on mobile - side-by-side left the Publish
+                button squeezed next to the Type select at phone widths
+                (same fix as the Audience toggle above). */}
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 16, alignItems: isMobile ? 'stretch' : 'flex-end' }}>
               <div style={S.field}>
                 <label style={S.lbl}>Type</label>
-                <select value={form.type} onChange={e => setF(p => ({ ...p, type: e.target.value }))} style={S.select}>
+                <select value={form.type} onChange={e => setF(p => ({ ...p, type: e.target.value }))} style={{ ...S.select, width: isMobile ? '100%' : undefined, boxSizing: 'border-box' }}>
                   {['info', 'warning', 'success', 'error'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <button onClick={save} disabled={saving} style={S.saveBtn}>{saving ? 'Saving…' : '🚀 Publish'}</button>
+              <button onClick={save} disabled={saving} style={{ ...S.saveBtn, width: isMobile ? '100%' : undefined, boxSizing: 'border-box' }}>{saving ? 'Saving…' : '🚀 Publish'}</button>
             </div>
           </div>
         )}
