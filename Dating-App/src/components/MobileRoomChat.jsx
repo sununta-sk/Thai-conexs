@@ -469,10 +469,17 @@ export default function MobileRoomChat() {
         </div>
 
         <div style={S.headerInfo} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
+          {/* Username and badges are now separate flex children (was one
+              whiteSpace:nowrap/ellipsis text node) - only the username
+              itself truncates now, in headerNameText below; the badges sit
+              in headerBadges, flex-shrink:0'd so a long username can never
+              push VIP/Founder out of view. */}
           <div style={S.headerName}>
-            {otherProfile?.username ?? "User"}
-            {otherIsVip && <span style={S.vipBadge}>VIP</span>}
-            {otherIsFounder && <span style={S.founderBadge}>🌟 Founder</span>}
+            <span style={S.headerNameText}>{otherProfile?.username ?? "User"}</span>
+            <div style={S.headerBadges}>
+              {otherIsVip && <span style={S.vipBadge}>VIP</span>}
+              {otherIsFounder && <span style={S.founderBadge}>🌟 Founder</span>}
+            </div>
           </div>
           <div style={S.headerSub}>
             {profileCity ? <span>📍 {profileCity} · </span> : null}
@@ -706,7 +713,20 @@ const S = {
   avatarImgVip: { width: 32, height: 32, borderRadius: "50%", objectFit: "cover", display: "block" },
   presenceDot: { position: "absolute", bottom: 1, right: 1, width: 9, height: 9, borderRadius: "50%", border: "2px solid #0f172a" },
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, cursor: "pointer", minWidth: 0, flex: 1 },
-  headerName: { fontSize: 15, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  // Row wrapper for username + badges. minWidth:0 lets it shrink below its
+  // content's natural width inside headerInfo's column flex (needed for the
+  // ellipsis on headerNameText below to ever actually kick in).
+  headerName: { display: "flex", alignItems: "center", minWidth: 0 },
+  // Truncates on its own now - previously this rule sat directly on the
+  // container that also held the badge <span>s as text-node siblings, so a
+  // long username's ellipsis could clip the badges themselves out of view
+  // instead of just the name. clamp() keeps it legible without over- or
+  // under-sizing across phone widths (~360-430px) instead of a fixed px value.
+  headerNameText: { fontSize: "clamp(12px, 4vw, 15px)", fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 },
+  // flexShrink:0 is the actual fix: this group is never compressed, so
+  // whatever badges the user has are always fully visible - headerNameText
+  // above absorbs all the shrinking via its own ellipsis instead.
+  headerBadges: { display: "flex", alignItems: "center", flexShrink: 0 },
   vipBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
