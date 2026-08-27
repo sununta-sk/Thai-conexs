@@ -9,8 +9,11 @@ import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 
-const TOP_H = 68;
-const BOTTOM_H = 64;
+// Exported so other mobile-only fixed-position UI (e.g. Discover's mobile ad
+// banners) can size itself to exactly overlap these bars, rather than
+// duplicating these numbers and risking drift if they ever change here.
+export const TOP_H = 68;
+export const BOTTOM_H = 64;
 
 // Mobile menu-button avatar VIP ring - same .tcn-vip-frame rotating-gradient
 // technique as Navbar.jsx's (desktop) avatarVipFrameStyle, scaled to this
