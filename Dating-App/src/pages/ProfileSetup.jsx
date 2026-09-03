@@ -8,12 +8,27 @@ import { useIsDesktop } from '../hooks/useIsMobile';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
+// Strips whitespace and any wrapping quote characters (straight and
+// curly) from both ends, repeatedly. Only strips from the edges - a
+// legitimate apostrophe mid-name (e.g. "O'Brien") is left alone. Fixes
+// e.g. a literal `"k"` (quote marks included) getting saved verbatim.
+function sanitizeUsername(raw) {
+  let s = raw;
+  let prev;
+  do {
+    prev = s;
+    s = s.trim().replace(/^["'`“”‘’]+|["'`“”‘’]+$/g, '');
+  } while (s !== prev);
+  return s;
+}
+
 const T = {
   th: {
     profilePhotos:'Profile Photos (max 10)', faceVerify:'ยืนยันตัวตน (Face Verification)',
     verifiedTitle:'ยืนยันตัวตนแล้ว', verifiedSub:'คุณสามารถส่งข้อความได้แล้ว',
     notVerifiedTitle:'ยังไม่ได้ยืนยันตัวตน', notVerifiedSub:'คุณจะส่งข้อความไม่ได้จนกว่าจะยืนยัน',
     verifyBtn:'🤖 ยืนยันด้วย AI', verifyingBtn:'🔍 AI กำลังตรวจสอบ...',
+    uploadForVerify:'อัปโหลดรูปเพื่อยืนยัน', retakeBtn:'เลือกรูปใหม่',
     aboutYou:'เกี่ยวกับคุณ', username:'ชื่อผู้ใช้', bio:'แนะนำตัว',
     bodyEdu:'รูปร่างและการศึกษา', age:'อายุ', height:'ส่วนสูง (ซม.)', weight:'น้ำหนัก (กก.)',
     education:'การศึกษา', preferences:'ความต้องการ', gender:'เพศ', lookingFor:'มองหา',
@@ -30,6 +45,7 @@ const T = {
     verifiedTitle:'Identity Verified', verifiedSub:'You can now send messages',
     notVerifiedTitle:'Not Yet Verified', notVerifiedSub:'Your profile is almost complete! Verify your identity with AI to unlock your Verified Badge and stand out to other members.',
     verifyBtn:'🤖 Verify with AI', verifyingBtn:'🔍 AI is checking...',
+    uploadForVerify:'Upload a photo to verify', retakeBtn:'Choose a different photo',
     aboutYou:'About You', username:'Username', bio:'Bio',
     bodyEdu:'Body & Education', age:'Age', height:'Height (cm)', weight:'Weight (kg)',
     education:'Education', preferences:'Preferences', gender:'Gender', lookingFor:'Looking For',
@@ -87,8 +103,7 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
 export default function ProfileSetup() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const videoRef  = useRef(null);
-  const streamRef = useRef(null);
+  const verifyFileInputRef = useRef(null);
 
   const [username, setUsername]   = useState('');
   const [bio, setBio]             = useState('');
@@ -111,9 +126,7 @@ export default function ProfileSetup() {
   const [verifying, setVerifying]           = useState(false);
   const [verifyResult, setVerifyResult]     = useState(null);
   const [verifyMessage, setVerifyMessage]   = useState('');
-  const [cameraOpen, setCameraOpen]         = useState(false);
   const [capturedImage, setCapturedImage]   = useState(null);
-  const [cameraError, setCameraError]       = useState('');
   const [copied, setCopied]                 = useState(false);
 
   // Photo cropper state
@@ -133,31 +146,34 @@ export default function ProfileSetup() {
   const savedStatusTimerRef = useRef(null);
   const saveProfileRef     = useRef(null); // always holds the latest save closure (see effect below) so any handler can call saveProfileRef.current?.()
 
-  const openCamera = async () => {
-    setCameraError(''); setCapturedImage(null); setVerifyResult(null); setVerifyMessage('');
-    setCameraOpen(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 }, audio: false });
-      streamRef.current = stream;
-      setTimeout(() => { if (videoRef.current) videoRef.current.srcObject = stream; }, 100);
-    } catch (err) {
-      setCameraError('Could not open camera: ' + err.message);
-    }
-  };
-
-  const closeCamera = () => {
-    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
-    setCameraOpen(false);
-  };
-
-  const capturePhoto = () => {
-    if (!videoRef.current) return;
-    const canvas = document.createElement('canvas');
-    canvas.width  = videoRef.current.videoWidth  || 640;
-    canvas.height = videoRef.current.videoHeight || 480;
-    canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
-    setCapturedImage(canvas.toDataURL('image/jpeg', 0.9));
-    closeCamera();
+  // Verification photo now comes from the regular file-upload path (the
+  // same reliable native file/camera/gallery picker used for profile
+  // photos elsewhere), not a dedicated getUserMedia() capture - see the
+  // Part 2a investigation this replaced: no @capacitor/camera plugin is
+  // installed, and a bare getUserMedia() call is not reliably granted
+  // inside a packaged Capacitor WebView the way it is in a normal mobile
+  // browser. handleVerify() itself is unchanged - it only ever consumed
+  // capturedImage, regardless of how it got set.
+  //
+  // Worth knowing: this does weaken the original anti-spoofing intent of
+  // requiring a *live* capture for verification (a live capture is harder
+  // to fake than an arbitrary uploaded file - anyone could now "verify"
+  // with any photo, not necessarily their own, which also triggers the
+  // one-time referral commission payout in handleVerify()). Not a live
+  // concern today since this whole section is still wrapped in
+  // display:'none' below and unreachable by real users; worth revisiting
+  // if this section is ever unhidden.
+  const handleVerifyFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCapturedImage(reader.result);
+      setVerifyResult(null);
+      setVerifyMessage('');
+    };
+    reader.readAsDataURL(file);
   };
 
   const { lang } = useTranslation(['common']);
@@ -426,8 +442,10 @@ export default function ProfileSetup() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     setSaveStatus('saving');
+    const cleanUsername = sanitizeUsername(username);
+    if (cleanUsername !== username) setUsername(cleanUsername);
     const { error } = await supabase.from('profiles').upsert({
-      id: user.id, username, bio, avatar_url: mainPhoto,
+      id: user.id, username: cleanUsername, bio, avatar_url: mainPhoto,
       photos, details, referral_code: myReferralCode,
       lifestyle,
       city: details.city || null,
@@ -692,7 +710,12 @@ export default function ProfileSetup() {
   const MainContent = (
     <div style={S.main} onBlur={flushSave}>
       {saveStatus !== 'idle' && (
-        <div style={{ ...S.saveStatus, color: saveStatus === 'error' ? '#f87171' : saveStatus === 'saving' ? '#94a3b8' : '#4ade80' }}>
+        <div style={{
+          ...S.saveToast,
+          background: saveStatus === 'error' ? 'rgba(239,68,68,0.15)' : saveStatus === 'saving' ? 'rgba(148,163,184,0.15)' : 'rgba(74,222,128,0.15)',
+          border: `1px solid ${saveStatus === 'error' ? 'rgba(239,68,68,0.4)' : saveStatus === 'saving' ? 'rgba(148,163,184,0.4)' : 'rgba(74,222,128,0.4)'}`,
+          color: saveStatus === 'error' ? '#f87171' : saveStatus === 'saving' ? '#cbd5e1' : '#4ade80',
+        }}>
           {saveStatus === 'saving' ? tx.savingStatus : saveStatus === 'error' ? tx.errorStatus : tx.savedStatus}
         </div>
       )}
@@ -748,38 +771,25 @@ export default function ProfileSetup() {
               <div style={{ fontSize: '13px', color: '#94a3b8', lineHeight: 1.6 }}>{tx.notVerifiedSub}</div>
             </div>
           </div>
-          {cameraOpen && (
-            <div style={{ marginBottom: '12px', borderRadius: '12px', overflow: 'hidden', position: 'relative', background: '#000' }}>
-              <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', display: 'block', borderRadius: '12px' }} />
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '160px', height: '160px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.8)', pointerEvents: 'none' }} />
-              <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center', color: '#fff', fontSize: '12px', opacity: 0.8 }}>วางใบหน้าให้อยู่ในวงกลม</div>
-            </div>
-          )}
-          {capturedImage && !cameraOpen && (
+          <input type="file" ref={verifyFileInputRef} hidden onChange={handleVerifyFileSelect} accept="image/*" />
+          {capturedImage && (
             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
               <img src={capturedImage} style={{ width: '120px', height: '120px', borderRadius: '60px', objectFit: 'cover', border: '3px solid #fbbf24' }} />
             </div>
           )}
-          {cameraError && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', textAlign: 'center' }}>❌ {cameraError}</div>}
           {verifyResult === 'pass' && <div style={{ background: 'rgba(34, 197, 94, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#4ade80', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>✅ {verifyMessage}</div>}
           {verifyResult === 'fail' && <div style={{ background: 'rgba(239, 68, 68, 0.15)', borderRadius: '10px', padding: '10px', marginBottom: '10px', color: '#f87171', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>❌ {verifyMessage}</div>}
-          {!cameraOpen && !capturedImage && (
-            <button onClick={openCamera} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
-              📷 Open Camera
+          {!capturedImage && (
+            <button onClick={() => verifyFileInputRef.current?.click()} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
+              📷 {tx.uploadForVerify}
             </button>
           )}
-          {cameraOpen && (
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={capturePhoto} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>📸 ถ่ายภาพ</button>
-              <button onClick={closeCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>ยกเลิก</button>
-            </div>
-          )}
-          {capturedImage && !cameraOpen && (
+          {capturedImage && (
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={handleVerify} disabled={verifying} style={{ flex: 1, padding: '13px', borderRadius: '12px', border: 'none', background: verifying ? '#334155' : 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 'bold', fontSize: '15px', cursor: verifying ? 'not-allowed' : 'pointer' }}>
                 {verifying ? tx.verifyingBtn : tx.verifyBtn}
               </button>
-              <button onClick={openCamera} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 ถ่ายใหม่</button>
+              <button onClick={() => verifyFileInputRef.current?.click()} style={{ padding: '13px 16px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>🔄 {tx.retakeBtn}</button>
             </div>
           )}
         </div>
@@ -1085,7 +1095,20 @@ const S = {
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
-  saveStatus: { fontSize: '12px', fontWeight: 700, textAlign: 'right', marginBottom: '10px', transition: 'color 0.2s' },
+  saveToast: {
+    position: 'fixed',
+    bottom: 24,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '14px 28px',
+    borderRadius: 16,
+    fontSize: 15,
+    fontWeight: 800,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+    zIndex: 3000,
+    textAlign: 'center',
+    transition: 'opacity 0.2s',
+  },
   langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
   logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
   langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.5)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },
