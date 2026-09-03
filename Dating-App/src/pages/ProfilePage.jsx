@@ -2,11 +2,12 @@
 // Phase 6A — หน้าโปรไฟล์ของตัวเอง
 // Dark theme #0f172a / #1e293b | Accent #e91e63
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import BoostButton from '../components/BoostButton'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { TOP_H, BOTTOM_H } from '../components/MobileNavbar'
 import { useTranslation } from '../hooks/useTranslation'
 
 // Photo entries are JSON-stringified objects with crop metadata, same
@@ -27,6 +28,15 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Bio is clamped to 2 lines by default, same technique as RoomChat.jsx's
+  // DesktopSidebar - measures whether the clamp is actually cutting
+  // anything off (scrollHeight > clientHeight) so a short bio doesn't get
+  // a pointless toggle, and keeps this section's worst-case height
+  // predictable instead of growing with however long the bio is.
+  const bioRef = useRef(null)
+  const [bioExpanded, setBioExpanded] = useState(false)
+  const [bioClamped, setBioClamped] = useState(false)
+
   useEffect(() => {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -45,6 +55,10 @@ export default function ProfilePage() {
     load()
   }, [navigate])
 
+  useEffect(() => {
+    if (bioRef.current) setBioClamped(bioRef.current.scrollHeight > bioRef.current.clientHeight + 1)
+  }, [profile?.bio])
+
   if (loading) {
     return (
       <div style={S.loadWrap}>
@@ -61,12 +75,31 @@ export default function ProfilePage() {
   // Laptop/desktop (>=768px): content is centered inside a 900px column
   // (same width as Login/Register's card, an existing app value) instead of
   // stretching edge-to-edge, with S.page's background staying full-bleed.
-  // Mobile gets no style here at all - identical to the plain unwrapped
-  // rendering before this change.
-  const contentWrapStyle = isMobile ? undefined : { maxWidth: 900, margin: '0 auto' };
+  // The flex column properties below are unconditional on both - this div
+  // is the single flex item inside S.page's own flex column, and needs to
+  // pass flex:1/minHeight:0 down to its own children so the photo section
+  // can correctly claim whatever space the fixed sections don't use.
+  const contentWrapStyle = {
+    display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%',
+    ...(isMobile ? {} : { maxWidth: 900, margin: '0 auto' }),
+  };
 
   return (
-    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
+    <div style={{
+      ...S.page,
+      paddingTop: isMobile ? 0 : 90,
+      // Mobile reserves its own top/bottom clearance via body padding
+      // (MobileNavbar's TOP_H/BOTTOM_H), which a child's vh can't see -
+      // so 100vh alone would overflow the body by exactly that amount.
+      // Desktop's clearance lives in this div's own paddingTop instead,
+      // so border-box is what keeps it inside the 100vh cap rather than
+      // adding to it.
+      height: isMobile ? `calc(100vh - ${TOP_H + BOTTOM_H}px)` : '100vh',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
     <div style={contentWrapStyle}>
 
       {/* ── Hero ── */}
@@ -92,7 +125,12 @@ export default function ProfilePage() {
       {/* ── Bio ── */}
       {profile.bio && (
         <Section title={tx.aboutMe || 'เกี่ยวกับฉัน'}>
-          <p style={S.bio}>{profile.bio}</p>
+          <p ref={bioRef} style={bioExpanded ? S.bio : S.bioClamped}>{profile.bio}</p>
+          {bioClamped && (
+            <button type="button" style={S.bioToggle} onClick={() => setBioExpanded(v => !v)}>
+              {bioExpanded ? (tx.showLess || 'แสดงน้อยลง') : (tx.showMore || '...เพิ่มเติม')}
+            </button>
+          )}
         </Section>
       )}
 
@@ -120,7 +158,10 @@ export default function ProfilePage() {
 
       {/* ── Photos ── */}
       {Array.isArray(profile.photos) && profile.photos.length > 0 && (
-        <Section title={tx.photos || 'รูปภาพ'}>
+        <Section
+          title={tx.photos || 'รูปภาพ'}
+          style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+        >
           <div style={S.photoGrid}>
             {profile.photos.map((p, i) => (
               <img key={i} src={extractPhotoUrl(p)} alt={`photo-${i}`} style={S.photo} />
@@ -131,17 +172,8 @@ export default function ProfilePage() {
 
       {/* ── Buttons ── */}
       <div style={S.btnGroup}>
-        <button style={S.editBtn} onClick={() => navigate('/profile-setup')}>
-          ✏️ {tx.editProfile || 'แก้ไขโปรไฟล์'}
-        </button>
-        <button
-          style={S.logoutBtn}
-          onClick={async () => {
-            await supabase.auth.signOut()
-            navigate('/login')
-          }}
-        >
-          {tx.logout || 'ออกจากระบบ'}
+        <button style={S.lotusBtn} onClick={() => navigate('/lotus')}>
+          🪷 {tx.getMoreLotus || 'รับดอกบัวเพิ่ม'}
         </button>
       </div>
 
@@ -152,9 +184,9 @@ export default function ProfilePage() {
 
 // ── Sub-components ─────────────────────────────────────────
 
-function Section({ title, children }) {
+function Section({ title, children, style }) {
   return (
-    <div style={S.section}>
+    <div style={{ ...S.section, ...style }}>
       <p style={S.sectionLabel}>{title}</p>
       {children}
     </div>
@@ -175,7 +207,10 @@ const S = {
   page: {
     background: '#0f172a',
     color: '#f1f5f9',
-    paddingBottom: 100,
+    // Was 100px, sized for a naturally-scrolling page with trailing space
+    // after the last element. Now load-bearing chrome inside a fixed
+    // viewport budget, so it needs to be much smaller.
+    paddingBottom: 16,
   },
   loadWrap: {
     minHeight: '100vh',
@@ -198,10 +233,11 @@ const S = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '44px 24px 28px',
+    padding: 'clamp(16px, 5vh, 44px) 24px clamp(12px, 3vh, 28px)',
     background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
     borderBottom: '1px solid rgba(255,255,255,0.06)',
     gap: 6,
+    flexShrink: 0,
   },
   avatarRing: {
     padding: 3,
@@ -211,8 +247,8 @@ const S = {
     boxShadow: '0 0 28px rgba(233,30,99,0.4)',
   },
   avatar: {
-    width: 100,
-    height: 100,
+    width: 'clamp(64px, 10vh, 100px)',
+    height: 'clamp(64px, 10vh, 100px)',
     borderRadius: '50%',
     objectFit: 'cover',
     display: 'block',
@@ -252,6 +288,7 @@ const S = {
   section: {
     padding: '20px 20px 8px',
     borderBottom: '1px solid rgba(255,255,255,0.05)',
+    flexShrink: 0,
   },
   sectionLabel: {
     margin: '0 0 12px',
@@ -266,6 +303,25 @@ const S = {
     fontSize: 14,
     color: '#cbd5e1',
     lineHeight: 1.75,
+  },
+  bioClamped: {
+    margin: '0 0 4px',
+    fontSize: 14,
+    color: '#cbd5e1',
+    lineHeight: 1.75,
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+  },
+  bioToggle: {
+    background: 'none',
+    border: 'none',
+    color: '#e91e63',
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '0 0 14px',
   },
 
   // Chips
@@ -306,16 +362,26 @@ const S = {
     fontWeight: 500,
   },
 
-  // Photo grid
+  // Photo row - was a wrapping grid, so photo count directly grew page
+  // height with no ceiling. Now a single horizontally-scrolling row: any
+  // number of photos fits in the same vertical space, only scroll
+  // distance changes.
   photoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, 110px)',
+    display: 'flex',
+    flexWrap: 'nowrap',
+    overflowX: 'auto',
+    overflowY: 'hidden',
     gap: 10,
-    marginBottom: 14,
+    flex: 1,
+    minHeight: 0,
   },
   photo: {
-    width: 110,
-    height: 110,
+    // Fills whatever height flex:1 actually leaves for the photo row on
+    // this screen; width follows via aspect-ratio so tiles stay square
+    // at any size instead of being hardcoded to one pixel value.
+    height: '100%',
+    aspectRatio: '1 / 1',
+    flexShrink: 0,
     objectFit: 'cover',
     borderRadius: 10,
   },
@@ -326,25 +392,15 @@ const S = {
     display: 'flex',
     flexDirection: 'column',
     gap: 10,
+    flexShrink: 0,
   },
-  editBtn: {
+  lotusBtn: {
     width: '100%',
     padding: 14,
-    background: '#1e293b',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(233,30,99,0.1)',
+    border: '1px solid rgba(233,30,99,0.3)',
     borderRadius: 14,
-    color: '#f1f5f9',
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  logoutBtn: {
-    width: '100%',
-    padding: 14,
-    background: 'transparent',
-    border: '1px solid rgba(239,68,68,0.3)',
-    borderRadius: 14,
-    color: '#f87171',
+    color: '#e91e63',
     fontSize: 14,
     fontWeight: 600,
     cursor: 'pointer',

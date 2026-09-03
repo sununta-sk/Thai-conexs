@@ -297,6 +297,19 @@ export default function AccountSettings() {
         </div>
       </div>
 
+      <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
+        <div style={{ ...S.col, gridColumn: isDesktop ? '1 / -1' : undefined }}>
+          <div style={S.card}>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); navigate('/login'); }}
+              style={S.logoutBtn}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
       {showCloseConfirm && (
         <Modal onClose={() => setShowCloseConfirm(false)}>
           <div style={S.modalIcon}>!</div>
@@ -398,4 +411,5 @@ const S = {
   modalTitle: { fontSize: 18, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
   modalText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.6, margin: 0 },
   modalBtns: { display: 'flex', gap: 10, marginTop: 24, justifyContent: 'center' },
+  logoutBtn: { width: '100%', padding: 14, background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 14, color: '#f87171', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
 };

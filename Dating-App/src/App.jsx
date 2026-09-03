@@ -38,6 +38,7 @@ const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
 const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
 
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
+const LotusPage       = lazy(() => import('./pages/LotusPage'));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
 
 const UserListPage      = lazy(() => import('./pages/admin/UserListPage'));
@@ -294,6 +295,7 @@ function AppContent() {
             <Route path="/help"             element={<ProtectedRoute><HelpPage /></ProtectedRoute>} />
             <Route path="/room-chat/:chatId" element={<RoomChat />} />
             <Route path="/profile"           element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/lotus"             element={<ProtectedRoute><LotusPage /></ProtectedRoute>} />
             <Route path="/profile/:userId"   element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
             <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
