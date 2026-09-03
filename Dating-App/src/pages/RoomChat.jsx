@@ -574,11 +574,35 @@ function RoomChatDesktop() {
           }
         })
       .subscribe();
+    // Realtime (above) is the primary delivery path - this is a slow
+    // reconciliation safety net, not the mechanism instant delivery
+    // relies on (that's the optimistic local update in sendMessage).
+    // Was 1000ms, doing the same full-table job as realtime every single
+    // second for as long as the chat stayed open; the actual history
+    // (see 5680ff9/d830e81) shows this was only ever meant to catch a
+    // realtime failure, not run at primary-delivery frequency.
     const poll = setInterval(async () => {
       const { data } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: false }).range(0, 99);
       if (data) setMessages(data.slice().reverse());
-    }, 1000);
-    return () => { supabase.removeChannel(channel); clearInterval(poll); };
+    }, 20000);
+
+    // Realtime's websocket can be throttled/suspended by the browser
+    // while the tab is backgrounded - reconcile immediately on return
+    // instead of waiting for the next slow poll tick, so a message sent
+    // while this tab was hidden shows up right away rather than up to
+    // 20s late.
+    const reconcileFn = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const { data } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: false }).range(0, 99);
+      if (data) setMessages(data.slice().reverse());
+    };
+    document.addEventListener('visibilitychange', reconcileFn);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+      document.removeEventListener('visibilitychange', reconcileFn);
+    };
   }, [session, chatId]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
