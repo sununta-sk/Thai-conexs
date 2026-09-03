@@ -238,7 +238,7 @@ export default function MobileRoomChat() {
   useEffect(() => {
     if (!otherUserId || !session) return;
     supabase.from("profiles")
-      .select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan, is_founder_member")
+      .select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan, is_founder_member, is_invisible")
       .eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
     supabase.from("profile_views").insert({ viewer_id: session.user.id, viewed_id: otherUserId })
@@ -401,7 +401,7 @@ export default function MobileRoomChat() {
   const activityTier = getTier(otherUserId, otherProfile?.last_seen_at);
   const isOnline = activityTier === 'online';
   const isRecentlyActive = activityTier === 'recently_active';
-  const otherIsVip = otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum';
+  const otherIsVip = (otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && !otherProfile?.is_invisible;
   // "Xd ago" hidden, same principle as the Discover-card fix (2408ea6) and
   // RoomChat.jsx's matching change - tier labels stay, raw stale time doesn't.
   const onlineStatusText = isOnline ? "Online" : isRecentlyActive ? "Recently Active" : "";

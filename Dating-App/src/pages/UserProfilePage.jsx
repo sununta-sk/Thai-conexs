@@ -219,7 +219,7 @@ export default function UserProfilePage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified, subscription_plan, is_founder_member')
+        .select('id, username, avatar_url, bio, photos, details, lifestyle, city, location, last_seen_at, is_verified, subscription_plan, is_founder_member, is_invisible')
         .eq('id', userId)
         .maybeSingle();
 
@@ -360,7 +360,7 @@ export default function UserProfilePage() {
           <span style={S.name}>{profile.username || '—'}</span>
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
-          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && !profile.is_invisible && <span style={S.vipBadge}>VIP</span>}
           {profile.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
         </div>
 

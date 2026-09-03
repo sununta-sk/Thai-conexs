@@ -116,7 +116,7 @@ export function useSubscription() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
 
-    const res = await fetch(`${API_BASE}/api/subscription/checkout`, {
+    const res = await fetch(`/api/subscription/checkout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -139,7 +139,7 @@ export function useSubscription() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Not authenticated");
 
-    const res = await fetch(`${API_BASE}/api/subscription/cancel`, {
+    const res = await fetch(`/api/subscription/cancel`, {
       method: "POST",
       headers: { Authorization: `Bearer ${session.access_token}` },
     });

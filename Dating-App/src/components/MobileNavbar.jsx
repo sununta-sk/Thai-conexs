@@ -8,6 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
+import InvisibleModeToggle from './InvisibleModeToggle';
 
 // Exported so other mobile-only fixed-position UI (e.g. Discover's mobile ad
 // banners) can size itself to exactly overlap these bars, rather than
@@ -61,8 +62,10 @@ export default function MobileNavbar() {
   const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const { onlineCount } = useOnline();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState(null);
   const [myAvatar, setMyAvatar] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [isInvisible, setIsInvisible] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
   const unreadCount = useUnreadCount();
@@ -87,6 +90,7 @@ export default function MobileNavbar() {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session || cancelled) return;
+      setUserId(session.user.id);
       let adminData = null;
       for (let attempt = 0; attempt < 3; attempt++) {
         const { data, error } = await supabase
@@ -102,12 +106,13 @@ export default function MobileNavbar() {
       setIsAdmin(!!adminData);
       const { data: profile } = await supabase
         .from('profiles')
-        .select('avatar_url, photos, subscription_plan')
+        .select('avatar_url, photos, subscription_plan, is_invisible')
         .eq('id', session.user.id)
         .maybeSingle();
       if (cancelled) return;
       setMyAvatar(profile?.avatar_url || profile?.photos?.[0] || null);
       setIsPremium(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum');
+      setIsInvisible(!!profile?.is_invisible);
     });
     return () => { cancelled = true; };
   }, []);
@@ -201,6 +206,9 @@ export default function MobileNavbar() {
           <button onClick={() => setLang('en')} style={{ padding: '4px 7px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>EN</button>
           <button onClick={() => setLang('th')} style={{ padding: '4px 7px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>TH</button>
         </div>
+        {isPremium && (
+          <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
+        )}
         {isActive('/discover') && (
           <button
             onClick={() => window.dispatchEvent(new CustomEvent(OPEN_DISCOVER_FILTERS_EVENT))}
@@ -267,17 +275,17 @@ export default function MobileNavbar() {
                 (desktop) avatar ring, just scaled to this 26px footprint
                 instead of desktop's 38px (padding 2/image 22 keeps the same
                 ~8% ring-to-total ratio desktop uses at 3/32-of-38). */}
-            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
+            <div className={isPremium && !isInvisible ? 'tcn-vip-frame' : undefined} style={isPremium && !isInvisible ? avatarVipFrameStyle : avatarFrameOffStyle}>
               {myAvatar ? (
                 <img
                   src={myAvatar} alt=""
-                  style={isPremium ? avatarImgVipStyle : {
+                  style={isPremium && !isInvisible ? avatarImgVipStyle : {
                     width: 26, height: 26, borderRadius: '50%',
                     objectFit: 'cover',
                     border: showMenu ? '2px solid #e91e63' : '2px solid #334155',
                   }}
                 />
-              ) : isPremium ? (
+              ) : isPremium && !isInvisible ? (
                 <div style={{ ...avatarImgVipStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>👤</div>
               ) : (
                 <span style={{ fontSize: 22 }}>👤</span>
@@ -295,6 +303,9 @@ export default function MobileNavbar() {
             }}>
               <MenuItem onClick={() => goTo('/profile-setup')}>
                 ✏️ {tx.editProfile || 'Edit Profile'}
+              </MenuItem>
+              <MenuItem onClick={() => goTo('/profile')}>
+                🚀 {tx.boostProfile || 'Boost Profile'}
               </MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>
                 ⚙️ {tx.accountSettings || 'Account Settings'}

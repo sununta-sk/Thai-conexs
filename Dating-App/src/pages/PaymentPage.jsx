@@ -52,7 +52,7 @@ export default function PaymentPage() {
       if (!session) throw new Error("Not authenticated");
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:4000"}/api/subscription/verify`,
+        `/api/subscription/verify`,
         {
           method: "POST",
           headers: {

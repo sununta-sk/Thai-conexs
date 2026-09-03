@@ -9,13 +9,16 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
+import InvisibleModeToggle from './InvisibleModeToggle';
 
 function NavbarDesktop() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userId, setUserId] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [isInvisible, setIsInvisible] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
   const [myUsername, setMyUsername] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -29,6 +32,7 @@ function NavbarDesktop() {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
+      setUserId(session.user.id);
 
       let adminData = null;
       for (let attempt = 0; attempt < 3; attempt++) {
@@ -45,7 +49,7 @@ function NavbarDesktop() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('avatar_url, username, subscription_plan')
+        .select('avatar_url, username, subscription_plan, is_invisible')
         .eq('id', session.user.id)
         .maybeSingle();
       if (profileData) {
@@ -54,6 +58,7 @@ function NavbarDesktop() {
         setMyAvatar(url || null);
         setMyUsername(profileData.username || '');
         setIsPremium(profileData.subscription_plan === 'gold' || profileData.subscription_plan === 'platinum');
+        setIsInvisible(!!profileData.is_invisible);
       }
     });
   }, []);
@@ -179,6 +184,9 @@ function NavbarDesktop() {
             <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
             <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
           </div>
+          {isPremium && (
+            <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
+          )}
           {!isPremium && (
             <button
               onClick={() => goTo('/subscription')}
@@ -217,11 +225,11 @@ function NavbarDesktop() {
                 colors, same 5s linear shimmer) - here just circular padding
                 instead of Discover's square-card padding, sized so the
                 overall 38x38 footprint is unchanged. */}
-            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
+            <div className={isPremium && !isInvisible ? 'tcn-vip-frame' : undefined} style={isPremium && !isInvisible ? avatarVipFrameStyle : avatarFrameOffStyle}>
               {myAvatar ? (
-                <img src={myAvatar} alt="" style={isPremium ? avatarImgVipStyle : avatarImgStyle} />
+                <img src={myAvatar} alt="" style={isPremium && !isInvisible ? avatarImgVipStyle : avatarImgStyle} />
               ) : (
-                <div style={{ ...(isPremium ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+                <div style={{ ...(isPremium && !isInvisible ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
               )}
             </div>
             <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>▼</span>
@@ -246,6 +254,7 @@ function NavbarDesktop() {
                 </div>
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ {tx.editProfile || 'Edit Profile'}</MenuItem>
+              <MenuItem onClick={() => goTo('/profile')}>🚀 {tx.boostProfile || 'Boost Profile'}</MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>⚙️ {tx.accountSettings || 'Account Settings'}</MenuItem>
               {/* Same destination as the "Upgrade Account" button above (/subscription) */}
               <MenuItem

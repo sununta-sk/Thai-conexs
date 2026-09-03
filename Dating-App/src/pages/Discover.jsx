@@ -340,6 +340,7 @@ export default function Discover() {
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
   const [passedIds, setPassedIds] = useState(new Set());
+  const [boostedIds, setBoostedIds] = useState(new Set());
   const [currentUserProfile, setCurrentUserProfile] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -393,7 +394,7 @@ export default function Discover() {
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at, is_invisible').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -405,6 +406,9 @@ export default function Discover() {
 
       const { data: likes } = await supabase.from('user_likes').select('liked_id').eq('liker_id', user.id);
       setLikedIds(new Set((likes || []).map(l => l.liked_id)));
+
+      const { data: boosts } = await supabase.from('profile_boosts').select('user_id').gt('expires_at', new Date().toISOString());
+      setBoostedIds(new Set((boosts || []).map(b => b.user_id)));
 
       if (!error && data) {
         setProfiles(data.filter(p => !blockedIds.has(p.id) && !passedSet.has(p.id)));
@@ -478,19 +482,25 @@ export default function Discover() {
       result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
 
-    // VIP users (active paid subscription) surface above everyone else,
-    // shuffled among themselves fresh each time this recomputes; non-VIP
-    // users keep whatever order the block above produced.
-    const vip = result.filter(isVipProfile);
-    const nonVip = result.filter(p => !isVipProfile(p));
+    // Boosted users (active profile_boosts row) surface above everyone else,
+    // including plain VIP; VIP users surface above the rest below that.
+    // Each tier is shuffled among itself fresh each time this recomputes;
+    // non-VIP/non-boosted users keep whatever order the block above produced.
+    const boosted = result.filter(p => boostedIds.has(p.id));
+    const vip = result.filter(p => !boostedIds.has(p.id) && isVipProfile(p));
+    const nonVip = result.filter(p => !boostedIds.has(p.id) && !isVipProfile(p));
+    for (let i = boosted.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
+    }
     for (let i = vip.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [vip[i], vip[j]] = [vip[j], vip[i]];
     }
-    result = [...vip, ...nonVip];
+    result = [...boosted, ...vip, ...nonVip];
 
     return result;
-  }, [profiles, filters, onlineUsers, botIds, currentUserProfile]);
+  }, [profiles, filters, onlineUsers, botIds, currentUserProfile, boostedIds]);
 
   const handleStartChat = (targetUserId) => navigate('/room-chat/' + getChatId(currentUserId, targetUserId));
 
@@ -812,11 +822,11 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
-                <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
+                <div className={isVipProfile(profile) && !profile.is_invisible ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) && !profile.is_invisible ? S.vipFrame : S.vipFrameOff}>
                   <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
-                    {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                    {isVipProfile(profile) && !profile.is_invisible && <div style={vipBadgeStyle}>VIP</div>}
                     {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
                     <div
                       style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}

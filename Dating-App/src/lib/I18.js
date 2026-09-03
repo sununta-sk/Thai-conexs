@@ -26,8 +26,8 @@ const T = {
   // COMMON — ใช้ทุกหน้า
   // ─────────────────────────────────────────────
   common: {
-    th: { save:'บันทึก', cancel:'ยกเลิก', confirm:'ยืนยัน', back:'ย้อนกลับ', loading:'กำลังโหลด...', error:'เกิดข้อผิดพลาด', success:'สำเร็จ', submit:'ส่ง', search:'ค้นหา', close:'ปิด', delete:'ลบ', edit:'แก้ไข', view:'ดู', logout:'ออกจากระบบ', online:'ออนไลน์', offline:'ออฟไลน์', yes:'ใช่', no:'ไม่', send:'ส่ง', sending:'กำลังส่ง...', retry:'ลองใหม่', admin:'แอดมิน', upgradeAccount:'อัพเกรด', editProfile:'แก้ไขโปรไฟล์', accountSettings:'ตั้งค่าบัญชี', help:'ช่วยเหลือ', notifications:'การแจ้งเตือน', discoverNav:'ค้นพบ', messagesNav:'ข้อความ', mobilePreview:'ดูแบบมือถือ', },
-    en: { save:'Save', cancel:'Cancel', confirm:'Confirm', back:'Back', loading:'Loading...', error:'Error', success:'Success', submit:'Submit', search:'Search', close:'Close', delete:'Delete', edit:'Edit', view:'View', logout:'Logout', online:'Online', offline:'Offline', yes:'Yes', no:'No', send:'Send', sending:'Sending...', retry:'Retry', admin:'Admin', upgradeAccount:'Upgrade Account', editProfile:'Edit Profile', accountSettings:'Account Settings', help:'Help', notifications:'Notifications', discoverNav:'Discover', messagesNav:'Messages', mobilePreview:'Mobile Preview', },
+    th: { save:'บันทึก', cancel:'ยกเลิก', confirm:'ยืนยัน', back:'ย้อนกลับ', loading:'กำลังโหลด...', error:'เกิดข้อผิดพลาด', success:'สำเร็จ', submit:'ส่ง', search:'ค้นหา', close:'ปิด', delete:'ลบ', edit:'แก้ไข', view:'ดู', logout:'ออกจากระบบ', online:'ออนไลน์', offline:'ออฟไลน์', yes:'ใช่', no:'ไม่', send:'ส่ง', sending:'กำลังส่ง...', retry:'ลองใหม่', admin:'แอดมิน', upgradeAccount:'อัพเกรด', editProfile:'แก้ไขโปรไฟล์', boostProfile:'Boost โปรไฟล์', accountSettings:'ตั้งค่าบัญชี', help:'ช่วยเหลือ', notifications:'การแจ้งเตือน', discoverNav:'ค้นพบ', messagesNav:'ข้อความ', mobilePreview:'ดูแบบมือถือ', },
+    en: { save:'Save', cancel:'Cancel', confirm:'Confirm', back:'Back', loading:'Loading...', error:'Error', success:'Success', submit:'Submit', search:'Search', close:'Close', delete:'Delete', edit:'Edit', view:'View', logout:'Logout', online:'Online', offline:'Offline', yes:'Yes', no:'No', send:'Send', sending:'Sending...', retry:'Retry', admin:'Admin', upgradeAccount:'Upgrade Account', editProfile:'Edit Profile', boostProfile:'Boost Profile', accountSettings:'Account Settings', help:'Help', notifications:'Notifications', discoverNav:'Discover', messagesNav:'Messages', mobilePreview:'Mobile Preview', },
     zh: { save:'保存', cancel:'取消', confirm:'确认', back:'返回', loading:'加载中...', error:'错误', success:'成功', submit:'提交', search:'搜索', close:'关闭', delete:'删除', edit:'编辑', view:'查看', logout:'退出登录', online:'在线', offline:'离线', yes:'是', no:'否', send:'发送', sending:'发送中...', retry:'重试', admin:'管理员', upgradeAccount:'升级账户', editProfile:'编辑资料', accountSettings:'账户设置', help:'帮助', notifications:'通知', discoverNav:'发现', messagesNav:'消息', mobilePreview:'手机预览', },
     ja: { save:'保存', cancel:'キャンセル', confirm:'確認', back:'戻る', loading:'読み込み中...', error:'エラー', success:'成功', submit:'送信', search:'検索', close:'閉じる', delete:'削除', edit:'編集', view:'表示', logout:'ログアウト', online:'オンライン', offline:'オフライン', yes:'はい', no:'いいえ', send:'送信', sending:'送信中...', retry:'再試行', admin:'管理者', upgradeAccount:'アップグレード', editProfile:'プロフィール編集', accountSettings:'アカウント設定', help:'ヘルプ', notifications:'通知', discoverNav:'発見', messagesNav:'メッセージ', mobilePreview:'モバイルプレビュー', },
     ko: { save:'저장', cancel:'취소', confirm:'확인', back:'뒤로', loading:'로딩 중...', error:'오류', success:'성공', submit:'제출', search:'검색', close:'닫기', delete:'삭제', edit:'편집', view:'보기', logout:'로그아웃', online:'온라인', offline:'오프라인', yes:'예', no:'아니오', send:'전송', sending:'전송 중...', retry:'재시도', admin:'관리자', upgradeAccount:'업그레이드', editProfile:'프로필 편집', accountSettings:'계정 설정', help:'도움말', notifications:'알림', discoverNav:'발견', messagesNav:'메시지', mobilePreview:'모바일 미리보기', },
@@ -42,6 +42,26 @@ const T = {
     vi: { save:'Lưu', cancel:'Hủy', confirm:'Xác nhận', back:'Quay lại', loading:'Đang tải...', error:'Lỗi', success:'Thành công', submit:'Gửi', search:'Tìm kiếm', close:'Đóng', delete:'Xóa', edit:'Chỉnh sửa', view:'Xem', logout:'Đăng xuất', online:'Trực tuyến', offline:'Ngoại tuyến', yes:'Có', no:'Không', send:'Gửi', sending:'Đang gửi...', retry:'Thử lại', admin:'Quản trị', upgradeAccount:'Nâng cấp', editProfile:'Sửa hồ sơ', accountSettings:'Cài đặt', help:'Trợ giúp', notifications:'Thông báo', discoverNav:'Khám phá', messagesNav:'Tin nhắn', mobilePreview:'Xem trước Di động', },
     id: { save:'Simpan', cancel:'Batal', confirm:'Konfirmasi', back:'Kembali', loading:'Memuat...', error:'Kesalahan', success:'Berhasil', submit:'Kirim', search:'Cari', close:'Tutup', delete:'Hapus', edit:'Edit', view:'Lihat', logout:'Keluar', online:'Online', offline:'Offline', yes:'Ya', no:'Tidak', send:'Kirim', sending:'Mengirim...', retry:'Coba lagi', admin:'Admin', upgradeAccount:'Upgrade Akun', editProfile:'Edit Profil', accountSettings:'Pengaturan', help:'Bantuan', notifications:'Notifikasi', discoverNav:'Temukan', messagesNav:'Pesan', mobilePreview:'Pratinjau Seluler', },
     ms: { save:'Simpan', cancel:'Batal', confirm:'Sahkan', back:'Kembali', loading:'Memuatkan...', error:'Ralat', success:'Berjaya', submit:'Hantar', search:'Cari', close:'Tutup', delete:'Padam', edit:'Edit', view:'Lihat', logout:'Log Keluar', online:'Dalam talian', offline:'Luar talian', yes:'Ya', no:'Tidak', send:'Hantar', sending:'Menghantar...', retry:'Cuba lagi', admin:'Admin', upgradeAccount:'Naik Taraf', editProfile:'Edit Profil', accountSettings:'Tetapan', help:'Bantuan', notifications:'Pemberitahuan', discoverNav:'Temui', messagesNav:'Mesej', mobilePreview:'Pratonton Mudah Alih', },
+  },
+
+  // ─────────────────────────────────────────────
+  // INVISIBLE MODE — VIP badge-hiding toggle (Navbar / MobileNavbar)
+  // ─────────────────────────────────────────────
+  invisibleMode: {
+    en: {
+      toggleLabel: 'Hide VIP Badge',
+      tooltip: 'Hide your VIP badge and frame from other users',
+      hintTitle: 'Hide your VIP badge',
+      hintBody: 'Turn this on to hide the VIP badge and shimmer frame on your profile, Discover card, and chat — your profile stays fully visible to everyone, only the badge is hidden.',
+      gotIt: 'Got it',
+    },
+    th: {
+      toggleLabel: 'ซ่อนตรา VIP',
+      tooltip: 'ซ่อนตรา VIP และกรอบมันวาวจากผู้ใช้อื่น',
+      hintTitle: 'ซ่อนตรา VIP ของคุณ',
+      hintBody: 'เปิดใช้งานเพื่อซ่อนตรา VIP และกรอบมันวาวบนโปรไฟล์ การ์ด Discover และหน้าแชทของคุณ — โปรไฟล์ของคุณยังคงมองเห็นได้ตามปกติ มีเพียงตราเท่านั้นที่ถูกซ่อน',
+      gotIt: 'เข้าใจแล้ว',
+    },
   },
 
   // ─────────────────────────────────────────────

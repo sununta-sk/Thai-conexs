@@ -258,12 +258,12 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
   return (
     <div style={DS.wrap}>
       <div style={DS.inner}>
-        <SidebarPhotoCarousel photos={allPhotos} isSubscriber={isSubscriber} onUpgrade={onUpgrade} isVip={profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum'} />
+        <SidebarPhotoCarousel photos={allPhotos} isSubscriber={isSubscriber} onUpgrade={onUpgrade} isVip={(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && !profile?.is_invisible} />
 
         <div style={DS.nameRow}>
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
           {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
-          {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && <span style={DS.vip}>VIP</span>}
+          {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && !profile?.is_invisible && <span style={DS.vip}>VIP</span>}
           {profile?.is_founder_member && <span style={DS.founder}>🌟 Founder</span>}
         </div>
 
@@ -527,7 +527,7 @@ function RoomChatDesktop() {
 
   useEffect(() => {
     if (!otherUserId || !session) return;
-    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan, is_founder_member").eq("id", otherUserId).single()
+    supabase.from("profiles").select("id, username, avatar_url, photos, details, city, last_seen_at, is_verified, bio, subscription_plan, is_founder_member, is_invisible").eq("id", otherUserId).single()
       .then(({ data }) => { if (data) setOtherProfile(data); });
     // Opening a chat is an activity moment - touch last_seen_at right away
     // instead of waiting for OnlineContext's own heartbeat interval.
@@ -705,7 +705,7 @@ function RoomChatDesktop() {
           <div style={S.nameGenderRow}>
             <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
             {profileGender && <span style={S.genderBadge}>{profileGender}</span>}
-            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && !otherProfile?.is_invisible && <span style={S.vipBadge}>VIP</span>}
             {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
