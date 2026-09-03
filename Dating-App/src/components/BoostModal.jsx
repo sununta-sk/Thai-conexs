@@ -3,22 +3,33 @@
 // Dark theme: #0f172a / #1e293b | Accent: #e91e63
 
 import { useState, useEffect } from 'react'
-import { useBoost, formatCountdown } from '../hooks/useBoost'
+import { formatCountdown } from '../hooks/useBoost'
+import { useTranslation } from '../hooks/useTranslation'
 
-const DURATIONS = [
-  { hours: 1,  label: '1 ชั่วโมง',   price: 'ฟรี', desc: 'ลองใช้งาน' },
-  { hours: 6,  label: '6 ชั่วโมง',   price: 'ฟรี', desc: 'แนะนำ ⭐',  highlight: true },
-  { hours: 24, label: '24 ชั่วโมง',  price: 'ฟรี', desc: 'สูงสุด' },
+// Structural data only (hours + which one is highlighted) - display strings
+// (label/desc) are derived from tx at render time so they respond to the
+// language toggle. price was never actually rendered anywhere in the
+// original JSX, so it's dropped rather than translated.
+const DURATION_HOURS = [
+  { hours: 1,  highlight: false },
+  { hours: 6,  highlight: true },
+  { hours: 24, highlight: false },
 ]
 
-export default function BoostModal({ userId, isOpen, onClose }) {
+export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive, loading, activating, error, activateBoost }) {
+  const { tx } = useTranslation(['boostModal'])
   const [selected, setSelected] = useState(6)
-  const { boost, timeLeft, isActive, loading, activating, error, activateBoost } = useBoost(userId)
 
   // Reset selection when modal opens
   useEffect(() => { if (isOpen) setSelected(6) }, [isOpen])
 
   if (!isOpen) return null
+
+  const durationMeta = {
+    1:  { label: tx.hours1 || '1 ชั่วโมง',   desc: tx.descTry || 'ลองใช้งาน' },
+    6:  { label: tx.hours6 || '6 ชั่วโมง',   desc: tx.descRecommended || 'แนะนำ ⭐' },
+    24: { label: tx.hours24 || '24 ชั่วโมง',  desc: tx.descMax || 'สูงสุด' },
+  }
 
   const handleActivate = async () => {
     await activateBoost(selected)
@@ -37,10 +48,10 @@ export default function BoostModal({ userId, isOpen, onClose }) {
           <button style={S.closeBtn} onClick={onClose}>✕</button>
         </div>
 
-        <h2 style={S.title}>Boost โปรไฟล์</h2>
+        <h2 style={S.title}>{tx.boostProfile || 'Boost โปรไฟล์'}</h2>
         <p style={S.subtitle}>
-          ขึ้นอันดับต้นใน Discover &amp; Search<br />
-          ให้คนเห็นคุณมากขึ้น
+          {tx.subtitleLine1 || 'ขึ้นอันดับต้นใน Discover & Search'}<br />
+          {tx.subtitleLine2 || 'ให้คนเห็นคุณมากขึ้น'}
         </p>
 
         {/* ── Active boost state ── */}
@@ -50,7 +61,7 @@ export default function BoostModal({ userId, isOpen, onClose }) {
           <>
             {/* ── Duration picker ── */}
             <div style={S.durationGrid}>
-              {DURATIONS.map(d => (
+              {DURATION_HOURS.map(d => (
                 <button
                   key={d.hours}
                   style={{
@@ -60,9 +71,9 @@ export default function BoostModal({ userId, isOpen, onClose }) {
                   }}
                   onClick={() => setSelected(d.hours)}
                 >
-                  {d.highlight && <span style={S.popularBadge}>ยอดนิยม</span>}
-                  <span style={S.durationHours}>{d.label}</span>
-                  <span style={S.durationDesc}>{d.desc}</span>
+                  {d.highlight && <span style={S.popularBadge}>{tx.popular || 'ยอดนิยม'}</span>}
+                  <span style={S.durationHours}>{durationMeta[d.hours].label}</span>
+                  <span style={S.durationDesc}>{durationMeta[d.hours].desc}</span>
                   {selected === d.hours && <span style={S.checkmark}>✓</span>}
                 </button>
               ))}
@@ -70,9 +81,9 @@ export default function BoostModal({ userId, isOpen, onClose }) {
 
             {/* ── How it works ── */}
             <div style={S.infoBox}>
-              <InfoRow icon="📍" text="โปรไฟล์ของคุณจะปรากฏอันดับต้นๆ ของทุกคน" />
-              <InfoRow icon="🔒" text="ต้องมี Subscription plan เพื่อใช้ฟีเจอร์นี้" />
-              <InfoRow icon="⏱" text="Boost จะหมดอายุอัตโนมัติตาม duration ที่เลือก" />
+              <InfoRow icon="📍" text={tx.infoRank || 'โปรไฟล์ของคุณจะปรากฏอันดับต้นๆ ของทุกคน'} />
+              <InfoRow icon="🔒" text={tx.infoSubscription || 'ต้องมี Subscription plan เพื่อใช้ฟีเจอร์นี้'} />
+              <InfoRow icon="⏱" text={tx.infoExpiry || 'Boost จะหมดอายุอัตโนมัติตาม duration ที่เลือก'} />
             </div>
 
             {/* ── Error ── */}
@@ -87,7 +98,7 @@ export default function BoostModal({ userId, isOpen, onClose }) {
               {activating ? (
                 <span style={S.spinner} />
               ) : (
-                <>🚀 เริ่ม Boost เลย</>
+                <>🚀 {tx.startCta || 'เริ่ม Boost เลย'}</>
               )}
             </button>
           </>
@@ -100,6 +111,7 @@ export default function BoostModal({ userId, isOpen, onClose }) {
 // ── Sub-components ─────────────────────────────────────────
 
 function ActiveBoostView({ timeLeft, boost }) {
+  const { tx } = useTranslation(['boostModal'])
   const pct = boost
     ? Math.max(0, Math.min(100,
         (new Date(boost.expires_at) - Date.now()) /
@@ -110,13 +122,13 @@ function ActiveBoostView({ timeLeft, boost }) {
   return (
     <div style={S.activeWrap}>
       <div style={S.pulseRing} />
-      <p style={S.activeLabel}>Boost กำลังทำงาน</p>
+      <p style={S.activeLabel}>{tx.activeLabel || 'Boost กำลังทำงาน'}</p>
       <p style={S.countdown}>{formatCountdown(timeLeft)}</p>
       <div style={S.progressBar}>
         <div style={{ ...S.progressFill, width: `${pct}%` }} />
       </div>
       <p style={S.activeHint}>
-        โปรไฟล์ของคุณอยู่อันดับต้นของ Discover แล้ว ✨
+        {tx.activeHint || 'โปรไฟล์ของคุณอยู่อันดับต้นของ Discover แล้ว ✨'}
       </p>
     </div>
   )

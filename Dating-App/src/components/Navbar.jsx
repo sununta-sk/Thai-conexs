@@ -187,7 +187,23 @@ function NavbarDesktop() {
           {isPremium && (
             <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
           )}
-          {!isPremium && (
+          <button
+            onClick={() => goTo('/profile')}
+            style={{
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 800,
+              boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
+              whiteSpace: 'nowrap',
+            }}>
+            🚀 {tx.boostProfile || 'Boost Profile'}
+          </button>
+          {!isPremium ? (
             <button
               onClick={() => goTo('/subscription')}
               style={{
@@ -204,6 +220,19 @@ function NavbarDesktop() {
               }}>
               {tx.upgradeAccount || 'Upgrade Account'}
             </button>
+          ) : (
+            <span style={{
+              padding: '8px 14px',
+              borderRadius: 6,
+              background: 'rgba(139,92,246,0.15)',
+              border: '1px solid rgba(139,92,246,0.4)',
+              color: '#a78bfa',
+              fontSize: 12,
+              fontWeight: 800,
+              whiteSpace: 'nowrap',
+            }}>
+              💎 {tx.vipMember || 'VIP Member'}
+            </span>
           )}
           <button
             onClick={() => setShowProfileMenu(v => !v)}
@@ -254,17 +283,7 @@ function NavbarDesktop() {
                 </div>
               )}
               <MenuItem onClick={() => goTo('/profile-setup')}>✏️ {tx.editProfile || 'Edit Profile'}</MenuItem>
-              <MenuItem onClick={() => goTo('/profile')}>🚀 {tx.boostProfile || 'Boost Profile'}</MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>⚙️ {tx.accountSettings || 'Account Settings'}</MenuItem>
-              {/* Same destination as the "Upgrade Account" button above (/subscription) */}
-              <MenuItem
-                onClick={() => goTo('/subscription')}
-                color="#fff"
-                background="linear-gradient(135deg, #22c55e, #16a34a)"
-                hoverBackground="linear-gradient(135deg, #16a34a, #15803d)"
-              >
-                💎 {tx.upgradeProfile || 'Upgrade Profile'}
-              </MenuItem>
               <MenuItem onClick={() => goTo('/help')}>❓ {tx.help || 'Help'}</MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>🔔 {tx.notifications || 'Notifications'}</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />

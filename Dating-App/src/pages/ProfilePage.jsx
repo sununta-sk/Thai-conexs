@@ -7,10 +7,23 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import BoostButton from '../components/BoostButton'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { useTranslation } from '../hooks/useTranslation'
+
+// Photo entries are JSON-stringified objects with crop metadata, same
+// shape RoomChat.jsx/MobileRoomChat.jsx already parse via their own
+// extractPhotoUrl. This file was passing the raw string straight to
+// <img src>, which fails to load for every account with real photos,
+// not just accounts with none.
+function extractPhotoUrl(p) {
+  if (!p) return null
+  if (typeof p === 'string') { try { return JSON.parse(p)?.url || p } catch { return p } }
+  return p?.url || null
+}
 
 export default function ProfilePage() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+  const { tx } = useTranslation(['userProfile'])
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,7 +56,7 @@ export default function ProfilePage() {
   if (!profile) return null
 
   const avatar = profile.avatar_url
-    || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.display_name || 'User')}&background=e91e63&color=fff&size=200`
+    || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.username || 'User')}&background=e91e63&color=fff&size=200`
 
   // Laptop/desktop (>=768px): content is centered inside a 900px column
   // (same width as Login/Register's card, an existing app value) instead of
@@ -53,7 +66,7 @@ export default function ProfilePage() {
   const contentWrapStyle = isMobile ? undefined : { maxWidth: 900, margin: '0 auto' };
 
   return (
-    <div style={S.page}>
+    <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
     <div style={contentWrapStyle}>
 
       {/* ── Hero ── */}
@@ -63,7 +76,7 @@ export default function ProfilePage() {
         </div>
 
         <div style={S.nameRow}>
-          <h1 style={S.name}>{profile.display_name || 'ไม่ระบุชื่อ'}</h1>
+          <h1 style={S.name}>{profile.username || tx.noName || 'ไม่ระบุชื่อ'}</h1>
           {profile.age && <span style={S.ageBadge}>{profile.age}</span>}
         </div>
 
@@ -72,19 +85,19 @@ export default function ProfilePage() {
         )}
 
         <div style={S.boostWrap}>
-          <BoostButton userId={profile.id} />
+          <BoostButton userId={profile.id} size="lg" />
         </div>
       </div>
 
       {/* ── Bio ── */}
       {profile.bio && (
-        <Section title="เกี่ยวกับฉัน">
+        <Section title={tx.aboutMe || 'เกี่ยวกับฉัน'}>
           <p style={S.bio}>{profile.bio}</p>
         </Section>
       )}
 
       {/* ── Details ── */}
-      <Section title="ข้อมูลทั่วไป">
+      <Section title={tx.generalInfo || 'ข้อมูลทั่วไป'}>
         <div style={S.chipRow}>
           {profile.gender            && <Chip icon="🧑"  label={profile.gender} />}
           {profile.height            && <Chip icon="📏"  label={`${profile.height} cm`} />}
@@ -96,7 +109,7 @@ export default function ProfilePage() {
 
       {/* ── Interests ── */}
       {Array.isArray(profile.interests) && profile.interests.length > 0 && (
-        <Section title="ความสนใจ">
+        <Section title={tx.interests || 'ความสนใจ'}>
           <div style={S.tagRow}>
             {profile.interests.map(t => (
               <span key={t} style={S.tag}>{t}</span>
@@ -107,10 +120,10 @@ export default function ProfilePage() {
 
       {/* ── Photos ── */}
       {Array.isArray(profile.photos) && profile.photos.length > 0 && (
-        <Section title="รูปภาพ">
+        <Section title={tx.photos || 'รูปภาพ'}>
           <div style={S.photoGrid}>
-            {profile.photos.map((url, i) => (
-              <img key={i} src={url} alt={`photo-${i}`} style={S.photo} />
+            {profile.photos.map((p, i) => (
+              <img key={i} src={extractPhotoUrl(p)} alt={`photo-${i}`} style={S.photo} />
             ))}
           </div>
         </Section>
@@ -119,7 +132,7 @@ export default function ProfilePage() {
       {/* ── Buttons ── */}
       <div style={S.btnGroup}>
         <button style={S.editBtn} onClick={() => navigate('/profile-setup')}>
-          ✏️ แก้ไขโปรไฟล์
+          ✏️ {tx.editProfile || 'แก้ไขโปรไฟล์'}
         </button>
         <button
           style={S.logoutBtn}
@@ -128,7 +141,7 @@ export default function ProfilePage() {
             navigate('/login')
           }}
         >
-          ออกจากระบบ
+          {tx.logout || 'ออกจากระบบ'}
         </button>
       </div>
 
@@ -160,7 +173,6 @@ function Chip({ icon, label }) {
 // ── Styles ─────────────────────────────────────────────────
 const S = {
   page: {
-    minHeight: '100vh',
     background: '#0f172a',
     color: '#f1f5f9',
     paddingBottom: 100,
@@ -233,6 +245,7 @@ const S = {
   },
   boostWrap: {
     marginTop: 8,
+    width: '100%',
   },
 
   // Sections
@@ -296,13 +309,13 @@ const S = {
   // Photo grid
   photoGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 4,
+    gridTemplateColumns: 'repeat(auto-fill, 110px)',
+    gap: 10,
     marginBottom: 14,
   },
   photo: {
-    width: '100%',
-    aspectRatio: '1 / 1',
+    width: 110,
+    height: 110,
     objectFit: 'cover',
     borderRadius: 10,
   },

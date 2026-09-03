@@ -209,6 +209,38 @@ export default function MobileNavbar() {
         {isPremium && (
           <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
         )}
+        <button
+          onClick={() => goTo('/profile')}
+          aria-label={tx.boostProfile || 'Boost Profile'}
+          title={tx.boostProfile || 'Boost Profile'}
+          style={{
+            width: 30, height: 30, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 8,
+            cursor: 'pointer', padding: 0, fontSize: 15,
+          }}>
+          🚀
+        </button>
+        {!isPremium ? (
+          <button
+            onClick={() => goTo('/subscription')}
+            style={{
+              padding: '4px 8px', borderRadius: 6,
+              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+              border: 'none', cursor: 'pointer', color: '#fff',
+              fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap',
+            }}>
+            {tx.upgradeAccount || 'Upgrade'}
+          </button>
+        ) : (
+          <span style={{
+            padding: '4px 8px', borderRadius: 6,
+            background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)',
+            color: '#a78bfa', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap',
+          }}>
+            💎 {tx.vipMember || 'VIP'}
+          </span>
+        )}
         {isActive('/discover') && (
           <button
             onClick={() => window.dispatchEvent(new CustomEvent(OPEN_DISCOVER_FILTERS_EVENT))}
@@ -304,9 +336,6 @@ export default function MobileNavbar() {
               <MenuItem onClick={() => goTo('/profile-setup')}>
                 ✏️ {tx.editProfile || 'Edit Profile'}
               </MenuItem>
-              <MenuItem onClick={() => goTo('/profile')}>
-                🚀 {tx.boostProfile || 'Boost Profile'}
-              </MenuItem>
               <MenuItem onClick={() => goTo('/account-settings')}>
                 ⚙️ {tx.accountSettings || 'Account Settings'}
               </MenuItem>
@@ -315,17 +344,6 @@ export default function MobileNavbar() {
               </MenuItem>
               <MenuItem onClick={() => goTo('/notifications')}>
                 🔔 {tx.notifications || 'Notifications'}
-              </MenuItem>
-              {/* Same green highlight values as Navbar.jsx's (desktop)
-                  Upgrade Profile item - same /subscription destination,
-                  just this mobile menu's existing label kept as-is. */}
-              <MenuItem
-                onClick={() => goTo('/subscription')}
-                color="#fff"
-                background="linear-gradient(135deg, #22c55e, #16a34a)"
-                hoverBackground="linear-gradient(135deg, #16a34a, #15803d)"
-              >
-                💎 {tx.upgradeAccount || 'Upgrade Account'}
               </MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
               <MenuItem onClick={handleLogout} color="#e91e63">

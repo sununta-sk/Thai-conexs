@@ -6,32 +6,45 @@ import { useState } from 'react'
 import BoostModal from './BoostModal'
 import { useBoost, formatCountdown } from '../hooks/useBoost'
 
-export default function BoostButton({ userId }) {
+export default function BoostButton({ userId, size = 'md' }) {
   const [open, setOpen] = useState(false)
-  const { isActive, timeLeft } = useBoost(userId)
+  // Single shared useBoost instance for this button + the modal it opens -
+  // BoostModal used to call its own separate instance, so activating a
+  // boost from inside the modal never updated this button's own label
+  // until a full remount (page refresh). Passing the same state/actions
+  // down as props instead of letting the modal fetch its own copy fixes
+  // that: one source of truth, updates both immediately.
+  const { boost, timeLeft, isActive, loading, activating, error, activateBoost } = useBoost(userId)
+  const sizeStyle = size === 'lg' ? S.btnLg : {}
 
   return (
     <>
       <button
-        style={{ ...S.btn, ...(isActive ? S.btnActive : {}) }}
+        style={{ ...S.btn, ...sizeStyle, ...(isActive ? S.btnActive : {}) }}
         onClick={() => setOpen(true)}
         title={isActive ? `Boost หมดใน ${formatCountdown(timeLeft)}` : 'เปิดใช้ Boost'}
       >
-        <span style={S.icon}>🚀</span>
+        <span style={size === 'lg' ? S.iconLg : S.icon}>🚀</span>
         {isActive ? (
-          <span style={S.label}>
+          <span style={size === 'lg' ? S.labelLg : S.label}>
             {formatCountdown(timeLeft)}
           </span>
         ) : (
-          <span style={S.label}>Boost</span>
+          <span style={size === 'lg' ? S.labelLg : S.label}>Boost</span>
         )}
         {isActive && <span style={S.activeDot} />}
       </button>
 
       <BoostModal
-        userId={userId}
         isOpen={open}
         onClose={() => setOpen(false)}
+        boost={boost}
+        timeLeft={timeLeft}
+        isActive={isActive}
+        loading={loading}
+        activating={activating}
+        error={error}
+        activateBoost={activateBoost}
       />
     </>
   )
@@ -70,5 +83,19 @@ const S = {
     borderRadius: '50%',
     background: '#e91e63',
     boxShadow: '0 0 6px #e91e63',
+  },
+  btnLg: {
+    padding: '16px 28px',
+    fontSize: '16px',
+    borderRadius: '16px',
+    width: '100%',
+    justifyContent: 'center',
+    boxShadow: '0 4px 20px rgba(233,30,99,0.3)',
+  },
+  iconLg: { fontSize: '22px' },
+  labelLg: {
+    fontVariantNumeric: 'tabular-nums',
+    fontFamily: 'inherit',
+    fontWeight: 800,
   },
 }
