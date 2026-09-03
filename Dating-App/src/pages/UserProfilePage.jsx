@@ -224,7 +224,6 @@ export default function UserProfilePage() {
         .maybeSingle();
 
       if (error) console.error(error);
-      setProfile(data ?? null);
 
       const { data: me } = await supabase
         .from('profiles')
@@ -233,7 +232,11 @@ export default function UserProfilePage() {
         .maybeSingle();
 
       const plan = me?.subscription_plan;
-      setIsSubscriber(plan === 'gold' || plan === 'platinum');
+      const viewerIsVip = plan === 'gold' || plan === 'platinum';
+      setIsSubscriber(viewerIsVip);
+
+      const hiddenFromViewer = data?.is_invisible && !viewerIsVip && session.user.id !== userId;
+      setProfile(hiddenFromViewer ? null : (data ?? null));
       const lk = await supabase.from('user_likes').select('id').eq('liker_id', session.user.id).eq('liked_id', userId).maybeSingle();
       setLiked(Boolean(lk.data));
 
@@ -360,7 +363,7 @@ export default function UserProfilePage() {
           <span style={S.name}>{profile.username || '—'}</span>
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
-          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && !profile.is_invisible && <span style={S.vipBadge}>VIP</span>}
+          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
           {profile.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
         </div>
 

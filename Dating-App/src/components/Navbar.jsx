@@ -254,11 +254,11 @@ function NavbarDesktop() {
                 colors, same 5s linear shimmer) - here just circular padding
                 instead of Discover's square-card padding, sized so the
                 overall 38x38 footprint is unchanged. */}
-            <div className={isPremium && !isInvisible ? 'tcn-vip-frame' : undefined} style={isPremium && !isInvisible ? avatarVipFrameStyle : avatarFrameOffStyle}>
+            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
               {myAvatar ? (
-                <img src={myAvatar} alt="" style={isPremium && !isInvisible ? avatarImgVipStyle : avatarImgStyle} />
+                <img src={myAvatar} alt="" style={isPremium ? avatarImgVipStyle : avatarImgStyle} />
               ) : (
-                <div style={{ ...(isPremium && !isInvisible ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+                <div style={{ ...(isPremium ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
               )}
             </div>
             <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>▼</span>

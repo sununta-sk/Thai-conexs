@@ -388,7 +388,7 @@ export default function Discover() {
       const user = session?.user;
       if (!user) { navigate('/login'); return; }
       setCurrentUserId(user.id);
-      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason, details').eq('id', user.id).maybeSingle();
+      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason, details, subscription_plan').eq('id', user.id).maybeSingle();
       if (profile) {
         setCurrentUserProfile(profile);
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
@@ -410,8 +410,9 @@ export default function Discover() {
       const { data: boosts } = await supabase.from('profile_boosts').select('user_id').gt('expires_at', new Date().toISOString());
       setBoostedIds(new Set((boosts || []).map(b => b.user_id)));
 
+      const viewerIsVip = profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum';
       if (!error && data) {
-        setProfiles(data.filter(p => !blockedIds.has(p.id) && !passedSet.has(p.id)));
+        setProfiles(data.filter(p => !blockedIds.has(p.id) && !passedSet.has(p.id) && !(p.is_invisible && !viewerIsVip)));
       }
       setLoading(false);
     }
@@ -822,11 +823,11 @@ export default function Discover() {
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
             return (
               <div key={profile.id} style={S.card}>
-                <div className={isVipProfile(profile) && !profile.is_invisible ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) && !profile.is_invisible ? S.vipFrame : S.vipFrameOff}>
+                <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
                   <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                     <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
-                    {isVipProfile(profile) && !profile.is_invisible && <div style={vipBadgeStyle}>VIP</div>}
+                    {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
                     {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
                     <div
                       style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}

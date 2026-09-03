@@ -307,17 +307,17 @@ export default function MobileNavbar() {
                 (desktop) avatar ring, just scaled to this 26px footprint
                 instead of desktop's 38px (padding 2/image 22 keeps the same
                 ~8% ring-to-total ratio desktop uses at 3/32-of-38). */}
-            <div className={isPremium && !isInvisible ? 'tcn-vip-frame' : undefined} style={isPremium && !isInvisible ? avatarVipFrameStyle : avatarFrameOffStyle}>
+            <div className={isPremium ? 'tcn-vip-frame' : undefined} style={isPremium ? avatarVipFrameStyle : avatarFrameOffStyle}>
               {myAvatar ? (
                 <img
                   src={myAvatar} alt=""
-                  style={isPremium && !isInvisible ? avatarImgVipStyle : {
+                  style={isPremium ? avatarImgVipStyle : {
                     width: 26, height: 26, borderRadius: '50%',
                     objectFit: 'cover',
                     border: showMenu ? '2px solid #e91e63' : '2px solid #334155',
                   }}
                 />
-              ) : isPremium && !isInvisible ? (
+              ) : isPremium ? (
                 <div style={{ ...avatarImgVipStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>👤</div>
               ) : (
                 <span style={{ fontSize: 22 }}>👤</span>

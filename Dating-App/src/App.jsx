@@ -5,6 +5,7 @@ import { supabase } from './lib/supabaseClient';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { OnlineProvider } from './context/OnlineContext';
+import { useLoginBonus } from './hooks/useLoginBonus';
 import BanModal from './components/BanModal';
 import WelcomeModal from './components/WelcomeModal';
 import WarnModal from './components/WarnModal';
@@ -357,6 +358,7 @@ function NotFound() {
 }
 
 export default function App() {
+  useLoginBonus();
   return (
     <Router>
       <OnlineProvider>
