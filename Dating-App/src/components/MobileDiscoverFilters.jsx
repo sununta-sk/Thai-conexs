@@ -56,7 +56,20 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
         <input
           type="text"
           value={filters?.username || ''}
-          onChange={e => updateFilter('username', e.target.value)}
+          onChange={e => {
+            const value = e.target.value;
+            // Search has no visible sort control of its own here (Sort By
+            // lives in the funnel popup below) - default order is 'random',
+            // whose no-photo bucket always sinks brand-new (often
+            // photo-less) signups to the bottom. Bias to newest-first, but
+            // only on the empty->non-empty transition (starting a fresh
+            // search), so a sort the user picks from the popup mid-search
+            // doesn't get silently overridden on the next keystroke.
+            if (value.trim() && !(filters?.username || '').trim()) {
+              updateFilter('orderBy', 'newest');
+            }
+            updateFilter('username', value);
+          }}
           placeholder={tx.searchUsername || 'Search username...'}
           style={{
             width: '100%',

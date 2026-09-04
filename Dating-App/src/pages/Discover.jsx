@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOnline } from '../context/OnlineContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileDiscoverFilters from '../components/MobileDiscoverFilters';
-import { TOP_H as MOBILE_NAV_TOP_H, BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
+import { BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
 import { useTranslation } from '../hooks/useTranslation';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 
@@ -119,11 +119,11 @@ function AdBox({ content, onDismiss, sideStyle }) {
 }
 
 // Mobile equivalent of AdBox — desktop's side rails have no room on a phone
-// screen, so this renders as a full-width banner instead, fixed to the top
-// or bottom edge and sized to exactly overlap (not push down/sit beside)
-// MobileNavbar's own header/tab bar there — same MOBILE_NAV_TOP_H/
-// MOBILE_NAV_BOTTOM_H constants that bar itself uses, so this can never
-// drift out of sync with it. Content rendering mirrors AdBox's real-ad vs.
+// screen, so this renders as a full-width banner instead, fixed to the
+// bottom edge and sized to exactly overlap (not push down/sit beside)
+// MobileNavbar's own tab bar there — same MOBILE_NAV_BOTTOM_H constant that
+// bar itself uses, so this can never drift out of sync with it. Content
+// rendering mirrors AdBox's real-ad vs.
 // placeholder branch exactly, just without body_text (no vertical room for
 // a third line in a ~64-68px banner) and with single-line ellipsis instead
 // of wrapping. A separate component (not AdBox reused with new props)
@@ -226,31 +226,22 @@ const AdRails = memo(function AdRails({ currentUserId }) {
   // means AdRails mounts once and its effects don't re-fire on login.
   if (!currentUserId) return null;
 
-  // Mobile: two full-width banners overlapping MobileNavbar's header/tab bar
+  // Mobile: one full-width banner overlapping MobileNavbar's bottom tab bar
   // (not pushing content down or floating in empty space) — client's
-  // explicit spec. Dismiss keys 'top'/'bottom' are distinct from desktop's
-  // 'left'/'right' (same dismissedSides Set, just different string keys) so
-  // dismissing one layout's ad can't accidentally hide the other's if the
-  // viewport crosses the 768px breakpoint mid-session. Content still comes
-  // from getAdContent('left')/('right') — 'top'/'bottom' aren't valid
-  // `ads.side` values in the DB, so this reuses the exact same two pools
-  // (and thus the exact same real-ad/placeholder rotation) the side rails
-  // already read from, just relabeled by screen position instead of side.
+  // explicit spec. Used to also render a top banner overlapping the header,
+  // but that sat at zIndex 1500 (above MobileNavbar's 1000) and blocked the
+  // logo/language toggle/menu button until dismissed each session - dropped
+  // in favor of bottom-only. Dismiss key 'bottom' is distinct from desktop's
+  // 'left'/'right' (same dismissedSides Set, just a different string key) so
+  // dismissing this can't accidentally hide desktop's rails if the viewport
+  // crosses the 768px breakpoint mid-session. Content still comes from
+  // getAdContent('right') — 'bottom' isn't a valid `ads.side` value in the
+  // DB, so this reuses the exact same pool (and thus the exact same
+  // real-ad/placeholder rotation) the right side rail already reads from,
+  // just relabeled by screen position instead of side.
   if (isMobile) {
     return (
       <>
-        {!dismissedSides.has('top') && (
-          <MobileAdBanner
-            content={getAdContent('left')}
-            onDismiss={() => dismissSide('top')}
-            edgeStyle={{
-              top: 0,
-              height: `calc(${MOBILE_NAV_TOP_H}px + env(safe-area-inset-top))`,
-              paddingTop: 'calc(env(safe-area-inset-top) + 6px)',
-              paddingBottom: 6,
-            }}
-          />
-        )}
         {!dismissedSides.has('bottom') && (
           <MobileAdBanner
             content={getAdContent('right')}
@@ -1014,11 +1005,10 @@ const S = {
   adBody: { margin: '0 0 14px', fontSize: 12, lineHeight: 1.45, opacity: 0.9 },
 
   // Mobile ad banner (<768px only, via AdRails' isMobile branch — see
-  // MobileAdBanner above). top/bottom/height come from the edgeStyle prop
-  // (MOBILE_NAV_TOP_H/BOTTOM_H-derived), everything else here is shared
-  // between the top and bottom banner. zIndex 1500 sits above
-  // MobileNavbar's own bars (zIndex 1000) so this genuinely overlaps/covers
-  // them rather than sitting behind or beside them.
+  // MobileAdBanner above). bottom/height come from the edgeStyle prop
+  // (MOBILE_NAV_BOTTOM_H-derived). zIndex 1500 sits above MobileNavbar's own
+  // bars (zIndex 1000) so this genuinely overlaps/covers the tab bar rather
+  // than sitting behind or beside it.
   mobileAdBanner: {
     position: 'fixed',
     left: 0,
