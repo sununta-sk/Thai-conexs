@@ -62,17 +62,28 @@ export default function GlobalToast() {
   navigateRef.current = navigate;
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUserId(data.user.id);
-        userIdRef.current = data.user.id;
-        console.log('[Toast] My userId:', data.user.id);
-        supabase.from('profiles').select('subscription_plan').eq('id', data.user.id).maybeSingle().then(({ data: prof }) => {
-          const plan = prof?.subscription_plan;
-          setIsSubscriber(plan === 'gold' || plan === 'platinum');
-        });
-      }
+    const applyUser = (user) => {
+      if (!user) return;
+      setUserId(user.id);
+      userIdRef.current = user.id;
+      console.log('[Toast] My userId:', user.id);
+      supabase.from('profiles').select('subscription_plan').eq('id', user.id).maybeSingle().then(({ data: prof }) => {
+        const plan = prof?.subscription_plan;
+        setIsSubscriber(plan === 'gold' || plan === 'platinum');
+      });
+    };
+    supabase.auth.getUser().then(({ data }) => applyUser(data.user));
+    // getUser() alone races the client's session restore from storage: this
+    // component mounts unconditionally at the App root (see App.jsx), so on
+    // a fresh page load it can resolve before the session is hydrated,
+    // returning no user and permanently skipping the subscription effect
+    // below for the rest of the session. RoomChat's equivalent effect avoids
+    // this by also listening to onAuthStateChange, which fires again once
+    // the session actually restores - mirror that here.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      applyUser(session?.user ?? null);
     });
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
