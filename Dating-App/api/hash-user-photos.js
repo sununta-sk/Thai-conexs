@@ -5,10 +5,10 @@
 // a perceptual hash for each, and stores them in banned_photo_hashes so a new
 // signup re-uploading the same photo gets caught by check-photo-hash.js.
 // Admin-gated the same way as delete-account.js.
-const { createClient } = require('@supabase/supabase-js');
-const { computePHash } = require('./lib/phash.cjs');
+import { createClient } from '@supabase/supabase-js';
+import { computePHash } from './lib/phash.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const authHeader = req.headers.authorization;
@@ -63,4 +63,4 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unknown error hashing photos' });
   }
-};
+}

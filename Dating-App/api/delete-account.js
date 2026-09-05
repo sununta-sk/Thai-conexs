@@ -13,9 +13,9 @@
 //
 // Called from src/pages/admin/UserDetailPage.jsx's handleDeleteAccount(), which
 // already POSTs { userId } with Authorization: Bearer <admin's session token>.
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const authHeader = req.headers.authorization;
@@ -85,4 +85,4 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Unknown error during deletion' });
   }
-};
+}

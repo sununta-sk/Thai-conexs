@@ -8,9 +8,9 @@
 // admin ban action (UserDetailPage.jsx) sets banned_until to a far-future
 // sentinel (2099-01-01) for permanent bans and a real date for suspensions —
 // both are covered by this same "in the future" check.
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email } = req.body || {};
@@ -46,4 +46,4 @@ module.exports = async function handler(req, res) {
     console.error('[check-signup-email] error', err.message);
     return res.status(200).json({ blocked: false });
   }
-};
+}

@@ -3,7 +3,7 @@
 // hashing hook (see admin_users ban flow) — used to detect the same photo
 // being re-uploaded on a new account after a ban, tolerant of resizing/
 // recompression. Not face-matching — purely a fingerprint of the image.
-const { Jimp, compareHashes } = require('jimp');
+import { Jimp, compareHashes } from 'jimp';
 
 /**
  * Compute a 64-bit perceptual hash (as a 64-char '0'/'1' string) for an image.
@@ -27,4 +27,4 @@ function isMatch(hashA, hashB) {
   return compareHashes(hashA, hashB) <= MATCH_THRESHOLD;
 }
 
-module.exports = { computePHash, isMatch, MATCH_THRESHOLD };
+export { computePHash, isMatch, MATCH_THRESHOLD };

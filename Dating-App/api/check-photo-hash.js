@@ -4,10 +4,10 @@
 // a perceptual hash of the image and compares it against banned_photo_hashes
 // (populated when an admin bans a user — see UserDetailPage.jsx). Hash
 // comparison only — no face-matching AI.
-const { createClient } = require('@supabase/supabase-js');
-const { computePHash, isMatch } = require('./lib/phash.cjs');
+import { createClient } from '@supabase/supabase-js';
+import { computePHash, isMatch } from './lib/phash.js';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { imageBase64 } = req.body || {};
@@ -38,4 +38,4 @@ module.exports = async function handler(req, res) {
     console.error('[check-photo-hash] error', err.message);
     return res.status(200).json({ blocked: false });
   }
-};
+}
