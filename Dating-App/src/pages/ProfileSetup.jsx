@@ -1031,6 +1031,21 @@ export default function ProfileSetup() {
   // ──────────────────────────────────────────────
   return (
     <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '90px' : '0px' }}>
+      {/* Fixed manual Save button — sits below the fixed Navbar/MobileNavbar
+          (not overlapping either; both are zIndex 1000, this stays under
+          them at 900) and stays visible while scrolling. Auto-save
+          (doSaveProfile, above) is still the real persistence mechanism —
+          this is a reassurance/manual trigger for anyone who wants to
+          force-flush a save right now. Reuses flushSave (not
+          doSaveProfile directly) so a click also clears any pending
+          900ms debounce, same as blur/tab-hide already do. */}
+      <button
+        onClick={flushSave}
+        disabled={saveStatus === 'saving'}
+        style={{ ...S.fixedSaveBtn, top: isDesktop ? 106 : 'calc(68px + env(safe-area-inset-top) + 8px)', right: isDesktop ? 20 : 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
+        {tx.saveBtn}
+      </button>
+
       <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
         {isDesktop ? (
           <>
@@ -1095,6 +1110,7 @@ const S = {
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  fixedSaveBtn: { position: 'fixed', zIndex: 900, padding: '9px 18px', borderRadius: 20, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 12px rgba(233,30,99,0.4)', whiteSpace: 'nowrap' },
   saveToast: {
     position: 'fixed',
     bottom: 24,
