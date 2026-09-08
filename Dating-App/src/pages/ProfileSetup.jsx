@@ -1030,7 +1030,7 @@ export default function ProfileSetup() {
   // RENDER
   // ──────────────────────────────────────────────
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '90px' : '0px' }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '140px' : '60px' }}>
       {/* Fixed manual Save button — sits below the fixed Navbar/MobileNavbar
           (not overlapping either; both are zIndex 1000, this stays under
           them at 900) and stays visible while scrolling. Auto-save
@@ -1038,11 +1038,15 @@ export default function ProfileSetup() {
           this is a reassurance/manual trigger for anyone who wants to
           force-flush a save right now. Reuses flushSave (not
           doSaveProfile directly) so a click also clears any pending
-          900ms debounce, same as blur/tab-hide already do. */}
+          900ms debounce, same as blur/tab-hide already do.
+          top/paddingTop were originally too tight against the card below
+          (only 13px real gap between Navbar's bottom edge and the card's
+          top edge) — bumped both so there's genuine clearance instead of
+          sitting right at the card's rounded top-right corner. */}
       <button
         onClick={flushSave}
         disabled={saveStatus === 'saving'}
-        style={{ ...S.fixedSaveBtn, top: isDesktop ? 106 : 'calc(68px + env(safe-area-inset-top) + 8px)', right: isDesktop ? 20 : 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
+        style={{ ...S.fixedSaveBtn, top: isDesktop ? 90 : 'calc(68px + env(safe-area-inset-top) + 12px)', right: isDesktop ? 20 : 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
         {tx.saveBtn}
       </button>
 
