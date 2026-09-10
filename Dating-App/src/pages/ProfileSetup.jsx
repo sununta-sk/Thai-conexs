@@ -1019,8 +1019,40 @@ export default function ProfileSetup() {
   // ──────────────────────────────────────────────
   // RENDER
   // ──────────────────────────────────────────────
+  // paddingTop bumped from 90/0 to 140/60 - 90px is the card's own top
+  // edge, not clearance below it (Navbar.jsx renders to ~78px tall), so
+  // the previous values only left ~13px of real gap for the button below
+  // to sit in without touching the card. This mirrors the same measured
+  // fix applied to this button on the feature branch (14d50da), reasoned
+  // from this file's actual layout rather than cherry-picked, since that
+  // commit's diff didn't apply cleanly here (see the button's own comment
+  // below for why this whole feature was hand-built instead of merged).
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '90px' : '0px' }}>
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '140px' : '60px' }}>
+      {/* Fixed manual Save button - hand-built directly on main, not
+          cherry-picked from the feature branch. There, this button
+          (ec91c66/14d50da/557371a) was designed to sit alongside a bigger
+          fixed-position saveToast that only exists because of f4ab750, an
+          unrelated 3-in-1 commit (also: username sanitize fix, and face-
+          verify camera-capture removal) this file never got on main. main
+          still has the original small inline saveStatus text label below
+          instead - this button coexists with that unchanged, rather than
+          pulling in f4ab750's unrelated pieces just to match the toast.
+          Auto-save (doSaveProfile) remains the real persistence mechanism;
+          this is a reassurance/manual trigger, reusing flushSave (not
+          doSaveProfile directly) so a click also clears any pending 900ms
+          debounce, same as blur/tab-hide already do.
+          zIndex 9500 chosen from the start (not 900, discovered as a bug
+          fixed later on the feature branch tonight) - WelcomeModal.jsx
+          (zIndex 9000, app-wide, once/day) already exists on main too and
+          would otherwise opaquely cover this button on mobile widths the
+          exact same way it did there. */}
+      <button
+        onClick={flushSave}
+        disabled={saveStatus === 'saving'}
+        style={{ ...S.fixedSaveBtn, top: isDesktop ? 90 : 'calc(68px + env(safe-area-inset-top) + 12px)', right: isDesktop ? 20 : 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
+        {tx.saveBtn}
+      </button>
       <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
         {isDesktop ? (
           <>
@@ -1086,6 +1118,7 @@ const S = {
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
   saveStatus: { fontSize: '12px', fontWeight: 700, textAlign: 'right', marginBottom: '10px', transition: 'color 0.2s' },
+  fixedSaveBtn: { position: 'fixed', zIndex: 9500, padding: '9px 18px', borderRadius: 20, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 12px rgba(233,30,99,0.4)', whiteSpace: 'nowrap' },
   langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
   logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
   langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.5)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },
