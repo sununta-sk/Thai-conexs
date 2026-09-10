@@ -29,6 +29,12 @@ export default function LotusPage() {
   const [packs, setPacks] = useState([])
   const [boostTiers, setBoostTiers] = useState([])
 
+  // base_lotus of the pack the user has clicked to highlight/select, but
+  // not yet confirmed - separate from purchasingPack below. Selecting a
+  // pack no longer calls checkout.ts directly; only the "Confirm & Pay"
+  // button that appears once a pack is selected does that.
+  const [selectedPack, setSelectedPack] = useState(null)
+
   // base_lotus of the pack currently mid-checkout, or null - also doubles
   // as an "any purchase in flight" lock across every pack button, same as
   // duration_days below does for boost tiers.
@@ -167,12 +173,13 @@ export default function LotusPage() {
           {packs.map(pack => {
             const unavailable = !pack.stripe_price_id
             const disabled = unavailable || purchasingPack !== null
+            const isSelected = selectedPack === pack.base_lotus
             const isBusy = purchasingPack === pack.base_lotus
             return (
               <button
                 key={pack.base_lotus}
-                style={{ ...S.packCard, ...(disabled ? S.cardDisabled : {}) }}
-                onClick={() => handlePurchase(pack)}
+                style={{ ...S.packCard, ...(isSelected ? S.packCardSelected : {}), ...(disabled ? S.cardDisabled : {}) }}
+                onClick={() => setSelectedPack(pack.base_lotus)}
                 disabled={disabled}
               >
                 <span style={S.packTotal}>🪷 {pack.total_lotus.toLocaleString()}</span>
@@ -187,6 +194,25 @@ export default function LotusPage() {
             )
           })}
         </div>
+
+        {/* ── Confirm & Pay - only once a pack is selected, gives the user
+            a chance to review before being sent to Stripe ── */}
+        {selectedPack !== null && (() => {
+          const pack = packs.find(p => p.base_lotus === selectedPack)
+          if (!pack) return null
+          const isBusy = purchasingPack === pack.base_lotus
+          return (
+            <button
+              style={{ ...S.confirmBtn, ...(isBusy ? S.cardDisabled : {}) }}
+              onClick={() => handlePurchase(pack)}
+              disabled={purchasingPack !== null}
+            >
+              {isBusy ? <span style={S.spinnerSm} /> : (
+                <>{tx.confirmAndPay || 'Confirm & Pay'} · 🪷 {pack.total_lotus.toLocaleString()} · ฿{Number(pack.price_thb).toLocaleString()}</>
+              )}
+            </button>
+          )
+        })()}
 
         {/* ── Boost with lotus ── */}
         <h2 style={S.sectionTitle}>{tx.boostWithLotus || 'Boost with lotus'}</h2>
@@ -321,6 +347,28 @@ const S = {
     padding: '18px 10px',
     cursor: 'pointer',
     color: '#f1f5f9',
+  },
+  packCardSelected: {
+    border: '1.5px solid #e91e63',
+    background: 'rgba(233,30,99,0.1)',
+    boxShadow: '0 0 18px rgba(233,30,99,0.2)',
+  },
+  confirmBtn: {
+    width: '100%',
+    padding: 16,
+    marginBottom: 32,
+    background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+    border: 'none',
+    borderRadius: 14,
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 800,
+    cursor: 'pointer',
+    boxShadow: '0 4px 24px rgba(233,30,99,0.4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 20,
   },
   packTotal: { fontSize: 16, fontWeight: 800 },
   packBonus: {

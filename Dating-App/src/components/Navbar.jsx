@@ -21,6 +21,7 @@ function NavbarDesktop() {
   const [isInvisible, setIsInvisible] = useState(false);
   const [myAvatar, setMyAvatar] = useState(null);
   const [myUsername, setMyUsername] = useState('');
+  const [lotusBalance, setLotusBalance] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { onlineCount } = useOnline();
   const unreadCount = useUnreadCount();
@@ -49,7 +50,7 @@ function NavbarDesktop() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('avatar_url, username, subscription_plan, is_invisible')
+        .select('avatar_url, username, subscription_plan, is_invisible, lotus_balance')
         .eq('id', session.user.id)
         .maybeSingle();
       if (profileData) {
@@ -59,6 +60,7 @@ function NavbarDesktop() {
         setMyUsername(profileData.username || '');
         setIsPremium(profileData.subscription_plan === 'gold' || profileData.subscription_plan === 'platinum');
         setIsInvisible(!!profileData.is_invisible);
+        setLotusBalance(profileData.lotus_balance ?? 0);
       }
     });
   }, []);
@@ -293,8 +295,15 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Right: Notification bell */}
+      {/* Right: Lotus balance badge + Notification bell */}
       <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          background: 'rgba(233,30,99,0.15)', border: '1px solid rgba(233,30,99,0.3)', borderRadius: 14, padding: '6px 12px',
+        }}>
+          <span style={{ fontSize: 14, lineHeight: 1 }}>🪷</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#e91e63' }}>{lotusBalance.toLocaleString()}</span>
+        </div>
         <NotificationBell />
       </div>
 
