@@ -227,6 +227,48 @@ const T = {
     id: { back:'← Kembali', sendMessage:'💬 Kirim pesan', aboutMe:'Tentang saya', generalInfo:'Info umum', online:'Online', justNow:'Baru saja', minAgo:(n)=>`${n} menit lalu`, hrAgo:(n)=>`${n} jam lalu`, dayAgo:(n)=>`${n} hari lalu`, notFound:'Profil tidak ditemukan', verified:'✓ Terverifikasi', },
     ms: { back:'← Kembali', sendMessage:'💬 Hantar mesej', aboutMe:'Tentang saya', generalInfo:'Maklumat umum', online:'Dalam talian', justNow:'Baru sahaja', minAgo:(n)=>`${n} min lalu`, hrAgo:(n)=>`${n} jam lalu`, dayAgo:(n)=>`${n} hari lalu`, notFound:'Profil tidak dijumpai', verified:'✓ Disahkan', },
   },
+
+  // ─────────────────────────────────────────────
+  // LOTUS PAGE — /lotus (LotusPage.jsx)
+  // Only th/en written out - every other language already falls back to
+  // en via getT()'s base-merge, same as boostModal.
+  // ─────────────────────────────────────────────
+  lotusPage: {
+    th: {
+      back: '← กลับ',
+      yourBalance: 'ยอดดอกบัวของคุณ',
+      buyLotus: 'ซื้อดอกบัว',
+      bonus: 'โบนัส',
+      boostWithLotus: 'Boost ด้วยดอกบัว',
+      days: 'วัน',
+      day: 'วัน',
+      boostActivated: 'เปิดใช้งาน Boost แล้ว! 🚀',
+      unavailable: 'ยังไม่พร้อมจำหน่าย',
+      errPackNotConfigured: 'แพ็กนี้ยังไม่พร้อมจำหน่ายในตอนนี้',
+      errInvalidPack: 'ตัวเลือกไม่ถูกต้อง',
+      errUnauthorized: 'กรุณาเข้าสู่ระบบอีกครั้ง',
+      errGeneric: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
+      errInsufficientBalance: 'ดอกบัวของคุณไม่พอสำหรับตัวเลือกนี้',
+      errBoostActive: 'คุณมี Boost ที่กำลังทำงานอยู่แล้ว',
+    },
+    en: {
+      back: '← Back',
+      yourBalance: 'Your lotus balance',
+      buyLotus: 'Buy lotus',
+      bonus: 'bonus',
+      boostWithLotus: 'Boost with lotus',
+      days: 'days',
+      day: 'day',
+      boostActivated: 'Boost activated! 🚀',
+      unavailable: 'Not available yet',
+      errPackNotConfigured: 'This pack is not available for purchase right now.',
+      errInvalidPack: 'Invalid option selected.',
+      errUnauthorized: 'Please log in again.',
+      errGeneric: 'Something went wrong, please try again.',
+      errInsufficientBalance: 'You do not have enough lotus for this.',
+      errBoostActive: 'A boost is already active on your profile.',
+    },
+  },
 };
 
 export function getT(page, lang = 'en') {
