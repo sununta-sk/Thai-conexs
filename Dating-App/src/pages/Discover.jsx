@@ -326,7 +326,7 @@ function inRange(value, range) {
 }
 
 export default function Discover() {
-  const { tx, lang } = useTranslation(['common', 'discover', 'messages']);
+  const { tx, lang } = useTranslation(['common', 'discover', 'messages', 'lotusPage']);
   const isMobile = useIsMobile();
   const [profiles, setProfiles] = useState([]);
   const [likedIds, setLikedIds] = useState(new Set());
@@ -337,6 +337,14 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [banInfo, setBanInfo] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  // ── Lotus gifting (desktop only - see the !isMobile guards at each
+  // render site below) ──
+  const [myLotusBalance, setMyLotusBalance] = useState(0);
+  const [giftOpenForId, setGiftOpenForId] = useState(null); // profile.id whose popover is open, or null
+  const [giftAmount, setGiftAmount] = useState(1);
+  const [giftSending, setGiftSending] = useState(false);
+  const [giftToast, setGiftToast] = useState(null); // { status: 'error' | 'success', text }
   const { onlineUsers, recentlyActiveUsers, botIds } = useOnline();
   const navigate = useNavigate();
 
@@ -379,13 +387,14 @@ export default function Discover() {
       const user = session?.user;
       if (!user) { navigate('/login'); return; }
       setCurrentUserId(user.id);
-      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason, details, subscription_plan').eq('id', user.id).maybeSingle();
+      const { data: profile } = await supabase.from('profiles').select('banned_until, ban_reason, details, subscription_plan, lotus_balance').eq('id', user.id).maybeSingle();
       if (profile) {
         setCurrentUserProfile(profile);
+        setMyLotusBalance(profile.lotus_balance ?? 0);
         const isBanned = profile.banned_until === null && profile.ban_reason ? true : profile.banned_until && new Date(profile.banned_until) > new Date();
         if (isBanned) { setBanInfo({ bannedUntil: profile.banned_until, banReason: profile.ban_reason }); setLoading(false); return; }
       }
-      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at, is_invisible').neq('id', user.id);
+      const { data, error } = await supabase.from('profiles').select('id, username, avatar_url, details, province, city, last_seen_at, is_verified, subscription_plan, is_founder_member, created_at, is_invisible, lotus_balance').neq('id', user.id);
 
       // Fetch blocked + passed users to filter them out
       const { data: blocks } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', user.id);
@@ -516,6 +525,62 @@ export default function Discover() {
     const { error } = await supabase.from('user_passes').insert({ passer_id: currentUserId, passed_id: targetUserId });
     if (error && !String(error.message).includes('duplicate')) {
       console.error('[Pass] failed:', error.message);
+    }
+  };
+
+  function showGiftToast(status, text) {
+    setGiftToast({ status, text });
+    setTimeout(() => setGiftToast(t => (t?.text === text ? null : t)), 4000);
+  }
+
+  // Clicking the 🪷 badge on a card: 0 balance sends the viewer to /lotus
+  // instead of opening the gift popover (nothing to gift with), otherwise
+  // toggles the popover for that card (clicking the same badge again, or a
+  // different card's badge while one is open, both just re-toggle/switch).
+  const handleGiftBadgeClick = (e, profileId) => {
+    e.stopPropagation();
+    if (myLotusBalance <= 0) { navigate('/lotus'); return; }
+    setGiftAmount(1);
+    setGiftOpenForId(prev => (prev === profileId ? null : profileId));
+  };
+
+  const handleGiftConfirm = async (e, recipient) => {
+    e.stopPropagation();
+    if (giftSending) return;
+    const amount = Number(giftAmount);
+    if (!Number.isFinite(amount) || amount < 1 || amount > 500 || amount > myLotusBalance) return;
+
+    setGiftSending(true);
+    try {
+      const { data, error } = await supabase.rpc('gift_lotus', {
+        p_sender_id: currentUserId,
+        p_recipient_id: recipient.id,
+        p_amount: amount,
+      });
+
+      if (error) {
+        showGiftToast('error', tx.errGeneric || 'Something went wrong, please try again.');
+        return;
+      }
+      if (data?.error) {
+        const msg =
+          data.error === 'insufficient_balance' ? (tx.errInsufficientBalance || 'You do not have enough lotus for this.') :
+          data.error === 'recipient_not_found' ? (tx.errRecipientNotFound || 'This profile is no longer available.') :
+          data.error === 'cannot_gift_self' ? (tx.errCannotGiftSelf || 'You cannot gift lotus to yourself.') :
+          data.error === 'invalid_amount' ? (tx.errInvalidPack || 'Invalid option selected.') :
+          (tx.errGeneric || 'Something went wrong, please try again.');
+        showGiftToast('error', msg);
+        return;
+      }
+
+      setMyLotusBalance(data.sender_balance);
+      setProfiles(prev => prev.map(p => p.id === recipient.id ? { ...p, lotus_balance: (p.lotus_balance ?? 0) + amount } : p));
+      setGiftOpenForId(null);
+      showGiftToast('success', (tx.giftSentToast ? tx.giftSentToast(amount) : `Sent ${amount} 🪷!`));
+    } catch {
+      showGiftToast('error', tx.errGeneric || 'Something went wrong, please try again.');
+    } finally {
+      setGiftSending(false);
     }
   };
 
@@ -812,31 +877,103 @@ export default function Discover() {
             const gender = profile.details?.gender ?? '';
             const city = profile.city || profile.details?.city || '';
             const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
+            // founderBadge already occupies bottom-right (S.founderBadge) -
+            // nudge the lotus badge one slot further left only on cards
+            // that actually have a founder badge, rather than moving
+            // founderBadge itself (which would touch every card, not just
+            // the ones with a collision).
+            const lotusBadgeStyle = profile.is_founder_member
+              ? { ...S.lotusBadge, right: 27 }
+              : S.lotusBadge;
             return (
-              <div key={profile.id} style={S.card}>
-                <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
-                  <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
-                    <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
-                    {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
-                    {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
-                    {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
-                    <div
-                      style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
-                      title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
-                    />
+              <div key={profile.id} style={S.cardWrap}>
+                <div style={S.card}>
+                  <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
+                    <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
+                      <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
+                      {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
+                      {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                      {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
+                      <div
+                        style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
+                        title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
+                      />
+                      {!isMobile && (
+                        <button
+                          type="button"
+                          style={lotusBadgeStyle}
+                          onClick={e => handleGiftBadgeClick(e, profile.id)}
+                          title={tx.giftLotus || 'Gift lotus'}
+                        >
+                          🪷 {(profile.lotus_balance ?? 0).toLocaleString()}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div style={S.info}>
+                    <div style={nameStyle}>{profile.username || '-'}</div>
+                    {metaParts.length > 0 && <div style={metaStyle}>{metaParts.join(', ')}</div>}
+                  </div>
+                  <div style={S.actions}>
+                    <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
+                    <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                   </div>
                 </div>
-                <div style={S.info}>
-                  <div style={nameStyle}>{profile.username || '-'}</div>
-                  {metaParts.length > 0 && <div style={metaStyle}>{metaParts.join(', ')}</div>}
-                </div>
-                <div style={S.actions}>
-                  <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
-                  <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
-                </div>
+
+                {/* Gift popover - a sibling of S.card (not a descendant), so
+                    it isn't clipped by S.card's own overflow:hidden. Desktop
+                    only, matching the badge that opens it. */}
+                {!isMobile && giftOpenForId === profile.id && (
+                  <div style={S.giftPopover} onClick={e => e.stopPropagation()}>
+                    <div style={S.giftPopoverHeader}>
+                      <span>🪷 {tx.giftLotus || 'Gift lotus'}</span>
+                      <button type="button" style={S.giftCloseBtn} onClick={() => setGiftOpenForId(null)}>✕</button>
+                    </div>
+                    <div style={S.giftAmountRow}>
+                      <button
+                        type="button"
+                        style={S.giftStepBtn}
+                        onClick={() => setGiftAmount(a => Math.max(1, a - 1))}
+                      >−</button>
+                      <input
+                        type="number"
+                        min={1}
+                        max={Math.min(500, myLotusBalance)}
+                        value={giftAmount}
+                        onChange={e => setGiftAmount(Math.max(1, Math.min(500, myLotusBalance, Number(e.target.value) || 1)))}
+                        style={S.giftAmountInput}
+                      />
+                      <button
+                        type="button"
+                        style={S.giftStepBtn}
+                        onClick={() => setGiftAmount(a => Math.min(500, myLotusBalance, a + 1))}
+                      >+</button>
+                    </div>
+                    <button
+                      type="button"
+                      style={{ ...S.giftConfirmBtn, ...(giftSending ? S.giftConfirmBtnDisabled : {}) }}
+                      onClick={e => handleGiftConfirm(e, profile)}
+                      disabled={giftSending}
+                    >
+                      {giftSending ? '…' : `${tx.send || 'Send'} 🪷 ${giftAmount}`}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Gift toast - same fixed-bottom-pill pattern as ProfileSetup.jsx's saveToast */}
+      {giftToast && (
+        <div style={{
+          ...S.giftToast,
+          background: giftToast.status === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(74,222,128,0.15)',
+          border: `1px solid ${giftToast.status === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(74,222,128,0.4)'}`,
+          color: giftToast.status === 'error' ? '#f87171' : '#4ade80',
+        }}>
+          {giftToast.text}
         </div>
       )}
     </div>
@@ -919,6 +1056,11 @@ const S = {
     margin: '0 auto',
   },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' },
+  // Thin wrapper around the existing S.card - position:relative so the gift
+  // popover (a sibling of S.card, not a descendant) can anchor to it without
+  // being clipped by S.card's own overflow:hidden. S.card itself is
+  // untouched by this.
+  cardWrap: { position: 'relative' },
   vipFrameOff: { display: 'block' },
   // The animated gradient itself now lives in the .tcn-vip-frame CSS class
   // (see the <style> block above) as a rotating ::before layer — this
@@ -936,6 +1078,62 @@ const S = {
   vipBadge: { position: 'absolute', bottom: 5, left: 5, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
   founderBadge: { position: 'absolute', bottom: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
+
+  // Lotus gift badge (bottom-right of the photo, like founderBadge - see
+  // the inline `right: 27` override at the call site for cards that also
+  // have a founderBadge in that same corner) + its popover. Desktop only.
+  lotusBadge: {
+    position: 'absolute', bottom: 5, right: 5,
+    display: 'flex', alignItems: 'center', gap: 2,
+    padding: '2px 6px', borderRadius: 10,
+    background: 'rgba(233,30,99,0.85)', border: 'none',
+    color: '#fff', fontSize: 9, fontWeight: 800,
+    cursor: 'pointer', lineHeight: 1.4,
+  },
+  giftPopover: {
+    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+    zIndex: 50,
+    width: 160,
+    background: '#1e293b', border: '1px solid rgba(233,30,99,0.4)', borderRadius: 12,
+    padding: 12,
+    boxShadow: '0 8px 28px rgba(0,0,0,0.5)',
+    cursor: 'default',
+  },
+  giftPopoverHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    fontSize: 12, fontWeight: 700, color: '#f1f5f9', marginBottom: 10,
+  },
+  giftCloseBtn: {
+    background: 'rgba(255,255,255,0.08)', border: 'none', color: '#94a3b8',
+    borderRadius: '50%', width: 18, height: 18, fontSize: 10,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  giftAmountRow: {
+    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
+  },
+  giftStepBtn: {
+    width: 24, height: 24, borderRadius: 6,
+    border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9',
+    fontSize: 14, fontWeight: 700, cursor: 'pointer',
+  },
+  giftAmountInput: {
+    flex: 1, minWidth: 0, textAlign: 'center',
+    padding: '4px 2px', borderRadius: 6,
+    border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9',
+    fontSize: 13, fontWeight: 700,
+  },
+  giftConfirmBtn: {
+    width: '100%', padding: 8, borderRadius: 8, border: 'none',
+    background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff',
+    fontSize: 12, fontWeight: 800, cursor: 'pointer',
+  },
+  giftConfirmBtnDisabled: { opacity: 0.6, cursor: 'not-allowed' },
+  giftToast: {
+    position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+    padding: '14px 28px', borderRadius: 16, fontSize: 14, fontWeight: 700,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 3000, textAlign: 'center', maxWidth: '90vw',
+  },
+
   info: { padding: '8px 8px 4px', flex: 1, minHeight: 56 },
   name: { fontSize: '13px', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   meta: { fontSize: '11px', color: '#94a3b8', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
