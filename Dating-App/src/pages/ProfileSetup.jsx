@@ -1032,8 +1032,8 @@ export default function ProfileSetup() {
   return (
     <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '140px' : '60px' }}>
       {/* Fixed manual Save button — sits below the fixed Navbar/MobileNavbar
-          (not overlapping either; both are zIndex 1000, this stays under
-          them at 900) and stays visible while scrolling. Auto-save
+          (not overlapping either spatially, so their own zIndex ordering
+          doesn't matter here) and stays visible while scrolling. Auto-save
           (doSaveProfile, above) is still the real persistence mechanism —
           this is a reassurance/manual trigger for anyone who wants to
           force-flush a save right now. Reuses flushSave (not
@@ -1042,7 +1042,11 @@ export default function ProfileSetup() {
           top/paddingTop were originally too tight against the card below
           (only 13px real gap between Navbar's bottom edge and the card's
           top edge) — bumped both so there's genuine clearance instead of
-          sitting right at the card's rounded top-right corner. */}
+          sitting right at the card's rounded top-right corner.
+          zIndex bumped to 9500 (see S.fixedSaveBtn) — WelcomeModal.jsx
+          (zIndex 9000, app-wide, once/day) was opaquely covering this
+          button's exact position on mobile widths, making it look
+          completely missing rather than just dimmed like on desktop. */}
       <button
         onClick={flushSave}
         disabled={saveStatus === 'saving'}
@@ -1114,7 +1118,20 @@ const S = {
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
-  fixedSaveBtn: { position: 'fixed', zIndex: 900, padding: '9px 18px', borderRadius: 20, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 12px rgba(233,30,99,0.4)', whiteSpace: 'nowrap' },
+  // zIndex was 900 (deliberately under Navbar/MobileNavbar's 1000 - see the
+  // comment at the button's render site). That's fine against the navbar,
+  // which doesn't spatially overlap this button anyway, but WelcomeModal.jsx
+  // (mounted app-wide, zIndex 9000, shown once/day) does overlap it on
+  // mobile: its backdrop is full-viewport on any width, but the centered
+  // card itself is only maxWidth:520 - on desktop that stays clear of this
+  // button's top-right corner (dimmed-but-visible behind the translucent
+  // backdrop), but at mobile widths the card is ~90% of the viewport and
+  // tall enough to opaquely cover this button's position outright, which is
+  // what made it "completely invisible" specifically on mobile. Raised
+  // above WelcomeModal's 9000 so the button stays visible/clickable through
+  // that once-a-day overlay instead of being hidden behind it - not
+  // touching WelcomeModal.jsx itself, out of scope for this fix.
+  fixedSaveBtn: { position: 'fixed', zIndex: 9500, padding: '9px 18px', borderRadius: 20, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 13, boxShadow: '0 4px 12px rgba(233,30,99,0.4)', whiteSpace: 'nowrap' },
   saveToast: {
     position: 'fixed',
     bottom: 24,
