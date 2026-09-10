@@ -12,7 +12,19 @@
 // headers either, for the same reason (Stripe never sends a preflight).
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
-import { buffer } from "node:stream/consumers";
+
+// Manual raw-body collection instead of node:stream/consumers' buffer() —
+// the classic pattern used in nearly every working Vercel+Stripe webhook
+// example. Collects the exact Buffer chunks off the request stream before
+// anything else can touch it.
+function readRawBody(req: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+}
 
 export const config = { runtime: 'nodejs' };
 
@@ -41,7 +53,7 @@ export default async function handler(req: any, res: any) {
     // one — NODEJS_HELPERS=0 exists but is project-wide, and would also
     // break req.body in checkout.ts and every other route in this repo,
     // so it's not used here.
-    const rawBody = await buffer(req);
+    const rawBody = await readRawBody(req);
     event = stripe.webhooks.constructEvent(
       rawBody,
       sig,
