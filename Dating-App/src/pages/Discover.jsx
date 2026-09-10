@@ -576,12 +576,28 @@ export default function Discover() {
 
   if (!loading && banInfo) return <BanScreen bannedUntil={banInfo.bannedUntil} banReason={banInfo.banReason} />;
 
-  // Card grid: mobile keeps the exact literal 'repeat(6, 130px)' string
-  // unchanged, because hooks/useIsMobile.js's injected CSS
-  // (.mobile-active [style*="repeat(6, 130px)"]) string-matches that exact
-  // value to force 3 columns on mobile. Laptop/desktop (>=768px) instead
-  // gets a fluid track so column count and card width grow with the
-  // viewport instead of staying frozen at a fixed 6x130px island.
+  // Card grid, mobile: was relying on hooks/useIsMobile.js's injected CSS
+  // (.mobile-active [style*="repeat(6, 130px)"]) to string-match the
+  // literal 'repeat(6, 130px)' below and force 3 columns - but that
+  // override sets `repeat(3, 1fr)`, and a bare 1fr track defaults to
+  // minmax(auto, 1fr): its floor is the track's own content's min-content
+  // size, not 0. Individual cards' min-content width (~185px at 390px
+  // viewport width, from their internal flex/text content) sat above the
+  // ~115px an even 3-way split of the actual available width would give,
+  // so every column got inflated to that ~185px floor regardless of the
+  // container's real width - overflowing it by ~90px, with cards sliced
+  // at both edges (confirmed live: grid scrollWidth 481px inside a 390px
+  // box). Now sets the mobile grid explicitly here instead of depending on
+  // that global string-match mechanism at all for this grid -
+  // minmax(0, 1fr) is what actually forces columns to shrink to fit
+  // rather than floor at their content's natural size (verified live:
+  // scrollWidth drops to exactly 390px, matching the container, no
+  // overflow). Scoped to this grid only - hooks/useIsMobile.js and its
+  // repeat(5, 1fr) rule (used elsewhere, e.g. this page's own filter row)
+  // are untouched, not a global CSS change.
+  // Laptop/desktop (>=768px) instead gets a fluid track so column count
+  // and card width grow with the viewport instead of staying frozen at a
+  // fixed 6x130px island.
   //
   // S.grid's maxWidth (below) is now 1100px to match S.searchBar's 1100px -
   // it was previously 1400px, a mismatch that was invisible under the old
@@ -602,7 +618,7 @@ export default function Discover() {
   // side-by-side without overlap, reaching the original fixed 1100px again
   // once the viewport is wide enough (~1560px+).
   const gridStyle = isMobile
-    ? S.grid
+    ? { ...S.grid, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }
     : { ...S.grid, gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', padding: '15px 18px', maxWidth: 'var(--tcn-grid-max)' };
 
   // Same --tcn-grid-max narrowing as gridStyle above, applied to the filter
