@@ -226,17 +226,29 @@ const AdRails = memo(function AdRails({ currentUserId }) {
   // means AdRails mounts once and its effects don't re-fire on login.
   if (!currentUserId) return null;
 
-  // Mobile: one full-width banner overlapping MobileNavbar's bottom tab bar
-  // (not pushing content down or floating in empty space) — client's
-  // explicit spec. Used to also render a top banner overlapping the header,
-  // but that sat at zIndex 1500 (above MobileNavbar's 1000) and blocked the
-  // logo/language toggle/menu button until dismissed each session - dropped
-  // in favor of bottom-only. Dismiss key 'bottom' is distinct from desktop's
-  // 'left'/'right' (same dismissedSides Set, just a different string key) so
-  // dismissing this can't accidentally hide desktop's rails if the viewport
-  // crosses the 768px breakpoint mid-session. Content still comes from
-  // getAdContent('right') — 'bottom' isn't a valid `ads.side` value in the
-  // DB, so this reuses the exact same pool (and thus the exact same
+  // Mobile: one full-width banner stacked directly ABOVE MobileNavbar's
+  // bottom tab bar (not covering it, not floating in empty space) - SK
+  // request, reversing the previous "overlapping the tab bar" explicit
+  // spec noted below. bottom is now offset by the tab bar's own height
+  // (same MOBILE_NAV_BOTTOM_H + safe-area-inset-bottom formula the tab bar
+  // itself uses, so this stays flush against its top edge at every device's
+  // safe-area value) instead of 0. Verified (Playwright, several
+  // safe-area-inset-bottom values): 0px overlap, ad banner's bottom edge
+  // exactly == tab bar's top edge at every value, both fully visible.
+  // MobileNavbar.jsx itself is untouched - zIndex 1500 (still above the
+  // tab bar's 1000) no longer matters for overlap now that they don't
+  // occupy the same space, but is left as-is since it's not part of this
+  // fix and doesn't cause any issue while it stays that way.
+  //
+  // Used to also render a top banner overlapping the header, but that sat
+  // at zIndex 1500 (above MobileNavbar's 1000) and blocked the logo/
+  // language toggle/menu button until dismissed each session - dropped in
+  // favor of bottom-only. Dismiss key 'bottom' is distinct from desktop's
+  // 'left'/'right' (same dismissedSides Set, just a different string key)
+  // so dismissing this can't accidentally hide desktop's rails if the
+  // viewport crosses the 768px breakpoint mid-session. Content still comes
+  // from getAdContent('right') — 'bottom' isn't a valid `ads.side` value in
+  // the DB, so this reuses the exact same pool (and thus the exact same
   // real-ad/placeholder rotation) the right side rail already reads from,
   // just relabeled by screen position instead of side.
   if (isMobile) {
@@ -247,7 +259,7 @@ const AdRails = memo(function AdRails({ currentUserId }) {
             content={getAdContent('right')}
             onDismiss={() => dismissSide('bottom')}
             edgeStyle={{
-              bottom: 0,
+              bottom: `calc(${MOBILE_NAV_BOTTOM_H}px + env(safe-area-inset-bottom))`,
               height: `calc(${MOBILE_NAV_BOTTOM_H}px + env(safe-area-inset-bottom))`,
               paddingTop: 6,
               paddingBottom: 'calc(env(safe-area-inset-bottom) + 6px)',
@@ -1232,9 +1244,11 @@ const S = {
 
   // Mobile ad banner (<768px only, via AdRails' isMobile branch — see
   // MobileAdBanner above). bottom/height come from the edgeStyle prop
-  // (MOBILE_NAV_BOTTOM_H-derived). zIndex 1500 sits above MobileNavbar's own
-  // bars (zIndex 1000) so this genuinely overlaps/covers the tab bar rather
-  // than sitting behind or beside it.
+  // (MOBILE_NAV_BOTTOM_H-derived) - bottom is offset by the tab bar's own
+  // height so this stacks directly above it instead of covering it (see
+  // AdRails' own comment at its isMobile branch for the fix writeup).
+  // zIndex 1500 is still above MobileNavbar's bars (zIndex 1000), which no
+  // longer matters for overlap now that they don't occupy the same space.
   mobileAdBanner: {
     position: 'fixed',
     left: 0,
