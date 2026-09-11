@@ -1108,14 +1108,23 @@ const S = {
     borderRadius: '50%', width: 18, height: 18, fontSize: 10,
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  // justifyContent added - was missing, so the row defaulted to flex-start
-  // instead of centering the −/input/+ stepper within the popover's
-  // content box (giftPopover: width 160, padding 12 -> 136px to center in).
   giftAmountRow: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 10,
+    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
   },
+  // padding:0 added - index.css's global `button { padding: 0.6em 1.2em }`
+  // (the Vite template default) was falling through because this style
+  // object never set its own padding to override it (an inline style only
+  // wins per-property; it doesn't blank out properties it never mentions).
+  // That inflated these from the intended 24x24 squares to ~36px-wide
+  // pills, which is what actually threw the row's proportions off -
+  // confirmed by measuring both variants: the row's own outer box was
+  // already flush with the popover's content edges either way (input's
+  // flex:1 absorbs all free space regardless), so a missing justifyContent
+  // on giftAmountRow (tried first) measured as a no-op and isn't the fix.
+  // giftCloseBtn has this same unreset padding but is out of scope here -
+  // the ask was the stepper row specifically.
   giftStepBtn: {
-    width: 24, height: 24, borderRadius: 6,
+    width: 24, height: 24, borderRadius: 6, padding: 0,
     border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9',
     fontSize: 14, fontWeight: 700, cursor: 'pointer',
   },
