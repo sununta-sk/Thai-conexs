@@ -1108,8 +1108,11 @@ const S = {
     borderRadius: '50%', width: 18, height: 18, fontSize: 10,
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
+  // justifyContent added - was missing, so the row defaulted to flex-start
+  // instead of centering the −/input/+ stepper within the popover's
+  // content box (giftPopover: width 160, padding 12 -> 136px to center in).
   giftAmountRow: {
-    display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 10,
   },
   giftStepBtn: {
     width: 24, height: 24, borderRadius: 6,
