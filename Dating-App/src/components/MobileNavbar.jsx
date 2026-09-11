@@ -182,17 +182,22 @@ export default function MobileNavbar() {
           Dynamic Island's 47px down to 0): gap was a constant 29px
           regardless of device. Switched to flex-start (removes the
           above-content slack - the leftover space now sits below the
-          content instead, inside the same unchanged bar height) and
-          trimmed the explicit padding 6px -> 4px. Same measurement
-          afterward: a constant 4px gap at every tested inset, and
-          clearance from the viewport top stays positive (== inset + 4px)
-          at every value including 0, so nothing sits behind the cutout. */}
+          content instead, inside the same unchanged bar height) - that
+          part's confirmed correct and left as-is.
+          The explicit padding itself went 6px -> 4px first, then SK tested
+          that live and found it sitting too tight - bumped to 12px as a
+          middle ground (4px was too tight, the old 6px-with-flex-end was
+          effectively 29px which was too loose). Re-measured the same way:
+          a constant 12px gap at every tested inset, clearance from the
+          viewport top always positive (== inset + 12px, never 0/negative),
+          and the 50px of remaining content-box height (68 - 12 - 6) still
+          comfortably fits the 32px logo, the tallest item. */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
         height: `calc(${TOP_H}px + env(safe-area-inset-top))`,
         background: '#0f172a',
         display: 'flex', alignItems: 'flex-start', padding: '0 6px', gap: 4,
-        paddingTop: 'calc(env(safe-area-inset-top) + 4px)',
+        paddingTop: 'calc(env(safe-area-inset-top) + 12px)',
         paddingBottom: 6,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
