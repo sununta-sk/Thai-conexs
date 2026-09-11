@@ -170,13 +170,29 @@ export default function MobileNavbar() {
           z-index: 1;
         }
       `}</style>
-      {/* Top bar */}
+      {/* Top bar - height/TOP_H and env(safe-area-inset-top) itself are
+          untouched (TOP_H is shared with ProfilePage.jsx's layout calc, out
+          of scope here). The visible gap under the status bar wasn't
+          mainly the +6px padding on its own - alignItems:'flex-end' was
+          the dominant contributor: with a fixed 68px bar height, the
+          content box (68 - paddingTop - paddingBottom) is taller than the
+          32px logo (the tallest item), and flex-end pushed that ~24px of
+          slack entirely above the content, on top of the 6px padding.
+          Measured (Playwright, several safe-area-inset-top values from a
+          Dynamic Island's 47px down to 0): gap was a constant 29px
+          regardless of device. Switched to flex-start (removes the
+          above-content slack - the leftover space now sits below the
+          content instead, inside the same unchanged bar height) and
+          trimmed the explicit padding 6px -> 4px. Same measurement
+          afterward: a constant 4px gap at every tested inset, and
+          clearance from the viewport top stays positive (== inset + 4px)
+          at every value including 0, so nothing sits behind the cutout. */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
         height: `calc(${TOP_H}px + env(safe-area-inset-top))`,
         background: '#0f172a',
-        display: 'flex', alignItems: 'flex-end', padding: '0 6px', gap: 4,
-        paddingTop: 'calc(env(safe-area-inset-top) + 6px)',
+        display: 'flex', alignItems: 'flex-start', padding: '0 6px', gap: 4,
+        paddingTop: 'calc(env(safe-area-inset-top) + 4px)',
         paddingBottom: 6,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
