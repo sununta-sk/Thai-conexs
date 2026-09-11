@@ -172,32 +172,38 @@ export default function MobileNavbar() {
       `}</style>
       {/* Top bar - height/TOP_H and env(safe-area-inset-top) itself are
           untouched (TOP_H is shared with ProfilePage.jsx's layout calc, out
-          of scope here). The visible gap under the status bar wasn't
-          mainly the +6px padding on its own - alignItems:'flex-end' was
-          the dominant contributor: with a fixed 68px bar height, the
-          content box (68 - paddingTop - paddingBottom) is taller than the
-          32px logo (the tallest item), and flex-end pushed that ~24px of
-          slack entirely above the content, on top of the 6px padding.
-          Measured (Playwright, several safe-area-inset-top values from a
-          Dynamic Island's 47px down to 0): gap was a constant 29px
-          regardless of device. Switched to flex-start (removes the
-          above-content slack - the leftover space now sits below the
-          content instead, inside the same unchanged bar height) - that
-          part's confirmed correct and left as-is.
-          The explicit padding itself went 6px -> 4px first, then SK tested
-          that live and found it sitting too tight - bumped to 12px as a
-          middle ground (4px was too tight, the old 6px-with-flex-end was
-          effectively 29px which was too loose). Re-measured the same way:
-          a constant 12px gap at every tested inset, clearance from the
-          viewport top always positive (== inset + 12px, never 0/negative),
-          and the 50px of remaining content-box height (68 - 12 - 6) still
-          comfortably fits the 32px logo, the tallest item. */}
+          of scope here). History of this bar's vertical alignment/padding,
+          each step re-measured with Playwright across several
+          safe-area-inset-top values (0 through a Pro Max's 59px):
+            - flex-end + 6px: the dominant gap contributor was flex-end
+              itself, not the 6px - it pushed the ~24px of slack between
+              the 68px bar height and the 32px logo (tallest item)
+              entirely above the content. Constant 29px gap, too loose.
+            - flex-start + 4px: removed that slack from above (it moved
+              below content instead) - too tight, SK found it cramped live.
+            - flex-start + 12px: constant 12px gap - fixed the distance,
+              but flex-start's own nature was the next problem: items of
+              different heights (32px logo vs ~19-24px pill/buttons) all
+              snapped flush to the same top edge instead of lining up with
+              each other, reading as uneven.
+            - alignItems now 'center' (this change) - items align to a
+              shared centerline regardless of height, fixing the unevenness
+              flex-start couldn't. Centering distributes the content-box's
+              leftover space evenly above/below the content instead of
+              putting it all below (flex-start) or all above (flex-end),
+              so it needs less explicit padding to reach the same visual
+              depth - re-tuned 12px -> 6px for a "nudged down a bit more
+              than 12px-flex-start, not hugging the edge" result: constant
+              17.5px gap at every tested inset (vs. flex-start's exact-
+              padTop gap, center's own leftover-split adds ~half the
+              content-box slack on top of the explicit padding), clearance
+              from the viewport top always positive (== inset + 17.5px). */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0,
         height: `calc(${TOP_H}px + env(safe-area-inset-top))`,
         background: '#0f172a',
-        display: 'flex', alignItems: 'flex-start', padding: '0 6px', gap: 4,
-        paddingTop: 'calc(env(safe-area-inset-top) + 12px)',
+        display: 'flex', alignItems: 'center', padding: '0 6px', gap: 4,
+        paddingTop: 'calc(env(safe-area-inset-top) + 6px)',
         paddingBottom: 6,
         borderBottom: '1px solid #334155', zIndex: 1000,
         boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
