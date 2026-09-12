@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
+import { useNavGuard } from "../context/NavGuardContext";
 
 const TYPE_ICON = {
   new_match:    "💕",
@@ -10,7 +10,11 @@ const TYPE_ICON = {
 };
 
 export default function NotificationBell() {
-  const navigate = useNavigate();
+  // Routed through requestNavigate (NavGuardContext) so a click here is
+  // held off the same way Navbar/MobileNavbar's nav items are, when the
+  // user is on profile-setup with an incomplete profile. No-op passthrough
+  // to navigate() everywhere else.
+  const { requestNavigate } = useNavGuard();
   const [open, setOpen] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const dropRef = useRef(null);
@@ -35,8 +39,8 @@ export default function NotificationBell() {
 
   const handleNotifClick = (notif) => {
     markAsRead(notif.id);
-    if (notif.data?.room_id) navigate(`/room-chat/${notif.data.room_id}`);
-    else if (notif.type === "new_match") navigate("/messages");
+    if (notif.data?.room_id) requestNavigate(`/room-chat/${notif.data.room_id}`);
+    else if (notif.type === "new_match") requestNavigate("/messages");
     setOpen(false);
   };
 
@@ -84,7 +88,7 @@ export default function NotificationBell() {
                   cursor: "pointer", fontSize: 12,
                 }}>Mark all read</button>
               )}
-              <button onClick={() => { navigate("/notifications"); setOpen(false); }} style={{
+              <button onClick={() => { requestNavigate("/notifications"); setOpen(false); }} style={{
                 background: "none", border: "none", color: "#94a3b8",
                 cursor: "pointer", fontSize: 12,
               }}>See all →</button>

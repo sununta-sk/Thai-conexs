@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
+import { useNavGuard } from '../context/NavGuardContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileNavbar from './MobileNavbar';
@@ -24,6 +25,7 @@ function NavbarDesktop() {
   const [lotusBalance, setLotusBalance] = useState(0);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { onlineCount } = useOnline();
+  const { requestNavigate } = useNavGuard();
   const unreadCount = useUnreadCount();
   const menuRef = useRef(null);
 
@@ -74,15 +76,23 @@ function NavbarDesktop() {
     return () => document.removeEventListener('mousedown', handler);
   }, [showProfileMenu]);
 
+  // Routed through requestNavigate (NavGuardContext), not navigate()
+  // directly, so ProfileSetup can hold this off with a confirmation popup
+  // when the profile has no photo yet / Save was never clicked. Outside
+  // profile-setup there's no registered guard, so this is a no-op
+  // passthrough to navigate() exactly as before.
   const goTo = async (path) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { navigate('/login'); return; }
-    navigate(path);
+    requestNavigate(path);
     setShowProfileMenu(false);
   };
 
   const handleLogout = async () => {
     // ไม่เพิกถอน session จริง - แค่พาไปหน้า login เพื่อให้ welcome-back quick login ใช้ได้
+    // Deliberately NOT routed through requestNavigate — logout must always
+    // work, even with an incomplete profile (login isn't a protected route
+    // and isn't gated at all).
     setShowProfileMenu(false);
     navigate('/login');
   };

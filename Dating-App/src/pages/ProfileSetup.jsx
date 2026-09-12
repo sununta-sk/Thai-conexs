@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
+import { useNavGuard } from '../context/NavGuardContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -34,7 +35,10 @@ const T = {
     education:'การศึกษา', preferences:'ความต้องการ', gender:'เพศ', lookingFor:'มองหา',
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
-    continueBtn:'ไปที่หน้าค้นหา →', savingStatus:'กำลังบันทึก...', savedStatus:'บันทึกแล้ว ✓', errorStatus:'บันทึกไม่สำเร็จ กำลังลองใหม่...',
+    continueBtn:'ไปที่หน้าค้นหา →', saveContinueBtn:'บันทึกและไปที่หน้าค้นหา', savingStatus:'กำลังบันทึก...', savedStatus:'บันทึกแล้ว ✓', errorStatus:'บันทึกไม่สำเร็จ กำลังลองใหม่...',
+    navGuardNoPhotoTitle:'อัปโหลดรูปโปรไฟล์ก่อน', navGuardNoPhotoBody:'คุณต้องอัปโหลดรูปโปรไฟล์อย่างน้อย 1 รูปก่อนออกจากหน้านี้',
+    navGuardConfirmTitle:'บันทึกโปรไฟล์ก่อนออกจากหน้านี้', navGuardConfirmBody:'คุณยังไม่ได้กดบันทึกโปรไฟล์ ต้องการบันทึกตอนนี้เลยไหม?',
+    navGuardConfirmBtn:'บันทึกโปรไฟล์ ยืนยัน', navGuardConfirmingBtn:'กำลังบันทึก...', navGuardDismissBtn:'เข้าใจแล้ว', navGuardCancelBtn:'ยกเลิก',
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
     genderOptions:['ชาย','หญิง','ทรานส์เจนเดอร์','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
     copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
@@ -51,7 +55,10 @@ const T = {
     education:'Education', preferences:'Preferences', gender:'Gender', lookingFor:'Looking For',
     referralLabel:"Enter a friend's code to get €30 bonus",
     saveBtn:'Save Profile', logoutBtn:'Logout',
-    continueBtn:'Continue to Discover →', savingStatus:'Saving...', savedStatus:'Saved ✓', errorStatus:"Couldn't save — retrying...",
+    continueBtn:'Continue to Discover →', saveContinueBtn:'Save and Continue to Discover', savingStatus:'Saving...', savedStatus:'Saved ✓', errorStatus:"Couldn't save — retrying...",
+    navGuardNoPhotoTitle:'Upload a Photo First', navGuardNoPhotoBody:'Please upload at least 1 profile photo before leaving this page.',
+    navGuardConfirmTitle:'Save Your Profile First', navGuardConfirmBody:"You haven't clicked Save yet. Save your profile now?",
+    navGuardConfirmBtn:'Save Profile, confirm', navGuardConfirmingBtn:'Saving...', navGuardDismissBtn:'Got it', navGuardCancelBtn:'Cancel',
     eduOptions:['High School','Bachelor Degree','Master Degree','PhD'],
     genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
     copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
@@ -104,6 +111,7 @@ export default function ProfileSetup() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const verifyFileInputRef = useRef(null);
+  const { registerGuard, requestNavigate, pending, resolvePending, cancelPending, markProfileComplete } = useNavGuard();
 
   const [username, setUsername]   = useState('');
   const [bio, setBio]             = useState('');
@@ -145,6 +153,21 @@ export default function ProfileSetup() {
   const errorRetryRef      = useRef(null);
   const savedStatusTimerRef = useRef(null);
   const saveProfileRef     = useRef(null); // always holds the latest save closure (see effect below) so any handler can call saveProfileRef.current?.()
+
+  // ─── Navigation guard (NavGuardContext) ────────────────────
+  // hasClickedSaveRef: whether the user has EXPLICITLY clicked a Save
+  // button this session — distinct from autosave, which already persists
+  // photos/fields regardless. A ref, not state: handleManualSave sets this
+  // and immediately calls requestNavigate() in the same click — a state
+  // update wouldn't be visible to the guard's check (below) until the next
+  // render, which would let that very first click still get blocked.
+  const hasClickedSaveRef = useRef(false);
+  const [confirmingSave, setConfirmingSave] = useState(false); // true while the popup's own "confirm" is awaiting doSaveProfile
+  // Freshness ref for the guard check itself — same "reassign every render,
+  // no dependency array" pattern as saveProfileRef's own effect below, so
+  // it always reads the CURRENT photos without needing photos.length in a
+  // dependency array anywhere.
+  const navGuardCheckRef = useRef(() => null);
 
   // Verification photo now comes from the regular file-upload path (the
   // same reliable native file/camera/gallery picker used for profile
@@ -438,9 +461,14 @@ export default function ProfileSetup() {
   // exactly how photo-only edits used to get lost). Confirmed via a
   // throwaway-user probe against the real DB that `profiles` accepts
   // null city/province/country on upsert.
+  // Returns true/false so the nav-guard's confirm-popup (below) can await a
+  // real result instead of reading saveStatus back afterward — that state
+  // wouldn't reflect this same call's outcome yet from the caller's own
+  // closure. Existing fire-and-forget callers (autosave effects, blur,
+  // pagehide) simply don't use the return value — nothing changes for them.
   const doSaveProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return false;
     setSaveStatus('saving');
     const cleanUsername = sanitizeUsername(username);
     if (cleanUsername !== username) setUsername(cleanUsername);
@@ -465,9 +493,11 @@ export default function ProfileSetup() {
       // retry storm if Supabase is genuinely down (the next real edit will
       // naturally trigger another attempt regardless).
       errorRetryRef.current = setTimeout(() => { saveProfileRef.current?.(); }, 4000);
+      return false;
     } else {
       setSaveStatus('saved');
       savedStatusTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000);
+      return true;
     }
   };
 
@@ -480,11 +510,21 @@ export default function ProfileSetup() {
   // matters for tonight's fix — a photo add/remove/recrop/re-main is now
   // persisted the moment it happens in local state, so it's never orphaned
   // by the user leaving before an explicit Save.
+  //
+  // Also the primary place markProfileComplete() fires (NavGuardContext) —
+  // this is the earliest point a real save with a real photo is confirmed,
+  // typically well before any nav attempt in normal use. See its own
+  // comment in NavGuardContext.jsx for why ProtectedRoute needs this
+  // in-memory signal at all rather than trusting its own re-query.
   useEffect(() => {
     if (skipPhotoEffectRef.current) { skipPhotoEffectRef.current = false; return; }
     if (!readyRef.current) return;
-    saveProfileRef.current?.();
-  }, [photos, mainPhoto]);
+    const photoCount = photos.length;
+    (async () => {
+      const ok = await saveProfileRef.current?.();
+      if (ok && photoCount > 0) markProfileComplete();
+    })();
+  }, [photos, mainPhoto, markProfileComplete]);
 
   // Debounced save: text fields, selects, chip toggles, referral code entry.
   // 900ms after the last change in this group; blur/tab-away/backgrounding
@@ -501,9 +541,13 @@ export default function ProfileSetup() {
   // Flush the pending debounce on blur (event delegation — see onBlur on the
   // Sidebar/MainContent wrappers below) and when the tab is backgrounded or
   // closed, so a debounced edit isn't stranded behind an unfired timer.
+  // Returns the underlying save's promise (true/false) so a caller that
+  // needs to know the outcome (the nav-guard confirm-popup) can await it;
+  // every existing caller here just calls this without awaiting, which
+  // still works identically to before.
   const flushSave = () => {
     if (fieldDebounceRef.current) { clearTimeout(fieldDebounceRef.current); fieldDebounceRef.current = null; }
-    saveProfileRef.current?.();
+    return saveProfileRef.current?.();
   };
   useEffect(() => {
     const onHide = () => { if (document.visibilityState === 'hidden') flushSave(); };
@@ -515,13 +559,70 @@ export default function ProfileSetup() {
     };
   }, []);
 
-  const handleContinue = async () => {
+  // Refreshed every render (same no-deps pattern as saveProfileRef above),
+  // so it always reflects the CURRENT photos — 'no-photo' takes priority
+  // over 'confirm-save' since a photo is a prerequisite for saving being
+  // meaningful at all here.
+  useEffect(() => {
+    navGuardCheckRef.current = () => {
+      if (photos.length === 0) return 'no-photo';
+      if (!hasClickedSaveRef.current) return 'confirm-save';
+      return null;
+    };
+  });
+
+  // Registers ONCE on mount, unregisters on unmount — the registered
+  // function just delegates to navGuardCheckRef so it never itself goes
+  // stale and never needs to re-register.
+  useEffect(() => {
+    return registerGuard(() => navGuardCheckRef.current());
+  }, [registerGuard]);
+
+  // Marks explicit save intent — used by both the page's own Save buttons
+  // (the mobile fixed one and the desktop "Save and Continue" CTA), NOT by
+  // autosave. Fire-and-forget, matching flushSave's own existing callers;
+  // the nav-guard popup's own confirm button (below) awaits flushSave
+  // directly instead, since it needs to know whether the save succeeded.
+  const handleManualSave = () => {
+    hasClickedSaveRef.current = true;
+    flushSave();
+  };
+
+  const handleContinue = () => {
     if (!details.country || !details.province || !details.city) {
       alert(lang === 'th' ? '⚠️ กรุณากรอก Country, Province และ City ให้ครบ' : '⚠️ Please fill Country, Province and City');
       return;
     }
-    flushSave();
-    navigate('/discover');
+    handleManualSave();
+    // requestNavigate (not a bare navigate): this button's own click IS the
+    // save the guard would otherwise be asking for, so with
+    // hasClickedSaveRef now true and a photo present this passes straight
+    // through to navigate('/discover') exactly as before. Still routed
+    // through the guard rather than skipped, so the 'no-photo' case (a
+    // save can't fix a missing photo) still blocks here too.
+    requestNavigate('/discover');
+  };
+
+  // The nav-guard popup's own "Save Profile, confirm" action (reason:
+  // 'confirm-save' — a photo exists but Save was never explicitly
+  // clicked). Awaits the real save result and keeps the popup open on
+  // failure instead of proceeding to a destination nothing was saved for;
+  // doSaveProfile's own error UI (saveStatus/errorStatus) and its 4s
+  // auto-retry already cover communicating and recovering from the
+  // failure — the user can just press confirm again anytime.
+  const handleConfirmAndContinue = async () => {
+    setConfirmingSave(true);
+    hasClickedSaveRef.current = true;
+    const ok = await flushSave();
+    setConfirmingSave(false);
+    if (ok) {
+      // Belt-and-suspenders alongside the photo-effect's own call to this
+      // (above) — this reason only ever fires with photos.length > 0, so
+      // it's always correct to mark here too, and it's harmless if the
+      // other call site already did.
+      if (photos.length > 0) markProfileComplete();
+      resolvePending();
+    }
   };
 
   const referralDisabled = isVerified && !!friendCode;
@@ -1013,9 +1114,19 @@ export default function ProfileSetup() {
         {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
       </div>
 
-      <button onClick={handleContinue} style={S.saveBtn}>{tx.continueBtn}</button>
+      {/* Primary CTA. On desktop this is the ONLY save/continue button —
+          the fixed top-right Save button below is mobile-only now, so this
+          absorbs it: same flushSave-then-navigate behaviour it always had,
+          relabelled to say so, back in the centered in-card position it
+          occupied before the fixed button existed. On mobile the fixed
+          button stays exactly where it is, so this keeps its original
+          "Continue to Discover →" label there and the two coexist as
+          before. Both platforms' prominent button shares S.glowCta. */}
+      <button onClick={handleContinue} style={isDesktop ? { ...S.saveBtn, ...S.glowCta, padding: '16px' } : S.saveBtn}>
+        {isDesktop ? tx.saveContinueBtn : tx.continueBtn}
+      </button>
 
-      <button onClick={() => navigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
+      <button onClick={() => requestNavigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
         💸 {lang === 'th' ? 'ถอนเงิน / Request Payout' : 'Request Payout'} · €{balance}
       </button>
 
@@ -1030,15 +1141,25 @@ export default function ProfileSetup() {
   // RENDER
   // ──────────────────────────────────────────────
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '140px' : '60px' }}>
-      {/* Fixed manual Save button — sits below the fixed Navbar/MobileNavbar
+    <div style={{ background: '#0f172a', minHeight: '100vh', paddingBottom: '120px', paddingTop: isDesktop ? '90px' : '60px' }}>
+      {/* Fixed manual Save button — MOBILE ONLY. Desktop's equivalent is now
+          the centered in-card "Save and Continue to Discover" button above
+          (which already did flushSave + navigate), so rendering this there
+          too would mean two centered/prominent buttons doing the same thing.
+          Desktop's paddingTop went back to 90px with it, since the 140px was
+          only ever clearance for this button.
+          Everything below about this button's own position/zIndex still
+          applies verbatim at mobile widths, where it is unchanged.
+          Sits below the fixed Navbar/MobileNavbar
           (not overlapping either spatially, so their own zIndex ordering
           doesn't matter here) and stays visible while scrolling. Auto-save
           (doSaveProfile, above) is still the real persistence mechanism —
           this is a reassurance/manual trigger for anyone who wants to
-          force-flush a save right now. Reuses flushSave (not
-          doSaveProfile directly) so a click also clears any pending
-          900ms debounce, same as blur/tab-hide already do.
+          force-flush a save right now. onClick is handleManualSave, which
+          marks explicit save intent (for the nav-guard popup below) and
+          then calls flushSave (not doSaveProfile directly) so a click also
+          clears any pending 900ms debounce, same as blur/tab-hide already
+          do.
           top/paddingTop were originally too tight against the card below
           (only 13px real gap between Navbar's bottom edge and the card's
           top edge) — bumped both so there's genuine clearance instead of
@@ -1047,12 +1168,14 @@ export default function ProfileSetup() {
           (zIndex 9000, app-wide, once/day) was opaquely covering this
           button's exact position on mobile widths, making it look
           completely missing rather than just dimmed like on desktop. */}
-      <button
-        onClick={flushSave}
-        disabled={saveStatus === 'saving'}
-        style={{ ...S.fixedSaveBtn, top: isDesktop ? 90 : 'calc(68px + env(safe-area-inset-top) + 12px)', right: isDesktop ? 20 : 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
-        {tx.saveBtn}
-      </button>
+      {!isDesktop && (
+        <button
+          onClick={handleManualSave}
+          disabled={saveStatus === 'saving'}
+          style={{ ...S.fixedSaveBtn, ...S.glowCta, padding: '7px 16px', top: 'calc(68px + env(safe-area-inset-top) + 12px)', right: 12, opacity: saveStatus === 'saving' ? 0.6 : 1, cursor: saveStatus === 'saving' ? 'default' : 'pointer' }}>
+          {tx.saveBtn}
+        </button>
+      )}
 
       <div style={isDesktop ? S.desktopWrap : S.mobileWrap}>
         {isDesktop ? (
@@ -1074,6 +1197,51 @@ export default function ProfileSetup() {
           onCancel={handleCropCancel}
           onSave={handleCropSave}
         />
+      )}
+
+      {/* Navigation guard popup (NavGuardContext). Fires on ANY attempt to
+          leave this page — the navbars' tabs/menu items, the notification
+          bell, GlobalToast's click-to-open-chat toasts, and this page's own
+          Continue/Payout buttons all funnel through requestNavigate(),
+          which sets `pending` here instead of navigating when blocked.
+          Device-agnostic: same component, same trigger conditions, same
+          zIndex, on both mobile and desktop.
+          Two variants, keyed off the reason CAPTURED at the moment of the
+          block (not recomputed here) so the popup can't reclassify itself
+          mid-display if state changes while it's open:
+            'no-photo'     — dismiss-only; there's no photo to save yet, so
+                             there's nothing this popup itself can resolve.
+            'confirm-save' — a photo exists but Save was never explicitly
+                             clicked; one click saves for real and then
+                             continues to wherever the blocked click was
+                             actually headed (resolvePending navigates to
+                             the stashed path, not a hardcoded one). */}
+      {pending && (
+        <div style={S.navGuardOverlay} onClick={cancelPending}>
+          <div style={S.navGuardCard} onClick={e => e.stopPropagation()}>
+            {pending.reason === 'no-photo' ? (
+              <>
+                <div style={S.navGuardIcon}>📷</div>
+                <h3 style={S.navGuardTitle}>{tx.navGuardNoPhotoTitle}</h3>
+                <p style={S.navGuardBody}>{tx.navGuardNoPhotoBody}</p>
+                <button onClick={cancelPending} style={S.navGuardPrimaryBtn}>{tx.navGuardDismissBtn}</button>
+              </>
+            ) : (
+              <>
+                <div style={S.navGuardIcon}>💾</div>
+                <h3 style={S.navGuardTitle}>{tx.navGuardConfirmTitle}</h3>
+                <p style={S.navGuardBody}>{tx.navGuardConfirmBody}</p>
+                <button
+                  onClick={handleConfirmAndContinue}
+                  disabled={confirmingSave}
+                  style={{ ...S.navGuardPrimaryBtn, opacity: confirmingSave ? 0.7 : 1, cursor: confirmingSave ? 'default' : 'pointer' }}>
+                  {confirmingSave ? tx.navGuardConfirmingBtn : tx.navGuardConfirmBtn}
+                </button>
+                <button onClick={cancelPending} style={S.navGuardCancelBtn}>{tx.navGuardCancelBtn}</button>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1117,6 +1285,25 @@ const S = {
   // TCN Referral card
   referralCard: { marginTop: 25, background: 'linear-gradient(135deg, #e91e63, #9c27b0)', padding: '30px 20px', borderRadius: 16, color: '#fff', textAlign: 'center', boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)' },
 
+  // Prominent/glow treatment for whichever button is the page's primary save
+  // CTA — desktop's centered in-card one, mobile's fixed one. Kept as a single
+  // token applied to both so the two can't drift apart. Overrides the base
+  // styles' own border:'none' and boxShadow, so it must be spread last.
+  //
+  // Carries no padding of its own: each call site instead subtracts the 2px
+  // border from its own padding (18 -> 16, and 9/18 -> 7/16), so the button's
+  // outer box stays pixel-identical to before the glow. Measured in a real
+  // browser rather than assumed — <button> IS border-box in the UA stylesheet,
+  // but that only pins the dimensions that are explicitly set: the in-card
+  // button's width:100% held, yet BOTH buttons grew 4px taller and the fixed
+  // button (auto width) also grew 4px wider. On mobile that would have shaved
+  // 4px off the exact button-to-card clearance 14d50da/b2ecf26/557371a were
+  // about, so it's compensated away instead of re-verified.
+  glowCta: {
+    border: '2px solid #ff6f9c',
+    boxShadow: '0 0 0 3px rgba(233,30,99,0.22), 0 0 18px 3px rgba(233,30,99,0.55), 0 4px 14px rgba(233,30,99,0.45)',
+  },
+
   saveBtn:   { width: '100%', padding: '18px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 'bold', fontSize: '17px', marginTop: '30px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
   // zIndex was 900 (deliberately under Navbar/MobileNavbar's 1000 - see the
   // comment at the button's render site). That's fine against the navbar,
@@ -1146,6 +1333,19 @@ const S = {
     textAlign: 'center',
     transition: 'opacity 0.2s',
   },
+
+  // Nav-guard popup (see render site above). zIndex 9998 — deliberately
+  // between WelcomeModal (9000) / the fixed Save button + PhotoCropper
+  // (9500) below it, and GlobalToast/WarnModal/BanModal (9999+) above it:
+  // a banned/warned user's modal must never end up buried behind this one.
+  navGuardOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  navGuardCard:    { background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' },
+  navGuardIcon:    { fontSize: 40, marginBottom: 12 },
+  navGuardTitle:   { fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px' },
+  navGuardBody:    { fontSize: 14, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' },
+  navGuardPrimaryBtn: { width: '100%', padding: '14px', borderRadius: 30, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  navGuardCancelBtn:  { width: '100%', padding: '12px', borderRadius: 30, border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 10 },
+
   langBtn:   { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: '#0f172a', color: '#e91e63', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
   logoutBtn: { width: '100%', padding: '13px', borderRadius: '30px', border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 'bold', fontSize: '14px', marginTop: '10px', cursor: 'pointer' },
   langPicker:{ position: 'absolute', bottom: '110%', left: 0, right: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', boxShadow: '0 -8px 30px rgba(0,0,0,0.5)', zIndex: 100, maxHeight: '280px', overflowY: 'auto', padding: '8px' },

@@ -5,6 +5,7 @@ import { supabase } from './lib/supabaseClient';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { OnlineProvider } from './context/OnlineContext';
+import { NavGuardProvider, useNavGuard } from './context/NavGuardContext';
 import { useLoginBonus } from './hooks/useLoginBonus';
 import BanModal from './components/BanModal';
 import WelcomeModal from './components/WelcomeModal';
@@ -67,10 +68,19 @@ const AdsPage       = lazy(() => import('./pages/admin/AdsPage'));
 const AdminFallback = () => <LoadingScreen />;
 
 const ProtectedRoute = ({ children }) => {
+  const location = useLocation();
+  const { profileComplete } = useNavGuard();
   const [session, setSession] = useState(undefined);
   const [banInfo, setBanInfo] = useState(undefined);
   const [warnInfo, setWarnInfo] = useState(undefined);
   const [usernameNotice, setUsernameNotice] = useState(undefined);
+  // Backstop for reload / typed URL / browser back — the in-app nav guard
+  // (NavGuardContext, checked by Navbar/MobileNavbar/NotificationBell/
+  // GlobalToast) only ever sees clicks; it has no way to intercept any of
+  // these. undefined = still loading (see the LoadingScreen gate below,
+  // same pattern as banInfo/warnInfo) so a photo-having user is never
+  // bounced off a mid-fetch false reading of "no photos yet".
+  const [hasPhotos, setHasPhotos] = useState(undefined);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session ?? null));
@@ -87,11 +97,23 @@ const ProtectedRoute = ({ children }) => {
 
     supabase
       .from('profiles')
-      .select('banned_until, ban_reason')
+      .select('banned_until, ban_reason, photos')
       .eq('id', session.user.id)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (error || !data) { setBanInfo(null); return; }
+        // Fail OPEN on a genuine query error (a transient Supabase blip
+        // must never lock a real user out of the app) — but NOT on a
+        // successful query that simply found no row. maybeSingle() returns
+        // { data: null, error: null } for both "0 rows" and "query failed
+        // for some other reason that isn't really an error", so error==null
+        // alone doesn't mean a row exists. A brand-new signup has no
+        // `profiles` row at all until ProfileSetup's first save — that's
+        // not a fetch failure, it's the exact "definitely no photos yet"
+        // case this check exists to catch, so it must fail CLOSED here,
+        // not open. (Caught live: a fresh signup's very first /discover
+        // load wasn't redirected to /profile-setup until this fix.)
+        if (error) { setBanInfo(null); setHasPhotos(true); return; }
+        if (!data) { setBanInfo(null); setHasPhotos(false); return; }
         const now = Date.now();
         const banUntil = data.banned_until ? new Date(data.banned_until).getTime() : null;
         const reason = data.ban_reason;
@@ -102,8 +124,23 @@ const ProtectedRoute = ({ children }) => {
         } else {
           setBanInfo(null);
         }
+        setHasPhotos(Array.isArray(data.photos) && data.photos.length > 0);
       });
-  }, [session]);
+    // location.pathname (not just session) is a real dependency here, not
+    // just a lint satisfier: this app's <Routes> reuses the SAME
+    // ProtectedRoute instance across sibling protected routes rather than
+    // remounting it (confirmed live — an instance ID tag persisted across
+    // a /profile-setup -> /discover navigation). Without this, hasPhotos
+    // is computed once per login and never rechecked again for the rest of
+    // the session, so confirming Save in the nav-guard popup and
+    // navigating to /discover client-side kept reading the STALE
+    // zero-photos value from before the upload and bounced straight back —
+    // only caught because the live click-through test chained an actual
+    // save into an actual navigate, which a page-reload-based check never
+    // would. Re-running this on every route change re-reads the real
+    // current value (and also freshens banInfo along the way, previously
+    // gated only on session too).
+  }, [session, location.pathname]);
 
   useEffect(() => {
     if (session === undefined) return;
@@ -153,6 +190,30 @@ const ProtectedRoute = ({ children }) => {
   if (!session) return <Navigate to="/login" replace />;
   if (banInfo === undefined) return <LoadingScreen />;
   if (warnInfo === undefined) return <LoadingScreen />;
+  if (hasPhotos === undefined) return <LoadingScreen />;
+
+  // Redirect straight into profile-setup on reload/typed-URL/back-button
+  // with zero saved photos — everywhere else that same photo count gates
+  // navigation via a confirmation popup (NavGuardContext), but there's no
+  // page to render a popup ON TOP of here: children hasn't mounted yet.
+  // No exception for banInfo/warnInfo: both render as full-screen
+  // position:fixed;inset:0 overlays regardless of which page sits under
+  // them, so landing on profile-setup instead of e.g. Discover changes
+  // nothing about what a banned/warned user actually sees.
+  //
+  // profileComplete is also checked here, not just hasPhotos — this app's
+  // <Routes> reuses the SAME ProtectedRoute instance across sibling
+  // protected routes rather than remounting it (confirmed live via an
+  // instance-id trace), so navigate()-ing here right after a confirmed
+  // save renders ONCE with the PREVIOUS location's hasPhotos state before
+  // this component's own effects get a chance to re-fetch — no re-query,
+  // however fresh, can win a race against the render that happens before
+  // it even starts. profileComplete is set synchronously (by ProfileSetup,
+  // via an awaited successful save) at the one moment this component
+  // cannot yet know the answer for itself, closing exactly that gap.
+  if (!hasPhotos && !profileComplete && location.pathname !== '/profile-setup') {
+    return <Navigate to="/profile-setup" replace />;
+  }
 
   return (
     <>
@@ -363,7 +424,9 @@ export default function App() {
     <Router>
       <OnlineProvider>
         <MobilePreviewFrame>
-          <AppContent />
+          <NavGuardProvider>
+            <AppContent />
+          </NavGuardProvider>
         </MobilePreviewFrame>
       </OnlineProvider>
     </Router>

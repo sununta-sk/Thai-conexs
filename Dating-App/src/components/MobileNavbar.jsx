@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
+import { useNavGuard } from '../context/NavGuardContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
@@ -61,6 +62,7 @@ export default function MobileNavbar() {
   const location = useLocation();
   const { tx, lang, setLang } = useTranslation(['common', 'discover', 'messages']);
   const { onlineCount } = useOnline();
+  const { requestNavigate } = useNavGuard();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userId, setUserId] = useState(null);
   const [myAvatar, setMyAvatar] = useState(null);
@@ -128,12 +130,17 @@ export default function MobileNavbar() {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const goTo = (path) => { setShowMenu(false); navigate(path); };
+  // Routed through requestNavigate (NavGuardContext), not navigate()
+  // directly — see Navbar.jsx's goTo for why. No-op passthrough outside
+  // profile-setup.
+  const goTo = (path) => { setShowMenu(false); requestNavigate(path); };
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
   const adminActive = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     // ไม่เพิกถอน session จริง - แค่พาไปหน้า login เพื่อให้ welcome-back quick login ใช้ได้
+    // Deliberately NOT routed through requestNavigate — logout must always
+    // work regardless of profile completeness.
     setShowMenu(false);
     navigate('/login');
   };

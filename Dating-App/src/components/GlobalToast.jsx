@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useNavGuard } from '../context/NavGuardContext';
 
 let _audioCtx = null;
 function getAudioCtx() {
@@ -54,12 +54,15 @@ export default function GlobalToast() {
   const [toasts, setToasts] = useState([]);
   const [userId, setUserId] = useState(null);
   const [isSubscriber, setIsSubscriber] = useState(false);
-  const navigate = useNavigate();
+  // Routed through requestNavigate (NavGuardContext) so a toast click is
+  // held off the same way as Navbar/NotificationBell, when the user is on
+  // profile-setup with an incomplete profile. No-op passthrough elsewhere.
+  const { requestNavigate } = useNavGuard();
   const isMobile = useIsMobile();
   const toastIdRef = useRef(0);
   const userIdRef = useRef(null);
-  const navigateRef = useRef(navigate);
-  navigateRef.current = navigate;
+  const navigateRef = useRef(requestNavigate);
+  navigateRef.current = requestNavigate;
 
   useEffect(() => {
     const applyUser = (user) => {
