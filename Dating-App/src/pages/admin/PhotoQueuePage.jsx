@@ -7,23 +7,30 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 const STATUS_TABS = ['pending', 'approved', 'rejected'];
 const MOBILE_PAGE_SIZE = 40;
 
+// Same shape every other page normalizes profiles.photos entries with
+// (UserProfilePage.jsx, RoomChat.jsx, etc.): each element is either a
+// JSON-stringified {url, cropX, cropY, scale} object, or a legacy plain
+// URL string.
+function extractPhotoUrl(p) {
+  if (!p) return null;
+  if (typeof p === 'string') {
+    try { return JSON.parse(p)?.url || p; } catch { return p; }
+  }
+  return p?.url || null;
+}
+
 // Does this queue photo actually appear anywhere on the user's live
 // profile? Mirrors how UserProfilePage/RoomChat render a profile's
-// photos: avatar_url is always shown first, with profiles.photos (an
-// array of either JSON-stringified {url,...} crop objects, or legacy
-// plain URL strings) appended after. A pending/approved queue entry
-// that matches neither is "orphaned" — the user removed it from their
-// gallery (or never saved it) after it was queued, so approving it
-// won't do anything visible.
+// photos: avatar_url is always shown first, with profiles.photos
+// appended after. A pending/approved queue entry that matches neither
+// is "orphaned" — the user removed it from their gallery (or never
+// saved it) after it was queued, so approving it won't do anything
+// visible.
 function isPhotoLiveOnProfile(photoUrl, profile) {
   if (!profile) return false; // handled separately by the "no profile" note
   if (profile.avatar_url === photoUrl) return true;
   const photos = Array.isArray(profile.photos) ? profile.photos : [];
-  return photos.some(p => {
-    if (typeof p !== 'string') return p?.url === photoUrl;
-    try { return JSON.parse(p)?.url === photoUrl; }
-    catch { return p === photoUrl; }
-  });
+  return photos.some(p => extractPhotoUrl(p) === photoUrl);
 }
 
 export default function PhotoQueuePage() {
@@ -109,6 +116,43 @@ export default function PhotoQueuePage() {
       ids.forEach(id => { next[id] = newStatus; });
       return next;
     });
+
+    // Rejecting only ever flagged the queue row — the photo stayed live
+    // on the user's actual profile (avatar_url / photos), which is the
+    // bug this fixes. Removes it from both, and if it was the avatar,
+    // promotes another remaining gallery photo (or blanks it if none are
+    // left) — same convention ProfileSetup.jsx's own photo-removal
+    // already uses (`remaining[0]?.url || ''`), just persisted server-side
+    // here since the user isn't the one making the edit.
+    if (action === 'reject') {
+      const rejectedByUser = new Map();
+      photos
+        .filter(p => ids.includes(p.id))
+        .forEach(p => {
+          if (!rejectedByUser.has(p.user_id)) rejectedByUser.set(p.user_id, []);
+          rejectedByUser.get(p.user_id).push(p.photo_url);
+        });
+
+      await Promise.all([...rejectedByUser.entries()].map(async ([userId, rejectedUrls]) => {
+        const { data: profile, error: fetchError } = await supabase
+          .from('profiles').select('avatar_url, photos').eq('id', userId).maybeSingle();
+        if (fetchError || !profile) {
+          if (fetchError) console.error('Reject cleanup: could not load profile', userId, fetchError.message);
+          return;
+        }
+
+        const currentPhotos = Array.isArray(profile.photos) ? profile.photos : [];
+        const remaining = currentPhotos.filter(p => !rejectedUrls.includes(extractPhotoUrl(p)));
+
+        const update = { photos: remaining };
+        if (rejectedUrls.includes(profile.avatar_url)) {
+          update.avatar_url = extractPhotoUrl(remaining[0]) || null;
+        }
+
+        const { error: updateError } = await supabase.from('profiles').update(update).eq('id', userId);
+        if (updateError) console.error('Reject cleanup: could not update profile', userId, updateError.message);
+      }));
+    }
 
     await supabase
       .from('photo_moderation_queue')
