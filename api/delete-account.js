@@ -13,6 +13,18 @@
 //
 // Called from src/pages/admin/UserDetailPage.jsx's handleDeleteAccount(), which
 // already POSTs { userId } with Authorization: Bearer <admin's session token>.
+//
+// 2026-09-14 fix (incident: 17 navguard-throwaway-* test accounts got stuck
+// half-deleted): lotus_ledger, lotus_daily_grants, lotus_monthly_grants and
+// profile_boosts all have `user_id references profiles(id)` with no
+// ON DELETE CASCADE. Any account with rows in those tables would silently
+// fail its profiles.delete() below (error was never checked), then fail
+// auth.admin.deleteUser() too (profiles.id -> auth.users cascade gets
+// blocked by the same rows), surfacing as "Database error deleting user"
+// even though nothing had actually been removed. Fixed by (a) adding those
+// 4 tables to the delete list, before profiles, and (b) checking every
+// delete's error instead of swallowing it, so a real failure now aborts
+// with a clear message instead of reporting false partial success.
 const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async function handler(req, res) {
@@ -41,42 +53,62 @@ module.exports = async function handler(req, res) {
   const { userId } = req.body || {};
   if (!userId) return res.status(400).json({ error: 'userId required' });
 
+  // Throws on the first failed delete instead of silently continuing —
+  // a step that fails here (e.g. an FK constraint blocking it) must abort
+  // the whole flow with a clear "which step" message, not let the code
+  // carry on as if the row were gone and report false success later.
+  async function checkedDelete(label, queryBuilder) {
+    const { error } = await queryBuilder;
+    if (error) throw new Error(`${label}: ${error.message}`);
+  }
+
   try {
     const { data: avatarFiles } = await supabase.storage.from('avatars').list(userId);
     if (avatarFiles && avatarFiles.length > 0) {
-      await supabase.storage.from('avatars').remove(avatarFiles.map((f) => userId + '/' + f.name));
+      const { error } = await supabase.storage.from('avatars').remove(avatarFiles.map((f) => userId + '/' + f.name));
+      if (error) throw new Error(`storage avatars: ${error.message}`);
     }
     const { data: faceFiles } = await supabase.storage.from('avatars').list('face-verify/' + userId);
     if (faceFiles && faceFiles.length > 0) {
-      await supabase.storage.from('avatars').remove(faceFiles.map((f) => 'face-verify/' + userId + '/' + f.name));
+      const { error } = await supabase.storage.from('avatars').remove(faceFiles.map((f) => 'face-verify/' + userId + '/' + f.name));
+      if (error) throw new Error(`storage face-verify: ${error.message}`);
     }
 
-    await supabase.from('messages').delete().or('chat_id.like.' + userId + '_%,chat_id.like.%_' + userId);
-    await supabase.from('user_likes').delete().eq('liker_id', userId);
-    await supabase.from('user_likes').delete().eq('liked_id', userId);
-    await supabase.from('user_passes').delete().eq('passer_id', userId);
-    await supabase.from('user_passes').delete().eq('passed_id', userId);
-    await supabase.from('user_blocks').delete().eq('blocker_id', userId);
-    await supabase.from('user_blocks').delete().eq('blocked_id', userId);
-    await supabase.from('user_reports').delete().eq('reporter_id', userId);
-    await supabase.from('user_reports').delete().eq('reported_id', userId);
-    await supabase.from('content_reports').delete().eq('reporter_id', userId);
-    await supabase.from('content_reports').delete().eq('reported_user_id', userId);
-    await supabase.from('profile_views').delete().eq('viewer_id', userId);
-    await supabase.from('profile_views').delete().eq('viewed_id', userId);
-    await supabase.from('photo_moderation_queue').delete().eq('user_id', userId);
-    await supabase.from('profile_videos').delete().eq('user_id', userId);
-    await supabase.from('user_subscriptions').delete().eq('user_id', userId);
+    // lotus_ledger / lotus_daily_grants / lotus_monthly_grants / profile_boosts
+    // all reference profiles(id) with no ON DELETE CASCADE — must go before
+    // profiles or its delete (and then the auth user's) gets FK-blocked.
+    await checkedDelete('lotus_ledger', supabase.from('lotus_ledger').delete().eq('user_id', userId));
+    await checkedDelete('lotus_daily_grants', supabase.from('lotus_daily_grants').delete().eq('user_id', userId));
+    await checkedDelete('lotus_monthly_grants', supabase.from('lotus_monthly_grants').delete().eq('user_id', userId));
+    await checkedDelete('profile_boosts', supabase.from('profile_boosts').delete().eq('user_id', userId));
 
-    const { data: tickets } = await supabase.from('support_tickets').select('id').eq('user_id', userId);
+    await checkedDelete('messages', supabase.from('messages').delete().or('chat_id.like.' + userId + '_%,chat_id.like.%_' + userId));
+    await checkedDelete('user_likes (liker)', supabase.from('user_likes').delete().eq('liker_id', userId));
+    await checkedDelete('user_likes (liked)', supabase.from('user_likes').delete().eq('liked_id', userId));
+    await checkedDelete('user_passes (passer)', supabase.from('user_passes').delete().eq('passer_id', userId));
+    await checkedDelete('user_passes (passed)', supabase.from('user_passes').delete().eq('passed_id', userId));
+    await checkedDelete('user_blocks (blocker)', supabase.from('user_blocks').delete().eq('blocker_id', userId));
+    await checkedDelete('user_blocks (blocked)', supabase.from('user_blocks').delete().eq('blocked_id', userId));
+    await checkedDelete('user_reports (reporter)', supabase.from('user_reports').delete().eq('reporter_id', userId));
+    await checkedDelete('user_reports (reported)', supabase.from('user_reports').delete().eq('reported_id', userId));
+    await checkedDelete('content_reports (reporter)', supabase.from('content_reports').delete().eq('reporter_id', userId));
+    await checkedDelete('content_reports (reported)', supabase.from('content_reports').delete().eq('reported_user_id', userId));
+    await checkedDelete('profile_views (viewer)', supabase.from('profile_views').delete().eq('viewer_id', userId));
+    await checkedDelete('profile_views (viewed)', supabase.from('profile_views').delete().eq('viewed_id', userId));
+    await checkedDelete('photo_moderation_queue', supabase.from('photo_moderation_queue').delete().eq('user_id', userId));
+    await checkedDelete('profile_videos', supabase.from('profile_videos').delete().eq('user_id', userId));
+    await checkedDelete('user_subscriptions', supabase.from('user_subscriptions').delete().eq('user_id', userId));
+
+    const { data: tickets, error: ticketsSelectError } = await supabase.from('support_tickets').select('id').eq('user_id', userId);
+    if (ticketsSelectError) throw new Error(`support_tickets (select): ${ticketsSelectError.message}`);
     if (tickets && tickets.length > 0) {
       const ticketIds = tickets.map((t) => t.id);
-      await supabase.from('ticket_messages').delete().in('ticket_id', ticketIds);
-      await supabase.from('support_tickets').delete().eq('user_id', userId);
+      await checkedDelete('ticket_messages', supabase.from('ticket_messages').delete().in('ticket_id', ticketIds));
+      await checkedDelete('support_tickets', supabase.from('support_tickets').delete().eq('user_id', userId));
     }
 
-    await supabase.from('user_moderation_actions').delete().eq('target_user_id', userId);
-    await supabase.from('profiles').delete().eq('id', userId);
+    await checkedDelete('user_moderation_actions', supabase.from('user_moderation_actions').delete().eq('target_user_id', userId));
+    await checkedDelete('profiles', supabase.from('profiles').delete().eq('id', userId));
 
     const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(userId);
     if (deleteAuthError) return res.status(500).json({ error: 'Data deleted but auth user deletion failed: ' + deleteAuthError.message });
