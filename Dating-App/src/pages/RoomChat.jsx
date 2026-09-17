@@ -69,6 +69,9 @@ const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 // Emoji picker (component + ~460KB emoji dataset) is only fetched once the user
 // actually opens the emoji tray, instead of being bundled into every chat page load.
 const EmojiPicker = lazy(() => import("@emoji-mart/react"));
+// Chess board + chess.js are only fetched once a user actually opens the
+// chess panel, same reasoning as the emoji picker above.
+const ChessGame = lazy(() => import("../components/ChessGame"));
 
 function getChatId(uid1, uid2) { return [uid1, uid2].sort().join("_"); }
 function formatTime(iso) { return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
@@ -404,6 +407,7 @@ function RoomChatDesktop() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
+  const [showChess, setShowChess] = useState(false);
   const [isSubscriber, setIsSubscriber] = useState(false);
 
   useEffect(() => {
@@ -825,14 +829,26 @@ function RoomChatDesktop() {
         </div>
       )}
 
+      {showChess && otherUserId && (
+        <Suspense fallback={null}>
+          <ChessGame
+            chatId={chatId}
+            session={session}
+            otherUserId={otherUserId}
+            otherUsername={otherProfile?.username}
+            onClose={() => setShowChess(false)}
+          />
+        </Suspense>
+      )}
+
       <div style={S.inputBar}>
-        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
+        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); setShowChess(false); }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
           </svg>
         </button>
 
-        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
+        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); setShowChess(false); }}>
           <span style={S.gifText}>GIF</span>
         </button>
 
@@ -841,6 +857,12 @@ function RoomChatDesktop() {
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
           </svg>
         </button>
+
+        {otherUserId && otherUserId !== OFFICIAL_ID && (
+          <button className="icon-btn" style={{ ...S.iconBtn, background: showChess ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8, fontSize: 22 }} title="Chess" onClick={() => { setShowChess(v => !v); setShowEmoji(false); setShowGif(false); }}>
+            ♟
+          </button>
+        )}
 
         <div style={S.inputWrap}>
           <textarea ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Message" rows={1} style={S.textInput} />
