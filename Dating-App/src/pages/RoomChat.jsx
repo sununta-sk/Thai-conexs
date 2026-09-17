@@ -408,12 +408,42 @@ function RoomChatDesktop() {
   const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
   const [showChess, setShowChess] = useState(false);
+  const [chessInvite, setChessInvite] = useState(null); // chess_games row someone else just started, awaiting Join/Dismiss
   const [isSubscriber, setIsSubscriber] = useState(false);
 
   useEffect(() => {
     if (!showEmoji || emojiData) return;
     import("@emoji-mart/data").then((m) => setEmojiData(m.default));
   }, [showEmoji, emojiData]);
+
+  // ── Chess invite popup ──
+  // Read every render so the subscription callback below always sees the
+  // CURRENT showChess without needing to re-subscribe the channel every
+  // time the chess panel opens/closes.
+  const showChessRef = useRef(showChess);
+  showChessRef.current = showChess;
+
+  useEffect(() => {
+    if (!session || !chatId) return;
+    const channel = supabase
+      .channel(`chess-invite:${chatId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chess_games", filter: `chat_id=eq.${chatId}` },
+        (payload) => {
+          // Starting a game requires the chess panel to already be open
+          // (ChessGame.jsx's own startGame() only runs while mounted), so
+          // an INSERT arriving while the panel is closed can only be the
+          // OTHER player starting one — no separate "who created this"
+          // flag needed.
+          if (showChessRef.current) return;
+          if (payload.new.white_id !== session.user.id && payload.new.black_id !== session.user.id) return;
+          setChessInvite(payload.new);
+        }
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [session, chatId]);
 
   // ── Admin: quick "Official Account" private message ──
   const { logAction } = useAuditLogger();
@@ -778,6 +808,27 @@ function RoomChatDesktop() {
         )}
       </div>
 
+      {/* Chess invite popup — same overlay/card pattern as the nav-guard
+          confirmation popup (ProfileSetup.jsx's navGuardOverlay/navGuardCard):
+          dimmed+blurred backdrop, centered rounded card, icon, title, pink-
+          gradient primary button + plain cancel button. */}
+      {chessInvite && (
+        <div style={S.chessInviteOverlay} onClick={() => setChessInvite(null)}>
+          <div style={S.chessInviteCard} onClick={e => e.stopPropagation()}>
+            <div style={S.chessInviteIcon}>♟</div>
+            <h3 style={S.chessInviteTitle}>Chess Invite</h3>
+            <p style={S.chessInviteBody}>{otherProfile?.username || 'Someone'} invited you to a game of chess!</p>
+            <button
+              style={S.chessInvitePrimaryBtn}
+              onClick={() => { setShowChess(true); setShowEmoji(false); setShowGif(false); setChessInvite(null); }}
+            >
+              Join Game
+            </button>
+            <button style={S.chessInviteCancelBtn} onClick={() => setChessInvite(null)}>Dismiss</button>
+          </div>
+        </div>
+      )}
+
       <div style={S.messageArea}>
         {messages.length === 0 && <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>}
         {messages.map((msg, i) => {
@@ -961,6 +1012,16 @@ const S = {
   textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
   sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
   sendText: { fontSize: 15, fontWeight: 800, color: "#e91e63" },
+  // Values copied from ProfileSetup.jsx's navGuardOverlay/navGuardCard family
+  // (the app's established blocking-popup convention), just renamed for this
+  // feature — same backdrop, card, icon, title/body, and button treatment.
+  chessInviteOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  chessInviteCard: { background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' },
+  chessInviteIcon: { fontSize: 40, marginBottom: 12 },
+  chessInviteTitle: { fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px' },
+  chessInviteBody: { fontSize: 14, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' },
+  chessInvitePrimaryBtn: { width: '100%', padding: '14px', borderRadius: 30, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  chessInviteCancelBtn: { width: '100%', padding: '12px', borderRadius: 30, border: '1.5px solid #334155', background: 'transparent', color: '#64748b', fontWeight: 700, fontSize: 13, cursor: 'pointer', marginTop: 10 },
 };
 
 // --- Mobile responsive wrapper (v5b-2) ---

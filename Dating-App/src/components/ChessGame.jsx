@@ -200,20 +200,30 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     busyRef.current = false;
   };
 
+  // Fonts per the approved mockup — same <link> pattern RoomChat.jsx/
+  // MobileRoomChat.jsx already use for Nunito.
+  const fontLink = (
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" />
+  );
+
   if (loading) {
-    return <div style={CS.panel}><div style={CS.loading}>Loading chess…</div></div>;
+    return (
+      <div style={CS.panel}>
+        {fontLink}
+        <div style={CS.loading}>Loading chess…</div>
+      </div>
+    );
   }
 
   if (!game) {
     return (
       <div style={CS.panel}>
-        <div style={CS.header}>
-          <span style={CS.title}>♟ Chess</span>
-          <button style={CS.closeBtn} onClick={onClose}>✕</button>
-        </div>
+        {fontLink}
+        <button style={CS.closeBtn} onClick={onClose}>✕</button>
         <div style={CS.startWrap}>
+          <div style={CS.startIcon}>♟</div>
           <p style={CS.startText}>Challenge {otherUsername || "them"} to a game of chess?</p>
-          {error && <div style={CS.error}>{error}</div>}
+          {error && <div style={CS.errorBanner}>{error}</div>}
           <button style={CS.startBtn} onClick={startGame}>Start Game</button>
         </div>
       </div>
@@ -224,29 +234,48 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   const finished = game.status !== "active";
   const winnerLabel = game.winner_id ? (game.winner_id === myId ? "You" : (otherUsername || "Opponent")) : null;
   const finishedLabel = statusLabel({ ...game, winnerLabel });
+  const otherColor = myColor === "w" ? "b" : "w";
+  const colorName = (c) => (c === "w" ? "White" : "Black");
+
+  // Timer pills are visual-only for now — per-player clocks are explicitly
+  // deferred past this MVP pass, so this shows a placeholder rather than a
+  // fake countdown that doesn't actually tick.
+  const renderPlayerRow = (name, color, isMe) => (
+    <div style={CS.playerRow}>
+      <div style={CS.playerIdentity}>
+        <div style={isMe ? CS.avatarMe : CS.avatarOpp}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+        </div>
+        <div>
+          <div style={CS.playerName}>{name}</div>
+          <div style={CS.playerColorLabel}>({colorName(color)})</div>
+        </div>
+      </div>
+      <div style={isMe ? CS.timerPillMe : CS.timerPillOpp}>--:--</div>
+    </div>
+  );
 
   return (
     <div style={CS.panel}>
-      <div style={CS.header}>
-        <span style={CS.title}>♟ Chess</span>
-        <button style={CS.closeBtn} onClick={onClose}>✕</button>
-      </div>
+      {fontLink}
+      <button style={CS.closeBtn} onClick={onClose}>✕</button>
 
-      <div style={CS.statusRow}>
-        {finished ? (
-          <span style={CS.finishedText}>{finishedLabel}</span>
-        ) : (
-          <span style={CS.turnText}>
+      <div style={CS.liveBadgeWrap}>
+        <div style={CS.liveBadge}>
+          <span style={CS.liveDot} />
+          <span style={CS.liveBadgeText}>{finished ? finishedLabel : "Live Chess Game"}</span>
+        </div>
+        {!finished && (
+          <div style={CS.turnHint}>
             {isMyTurn ? "Your move" : `Waiting for ${otherUsername || "opponent"}…`}
             {inCheck && " — Check!"}
-          </span>
-        )}
-        {!finished && (
-          <button style={CS.resignBtn} onClick={resign}>Resign</button>
+          </div>
         )}
       </div>
 
-      {error && <div style={CS.error}>{error}</div>}
+      {error && <div style={CS.errorBanner}>{error}</div>}
+
+      {renderPlayerRow(otherUsername || "Opponent", otherColor, false)}
 
       <div style={CS.board} data-testid="chess-board">
         {RANKS.map((rank) =>
@@ -263,12 +292,13 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
                 onClick={() => handleSquareClick(square)}
                 style={{
                   ...CS.square,
-                  background: isSelected ? "#e91e6355" : isDark ? "#3a4a63" : "#e8e8f0",
+                  background: isDark ? "#191428" : "#2b2547",
                   cursor: isMyTurn && !finished ? "pointer" : "default",
                 }}
               >
+                {isSelected && <div style={CS.selectedOverlay} />}
                 {piece && (
-                  <span style={{ ...CS.piece, color: piece.color === "w" ? "#f8fafc" : "#0f172a", textShadow: piece.color === "w" ? "0 0 2px #000" : "none" }}>
+                  <span style={{ ...CS.piece, fontSize: piece.type === "p" ? 32 : 38, color: piece.color === "w" ? "#f0abfc" : "#e9def2" }}>
                     {PIECE_GLYPH[piece.color][piece.type]}
                   </span>
                 )}
@@ -278,6 +308,14 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
           })
         )}
       </div>
+
+      {renderPlayerRow("You", myColor, true)}
+
+      {!finished && (
+        <div style={CS.controlsRow}>
+          <button style={CS.resignBtn} onClick={resign}>Resign</button>
+        </div>
+      )}
 
       {pendingPromotion && (
         <div style={CS.promoOverlay} onClick={() => setPendingPromotion(null)}>
@@ -297,27 +335,58 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   );
 }
 
+// Palette/type/measurements per the approved design-canvas mockup
+// (chess_mockup_desktop.png), transcribed exactly where given. One
+// exception, called out where it occurs below: anything not covered by the
+// mockup at all (the outer floating panel's own border/radius/shadow, the
+// close button, the target-move dot, the promotion overlay) — those are
+// filled in to match the given palette rather than left in the old
+// blue-gray theme, but weren't literally specified.
 const CS = {
-  panel: { position: "absolute", bottom: 80, left: 8, zIndex: 50, width: 336, background: "#1e293b", border: "1px solid #334155", borderRadius: 16, boxShadow: "0 4px 24px rgba(0,0,0,0.5)", overflow: "hidden" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid #334155" },
-  title: { fontSize: 14, fontWeight: 800, color: "#f1f5f9" },
-  closeBtn: { background: "none", border: "none", color: "#94a3b8", fontSize: 16, cursor: "pointer", padding: 2, lineHeight: 1 },
-  loading: { padding: 24, textAlign: "center", color: "#64748b", fontSize: 13, fontWeight: 600 },
-  startWrap: { padding: 20, textAlign: "center" },
-  startText: { color: "#cbd5e1", fontSize: 14, marginBottom: 14 },
-  startBtn: { padding: "10px 20px", background: "linear-gradient(135deg, #e91e63, #c2185b)", border: "none", borderRadius: 24, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  statusRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px" },
-  turnText: { fontSize: 12, fontWeight: 700, color: "#e91e63" },
-  finishedText: { fontSize: 12, fontWeight: 800, color: "#4caf50" },
-  resignBtn: { background: "none", border: "1px solid #ef444466", borderRadius: 14, color: "#ef4444", fontSize: 11, fontWeight: 700, cursor: "pointer", padding: "4px 10px" },
-  error: { margin: "0 14px 8px", padding: "6px 10px", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 8, color: "#fca5a5", fontSize: 12, fontWeight: 600 },
-  board: { display: "grid", gridTemplateColumns: "repeat(8, 1fr)", width: 336, height: 336 },
-  square: { position: "relative", display: "flex", alignItems: "center", justifyContent: "center", aspectRatio: "1/1" },
-  piece: { fontSize: 28, lineHeight: 1, userSelect: "none" },
-  targetDot: { position: "absolute", width: 12, height: 12, borderRadius: "50%", background: "rgba(233,30,99,0.55)" },
+  panel: {
+    position: "absolute", bottom: 80, left: 8, zIndex: 50,
+    width: 568, boxSizing: "border-box", padding: "20px 24px 24px",
+    background: "radial-gradient(ellipse at top, #181230 0%, #0d0a18 65%)",
+    border: "1px solid #2c2547", borderRadius: 20,
+    boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+    fontFamily: "'Work Sans', sans-serif",
+  },
+  closeBtn: { position: "absolute", top: 14, right: 16, background: "none", border: "none", color: "#7d7196", fontSize: 16, cursor: "pointer", padding: 4, lineHeight: 1 },
+  loading: { padding: 24, textAlign: "center", color: "#7d7196", fontSize: 13, fontWeight: 600 },
+  startWrap: { padding: "24px 8px 8px", textAlign: "center" },
+  startIcon: { fontSize: 40, marginBottom: 8, color: "#f0abfc" },
+  startText: { color: "#c7bfe0", fontSize: 14, marginBottom: 16, fontFamily: "'Work Sans', sans-serif" },
+  startBtn: { padding: "12px 28px", background: "linear-gradient(135deg, #ec4899, #a855f7)", border: "none", borderRadius: 24, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'Sora', sans-serif", cursor: "pointer" },
+
+  liveBadgeWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 16 },
+  liveBadge: { display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, background: "#1c1734", border: "1px solid #ec489955" },
+  liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#ec4899", boxShadow: "0 0 8px #ec4899" },
+  liveBadgeText: { fontFamily: "'Sora', sans-serif", fontSize: 12, fontWeight: 600, color: "#f0abfc" },
+  turnHint: { fontFamily: "'Work Sans', sans-serif", fontSize: 12, color: "#7d7196" },
+
+  errorBanner: { margin: "0 0 12px", padding: "6px 10px", background: "#2c1832", border: "1px solid #ec489955", borderRadius: 8, color: "#f9a8d4", fontSize: 12, fontWeight: 600, textAlign: "center" },
+
+  playerRow: { display: "flex", alignItems: "center", justifyContent: "space-between", width: 520, margin: "0 auto 12px" },
+  playerIdentity: { display: "flex", alignItems: "center", gap: 10 },
+  avatarOpp: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(140deg, #5b3a8f, #25203f)", border: "2px solid #6d5b9c", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  avatarMe: { width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(140deg, #ec4899, #a855f7)", border: "2px solid #6d5b9c", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  playerName: { fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 600, color: "#fff" },
+  playerColorLabel: { fontFamily: "'Work Sans', sans-serif", fontSize: 11, color: "#7d7196" },
+  timerPillOpp: { fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#f0abfc", background: "#1c1734", padding: "6px 16px", borderRadius: 10, border: "1px solid #2c2547" },
+  timerPillMe: { fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#fff", background: "linear-gradient(135deg, #ec4899, #a855f7)", padding: "6px 16px", borderRadius: 10 },
+
+  board: { position: "relative", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", width: 520, height: 520, margin: "0 auto", borderRadius: 10, border: "1px solid #2c2547", boxShadow: "0 20px 50px -12px rgba(0,0,0,.6)", overflow: "hidden" },
+  square: { position: "relative", display: "flex", alignItems: "center", justifyContent: "center" },
+  selectedOverlay: { position: "absolute", inset: 6, borderRadius: 6, background: "#ec489933", border: "2px solid #ec4899" },
+  piece: { lineHeight: 1, userSelect: "none" },
+  targetDot: { position: "absolute", width: 14, height: 14, borderRadius: "50%", background: "rgba(236,72,153,0.55)" },
+
+  controlsRow: { display: "flex", justifyContent: "center", gap: 12, marginTop: 20 },
+  resignBtn: { padding: "10px 18px", borderRadius: 10, fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600, border: "1px solid #ec489955", background: "#3a1030", color: "#f9a8d4", cursor: "pointer" },
+
   promoOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" },
-  promoBox: { background: "#1e293b", border: "1px solid #334155", borderRadius: 16, padding: 20 },
-  promoTitle: { color: "#f1f5f9", fontSize: 13, fontWeight: 700, marginBottom: 10, textAlign: "center" },
+  promoBox: { background: "#1c1734", border: "1px solid #2c2547", borderRadius: 16, padding: 20 },
+  promoTitle: { color: "#fff", fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700, marginBottom: 10, textAlign: "center" },
   promoRow: { display: "flex", gap: 8 },
-  promoBtn: { width: 44, height: 44, fontSize: 26, background: "#0f172a", border: "1px solid #334155", borderRadius: 10, cursor: "pointer", color: "#f1f5f9" },
+  promoBtn: { width: 44, height: 44, fontSize: 26, background: "#191428", border: "1px solid #2c2547", borderRadius: 10, cursor: "pointer", color: "#f0abfc" },
 };
