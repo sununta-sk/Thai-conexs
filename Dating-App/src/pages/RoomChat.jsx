@@ -1,6 +1,6 @@
 // src/pages/RoomChat.jsx
 import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useIsMobile, useIsDesktop } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
@@ -57,6 +57,16 @@ function playSound(type) {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
       osc.start();
       osc.stop(ctx.currentTime + 0.3);
+    } else if (type === 'invite') {
+      // Subtle two-note ascending chime for a chess invite — deliberately
+      // distinct from 'send'/'receive' so it reads as "a game invite", not
+      // "a new message".
+      osc.frequency.setValueAtTime(660, ctx.currentTime);
+      osc.frequency.setValueAtTime(990, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
     }
   } catch {}
 }
@@ -389,6 +399,7 @@ const GP = {
 function RoomChatDesktop() {
   const { chatId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDesktop = useIsDesktop();
   const { lang } = useTranslation(['common']);
   const { getTier, touchActivity } = useOnline();
@@ -411,10 +422,36 @@ function RoomChatDesktop() {
   const [chessInvite, setChessInvite] = useState(null); // chess_games row someone else just started, awaiting Join/Dismiss
   const [isSubscriber, setIsSubscriber] = useState(false);
 
+  // Sidebar defaults to collapsed any time chess is open (reclaims space
+  // for chess+chat regardless of viewport width — replaces the old
+  // viewport-width auto-hide entirely, not layered alongside it: two
+  // independent hide mechanisms fighting over the same space had no clear
+  // precedence rule and wasn't worth the complexity for what's really the
+  // same use case). Resets any time showChess flips, so re-opening chess
+  // always starts collapsed fresh rather than remembering a prior peek.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  useEffect(() => { setSidebarCollapsed(showChess); }, [showChess]);
+
   useEffect(() => {
     if (!showEmoji || emojiData) return;
     import("@emoji-mart/data").then((m) => setEmojiData(m.default));
   }, [showEmoji, emojiData]);
+
+  // Auto-open the chess panel when arriving here via the app-wide invite
+  // toast (GlobalToast.jsx navigates with this nav state instead of a
+  // query param so it's gone from the URL/history entry). Keyed on chatId,
+  // not just mount: this route isn't remounted when navigating between two
+  // different chats (same <Route element>, only :chatId changes), so a
+  // mount-only effect would miss the signal when clicking a chess toast
+  // while already sitting in a *different* chat. Replaces history right
+  // after so a later back-nav or refresh doesn't re-trigger it.
+  useEffect(() => {
+    if (location.state?.openChess) {
+      setShowChess(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
 
   // ── Chess invite popup ──
   // Read every render so the subscription callback below always sees the
@@ -422,6 +459,38 @@ function RoomChatDesktop() {
   // time the chess panel opens/closes.
   const showChessRef = useRef(showChess);
   showChessRef.current = showChess;
+  // Game ids we've already surfaced an invite popup for (via realtime OR
+  // the poll fallback below), so the poll doesn't re-pop an invite the
+  // user already dismissed or joined.
+  const seenChessGameIdsRef = useRef(new Set());
+
+  const maybeShowChessInvite = useCallback((row) => {
+    if (!row || row.status !== 'active') return;
+    // Starting a game requires the chess panel to already be open
+    // (ChessGame.jsx's own startGame() only runs while mounted), so a row
+    // arriving while the panel is closed can only be the OTHER player
+    // starting one — no separate "who created this" flag needed.
+    if (showChessRef.current) return;
+    if (row.white_id !== session?.user?.id && row.black_id !== session?.user?.id) return;
+    if (seenChessGameIdsRef.current.has(row.id)) return;
+    seenChessGameIdsRef.current.add(row.id);
+    setChessInvite(row);
+    playSound('invite');
+  }, [session?.user?.id]);
+
+  // Writes go through the RPC (this table's own established convention -
+  // no direct UPDATE grant to authenticated, see 2026-09-17-chess-games-
+  // schema.sql) so the inviter's side (already watching this exact row via
+  // ChessGame.jsx's realtime+poll) learns about the decline automatically,
+  // no separate notification plumbing needed for that half.
+  const declineChessInvite = useCallback(() => {
+    if (!chessInvite || !session?.user?.id) { setChessInvite(null); return; }
+    const gameId = chessInvite.id;
+    setChessInvite(null);
+    supabase.rpc('decline_chess_invite', { p_user_id: session.user.id, p_game_id: gameId }).then(({ error, data }) => {
+      if (error || data?.error) console.error('[Chess] decline_chess_invite failed:', error || data.error);
+    });
+  }, [chessInvite, session?.user?.id]);
 
   useEffect(() => {
     if (!session || !chatId) return;
@@ -430,20 +499,44 @@ function RoomChatDesktop() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chess_games", filter: `chat_id=eq.${chatId}` },
-        (payload) => {
-          // Starting a game requires the chess panel to already be open
-          // (ChessGame.jsx's own startGame() only runs while mounted), so
-          // an INSERT arriving while the panel is closed can only be the
-          // OTHER player starting one — no separate "who created this"
-          // flag needed.
-          if (showChessRef.current) return;
-          if (payload.new.white_id !== session.user.id && payload.new.black_id !== session.user.id) return;
-          setChessInvite(payload.new);
-        }
+        (payload) => maybeShowChessInvite(payload.new)
       )
       .subscribe();
-    return () => supabase.removeChannel(channel);
-  }, [session, chatId]);
+
+    // Fallback for a dropped/stale realtime socket — an idle tab or a
+    // laptop sleep can silently kill the websocket with no visible
+    // indicator, which would otherwise mean the INSERT event above never
+    // arrives and the invite popup never appears (confirmed root cause of
+    // the 2026-09-18 regression report). Unlike the `messages` channel,
+    // which has an always-on 1s poll as its safety net, this checks
+    // on-demand: once at mount/re-entry, then on an interval, and
+    // immediately when the tab regains visibility/focus — the moment a
+    // stale socket is actually likely to exist.
+    const checkForActiveGame = async () => {
+      if (showChessRef.current) return;
+      const { data } = await supabase
+        .from("chess_games")
+        .select("*")
+        .eq("chat_id", chatId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) maybeShowChessInvite(data);
+    };
+    checkForActiveGame();
+    const poll = setInterval(checkForActiveGame, 5000);
+    const onVisible = () => { if (document.visibilityState === 'visible') checkForActiveGame(); };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', checkForActiveGame);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', checkForActiveGame);
+    };
+  }, [session, chatId, maybeShowChessInvite]);
 
   // ── Admin: quick "Official Account" private message ──
   const { logAction } = useAuditLogger();
@@ -813,7 +906,7 @@ function RoomChatDesktop() {
           dimmed+blurred backdrop, centered rounded card, icon, title, pink-
           gradient primary button + plain cancel button. */}
       {chessInvite && (
-        <div style={S.chessInviteOverlay} onClick={() => setChessInvite(null)}>
+        <div style={S.chessInviteOverlay} onClick={declineChessInvite}>
           <div style={S.chessInviteCard} onClick={e => e.stopPropagation()}>
             <div style={S.chessInviteIcon}>♟</div>
             <h3 style={S.chessInviteTitle}>Chess Invite</h3>
@@ -824,7 +917,7 @@ function RoomChatDesktop() {
             >
               Join Game
             </button>
-            <button style={S.chessInviteCancelBtn} onClick={() => setChessInvite(null)}>Dismiss</button>
+            <button style={S.chessInviteCancelBtn} onClick={declineChessInvite}>Dismiss</button>
           </div>
         </div>
       )}
@@ -880,26 +973,14 @@ function RoomChatDesktop() {
         </div>
       )}
 
-      {showChess && otherUserId && (
-        <Suspense fallback={null}>
-          <ChessGame
-            chatId={chatId}
-            session={session}
-            otherUserId={otherUserId}
-            otherUsername={otherProfile?.username}
-            onClose={() => setShowChess(false)}
-          />
-        </Suspense>
-      )}
-
       <div style={S.inputBar}>
-        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); setShowChess(false); }}>
+        <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
           </svg>
         </button>
 
-        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); setShowChess(false); }}>
+        <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
           <span style={S.gifText}>GIF</span>
         </button>
 
@@ -940,20 +1021,50 @@ function RoomChatDesktop() {
   if (isDesktop) {
     return (
       <div style={{ display: 'flex', height: '100dvh', background: '#0f172a', overflow: 'hidden' }}>
-        <DesktopSidebar
-          profile={otherProfile}
-          allPhotos={allPhotos}
-          isOnline={isOnline}
-          isRecentlyActive={isRecentlyActive}
-          onlineStatusText={onlineStatusText}
-          isSubscriber={isSubscriber}
-          onUpgrade={handleUpgrade}
-          onBlock={submitBlock}
-          liked={liked}
-          onLike={handleLike}
-        />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {chatColumn}
+        <div style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+          <div style={showChess ? { ...S.sidebarClip, width: sidebarCollapsed ? 24 : 360 } : S.sidebarClipInert}>
+            <div style={{ width: 360 }}>
+              <DesktopSidebar
+                profile={otherProfile}
+                allPhotos={allPhotos}
+                isOnline={isOnline}
+                isRecentlyActive={isRecentlyActive}
+                onlineStatusText={onlineStatusText}
+                isSubscriber={isSubscriber}
+                onUpgrade={handleUpgrade}
+                onBlock={submitBlock}
+                liked={liked}
+                onLike={handleLike}
+              />
+            </div>
+          </div>
+          {showChess && (
+            <button
+              style={S.sidebarToggleTab}
+              onClick={() => setSidebarCollapsed((v) => !v)}
+              title={sidebarCollapsed ? 'Show profile' : 'Hide profile'}
+            >
+              <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: sidebarCollapsed ? 'rotate(180deg)' : 'none' }}>‹</span>
+            </button>
+          )}
+        </div>
+        <div style={{ flex: 1, display: 'flex', minWidth: 0 }}>
+          {showChess && otherUserId && (
+            <div style={S.chessColumn}>
+              <Suspense fallback={null}>
+                <ChessGame
+                  chatId={chatId}
+                  session={session}
+                  otherUserId={otherUserId}
+                  otherUsername={otherProfile?.username}
+                  onClose={() => setShowChess(false)}
+                />
+              </Suspense>
+            </div>
+          )}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            {chatColumn}
+          </div>
         </div>
       </div>
     );
@@ -964,6 +1075,71 @@ function RoomChatDesktop() {
 
 const S = {
   page: { display: "flex", flexDirection: "column", height: "100dvh", background: "#0f172a", fontFamily: "'Nunito', sans-serif", overflow: "hidden", position: "relative" },
+  // Per the approved mockup: align-items:center (horizontal centering only),
+  // no justify-content — natural top-down flow, not vertically centered.
+  // overflowY:auto so a short viewport scrolls the panel instead of
+  // clipping it (board+rows+badges run up to ~720px tall at max size).
+  //
+  // Width is fluid, not the mockup's literal 568px: flexBasis is a
+  // clamp() of this row's own available width (the same clamp()/min()
+  // convention already used for fluid sizing elsewhere - see
+  // PhotoCropper.jsx's height clamp, Discover.jsx's --tcn-grid-max, and
+  // MobileRoomChat.jsx's font-size clamps) — a percentage of whatever's
+  // left after the sidebar, floored so the board stays usable, capped at
+  // the mockup's 568 (520 board + padding) as a MAXIMUM rather than a
+  // fixed value. flexGrow/flexShrink 0 so flexbox doesn't further resize
+  // it beyond what the clamp already computed; the chat column (flex:1)
+  // absorbs whatever's left.
+  // paddingTop was a literal transcription of the mockup's single 1440px
+  // reference artboard value, not a spec to hard-code - removed per SK
+  // (item 2, 2026-09-24). The panel's own internal top padding (20px,
+  // CS.panel in ChessGame.jsx) is what provides the natural gap now.
+  // height:100% (not a hardcoded px value) is the same fluid-full-height
+  // approach S.page itself uses one level up (there it's height:100dvh
+  // since S.page IS the viewport-rooted element; here chessColumn is a
+  // nested flex child, so 100% of its already-100dvh-stretched ancestor
+  // chain is the equivalent). justifyContent:'center' replaces the
+  // earlier top-aligned-with-scroll decision - now that this column
+  // properly fills the viewport, top-aligning left a large gap below a
+  // single floating card that reads as a bug, not a design choice;
+  // centering distributes any extra space evenly instead. The panel's own
+  // internal content still flows top-down unchanged (badge, board, rows
+  // in order) - this only changes where the whole card sits within the
+  // taller column. overflowY:auto still covers a short viewport: the
+  // card scrolls instead of clipping either way, centered or not.
+  // Background matches CS.panel's own gradient (ChessGame.jsx) at its
+  // outer/edge tone (#0d0a18 - where "radial-gradient(ellipse at top,
+  // #181230 0%, #0d0a18 65%)" fades to), not RoomChat's general #0f172a -
+  // that mismatch was showing as a visible two-tone seam around the card
+  // wherever justifyContent:'center' above leaves a gap. Using the flat
+  // edge color instead of replicating the gradient itself avoids a second
+  // mismatch: the four panel states are very different heights (a 230px
+  // pre-start card vs a ~700px live board), so the same gradient string
+  // stretched across this much taller, size-varying column would read
+  // differently behind each one; a flat match to the gradient's own
+  // asymptote reads as continuous behind all four without that problem.
+  chessColumn: { flexGrow: 0, flexShrink: 0, flexBasis: "clamp(320px, 50%, 568px)", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflowY: "auto", overflowX: "hidden", background: "#0d0a18", borderRight: "1px solid #334155" },
+
+  // Sidebar collapse (chess-open only): the clipping div's WIDTH animates
+  // 360<->24 while DesktopSidebar itself stays mounted at a fixed 360px
+  // inside it - a "slide reveal" via overflow:hidden clipping rather than
+  // squeezing/reflowing the sidebar's own contents. Matches this app's
+  // existing width-transition convention (VideoUploader.jsx, Commission-
+  // SettingsPage.jsx both use plain `width 0.3s`; AdminLayout.jsx's own
+  // sidebar slide is the closest precedent for "a sidebar that opens/
+  // closes" and uses the `ease` keyword, carried over here).
+  sidebarClip: { overflow: "hidden", transition: "width 0.25s ease", flexShrink: 0 },
+  // Non-chess case: no clipping/transition needed at all, natural 360px -
+  // functionally identical to rendering DesktopSidebar with no wrapper.
+  sidebarClipInert: { width: 360, overflow: "visible", flexShrink: 0 },
+  sidebarToggleTab: {
+    position: "absolute", top: "50%", right: -16, transform: "translateY(-50%)",
+    width: 28, height: 46, borderRadius: "0 8px 8px 0",
+    background: "#1e293b", border: "1px solid #334155", borderLeft: "none",
+    color: "#e91e63", cursor: "pointer", fontSize: 16, fontWeight: 800,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "2px 0 8px rgba(0,0,0,0.3)", zIndex: 5, padding: 0,
+  },
   loadingScreen: { display: "flex", justifyContent: "center", alignItems: "center", height: "100dvh", gap: 8, background: "#0f172a" },
   loadingDot: { width: 10, height: 10, borderRadius: "50%", background: "#e91e63", animation: "bounce 1.2s ease-in-out infinite" },
   header: { display: "flex", alignItems: "center", gap: 10, padding: "10px 12px 10px 8px", background: "#1e293b", borderBottom: "1px solid #334155", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", minHeight: 72, position: "relative", zIndex: 10 },

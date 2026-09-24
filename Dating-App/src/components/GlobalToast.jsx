@@ -60,6 +60,11 @@ export default function GlobalToast() {
   const userIdRef = useRef(null);
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
+  // Chess game ids we've already toasted for, so a dropped/reconnected
+  // realtime socket or a re-subscribe doesn't pop the same invite twice.
+  // Lives for the whole app session (this component never unmounts),
+  // unlike RoomChat.jsx's equivalent which is scoped to one chat mount.
+  const seenChessGameIdsRef = useRef(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -172,13 +177,65 @@ export default function GlobalToast() {
           });
         })
       .subscribe((status) => console.log('[Toast] Like channel:', status));
+
+    // Chess invites are desktop-only for now (MobileRoomChat has no
+    // ChessGame panel at all — RoomChatDesktop.jsx's chess UI is the only
+    // place a game can be played), so don't subscribe on mobile at all:
+    // a toast whose "click to join" lands nowhere is worse than no toast.
+    let chessChannel = null;
+    if (!isMobile) {
+      chessChannel = supabase
+        .channel('global-chess-' + userId)
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'chess_games' },
+          async (payload) => {
+            const g = payload.new;
+            console.log('[Toast] chess_games event:', payload.eventType, g);
+            if (!g) return;
+            if (g.white_id !== userIdRef.current && g.black_id !== userIdRef.current) return;
+            const isInvite = payload.eventType === 'INSERT' && g.status === 'active';
+            const isDecline = payload.eventType === 'UPDATE' && g.status === 'declined';
+            if (!isInvite && !isDecline) return;
+            // Starting a game (isInvite) or dismissing an invite (isDecline)
+            // is only possible from inside that chat's chess panel, so
+            // whoever triggered this write is necessarily on this route
+            // too when the row lands - this same check suppresses the
+            // toast both for "I'm already in this chat" and for "I'm the
+            // one who just did this" (inviter for isInvite, decliner for
+            // isDecline), matching the existing message/view channels'
+            // suppression pattern above.
+            if (window.location.pathname.includes('/room-chat/' + g.chat_id)) return;
+            const dedupeKey = g.id + ':' + g.status;
+            if (seenChessGameIdsRef.current.has(dedupeKey)) return;
+            seenChessGameIdsRef.current.add(dedupeKey);
+
+            const opponentId = g.white_id === userIdRef.current ? g.black_id : g.white_id;
+            const opponentResult = await supabase.from('profiles')
+              .select('username, avatar_url')
+              .eq('id', opponentId)
+              .maybeSingle();
+            const opponent = opponentResult.data;
+            const name = opponent ? (opponent.username || 'Someone') : 'Someone';
+
+            addToast({
+              type: 'chess',
+              avatar: opponent ? opponent.avatar_url : null,
+              name,
+              text: isInvite ? 'invited you to a game of chess — click to join.' : 'declined your chess invite.',
+              onClick: () => navigateRef.current('/room-chat/' + g.chat_id, isInvite ? { state: { openChess: true } } : undefined),
+            });
+          })
+        .subscribe((status) => console.log('[Toast] Chess channel:', status));
+    }
+
     return () => {
       console.log('[Toast] Cleaning up subscriptions');
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(viewChannel);
       supabase.removeChannel(likeChannel);
+      if (chessChannel) supabase.removeChannel(chessChannel);
     };
-  }, [userId]);
+  }, [userId, isMobile]);
 
   if (toasts.length === 0) return null;
 
