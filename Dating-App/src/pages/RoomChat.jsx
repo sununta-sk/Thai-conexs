@@ -405,6 +405,10 @@ function RoomChatDesktop() {
   const { getTier, touchActivity } = useOnline();
 
   const [session, setSession] = useState(null);
+  // Tracks the last known authenticated user id so a genuine identity
+  // change (not just a token refresh for the same user) can be detected
+  // below — see the onAuthStateChange effect.
+  const lastSessionUserIdRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -607,9 +611,37 @@ function RoomChatDesktop() {
   }, [showGif]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) setSession(data.session); });
+    // Defensive fix (2026-09-24, item 3 investigation): Supabase's default
+    // persistSession config (see supabaseClient.js) broadcasts auth state
+    // across every tab in the same browser profile via a storage event -
+    // documented GoTrueClient behavior, not something specific to this
+    // app. If a DIFFERENT tab signs in as a different user while this
+    // page is already mounted, onAuthStateChange fires here too, and
+    // without this guard, session would silently flip to that other
+    // identity mid-visit while otherUserId/otherProfile/admin-checks/
+    // likes below keep rendering values derived from the OLD identity
+    // until their own effects happen to re-run - a real, confirmed gap
+    // (live account-switching pattern used across tonight's extensive
+    // testing plausibly hit exactly this). Reloading is deliberate rather
+    // than trying to patch every downstream consumer individually: it's
+    // the one path guaranteed to re-derive every piece of session-
+    // dependent state correctly, including anything not accounted for
+    // here. A token refresh for the SAME user (session object changes,
+    // user id doesn't) is unaffected - only an actual identity change
+    // triggers it.
+    const applySession = (s) => {
+      if (!s) return;
+      if (lastSessionUserIdRef.current && s.user.id !== lastSessionUserIdRef.current) {
+        window.location.reload();
+        return;
+      }
+      lastSessionUserIdRef.current = s.user.id;
+      setSession(s);
+    };
+    supabase.auth.getSession().then(({ data }) => applySession(data.session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
-      if (event === 'SIGNED_OUT') navigate("/login"); else if (s) setSession(s);
+      if (event === 'SIGNED_OUT') { navigate("/login"); return; }
+      applySession(s);
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
