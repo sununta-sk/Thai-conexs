@@ -192,8 +192,8 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
 
       {validPhotos.length > 1 && (
         <>
-          <button style={{ ...SC.arrow, left: 8 }} onClick={prev}>‹</button>
-          <button style={{ ...SC.arrow, right: 8 }} onClick={next}>›</button>
+          <button style={{ ...SC.arrow, left: 0 }} onClick={prev}>‹</button>
+          <button style={{ ...SC.arrow, right: 0 }} onClick={next}>›</button>
           <div style={SC.counter}>{current + 1} / {validPhotos.length}</div>
           <div style={SC.dots}>
             {validPhotos.map((_, i) => (
