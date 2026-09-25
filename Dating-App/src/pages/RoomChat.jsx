@@ -467,9 +467,14 @@ function RoomChatDesktop() {
   // the poll fallback below), so the poll doesn't re-pop an invite the
   // user already dismissed or joined.
   const seenChessGameIdsRef = useRef(new Set());
+  // Only games created after this visit began count as a fresh invite;
+  // older 'active' rows (abandoned/stale games) must not pop the modal on
+  // mount. 30s allowance covers client/server clock skew.
+  const chessMountedAtRef = useRef(Date.now());
 
   const maybeShowChessInvite = useCallback((row) => {
     if (!row || row.status !== 'active') return;
+    if (new Date(row.created_at).getTime() < chessMountedAtRef.current - 30000) return;
     // Starting a game requires the chess panel to already be open
     // (ChessGame.jsx's own startGame() only runs while mounted), so a row
     // arriving while the panel is closed can only be the OTHER player
