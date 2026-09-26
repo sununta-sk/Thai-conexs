@@ -10,6 +10,8 @@ import { useNavGuard } from '../context/NavGuardContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
+import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, Bell, LogOut } from 'lucide-react';
+import { PersonIcon } from './Icons';
 
 // Exported so other mobile-only fixed-position UI (e.g. Discover's mobile ad
 // banners) can size itself to exactly overlap these bars, rather than
@@ -33,6 +35,11 @@ const avatarVipFrameStyle = {
   borderRadius: '50%',
 };
 const avatarImgVipStyle = { width: 22, height: 22, borderRadius: '50%', objectFit: 'cover' };
+// Bottom-nav icons replaced 22px emoji glyphs, whose line box is taller than
+// 22px; the vertical margin gives the icon the same footprint so the labels
+// underneath stay where they were.
+const navIconStyle = { display: 'block', margin: '2px 0' };
+
 // Fired when the funnel icon (Discover only) is tapped; MobileDiscoverFilters
 // listens for this to open its filter popup.
 export const OPEN_DISCOVER_FILTERS_EVENT = 'open-discover-filters';
@@ -40,18 +47,19 @@ export const OPEN_DISCOVER_FILTERS_EVENT = 'open-discover-filters';
 // background/hoverBackground ported from Navbar.jsx's (desktop) MenuItem, so
 // a highlighted item (e.g. Upgrade Account below) can use the exact same
 // values there - defaults keep every other item's look unchanged.
-function MenuItem({ onClick, color = '#f1f5f9', background = 'none', hoverBackground = '#0f172a', children }) {
+function MenuItem({ onClick, icon: Icon, color = '#f1f5f9', background = 'none', hoverBackground = '#0f172a', children }) {
   return (
     <button
       onClick={onClick}
       style={{
-        display: 'block', width: '100%', padding: '12px 16px',
+        display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 16px',
         background, border: 'none', textAlign: 'left',
         cursor: 'pointer', color, fontSize: 13, fontWeight: 600,
         whiteSpace: 'nowrap',
       }}
       onMouseEnter={(e) => e.currentTarget.style.background = hoverBackground}
       onMouseLeave={(e) => e.currentTarget.style.background = background}>
+      {Icon && <Icon size={15} style={{ flexShrink: 0 }} />}
       {children}
     </button>
   );
@@ -304,15 +312,16 @@ export default function MobileNavbar() {
         boxSizing: 'border-box',
       }}>
         <button onClick={() => goTo('/discover')} style={navBtn(isActive('/discover'))}>
-          <span style={{ fontSize: 22 }}>🔍</span>
+          <Search size={22} style={navIconStyle} />
           <span>{tx.discoverNav || 'Discover'}</span>
         </button>
         <button onClick={() => goTo('/messages')} style={navBtn(isActive('/messages'))}>
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
-            <span style={{ fontSize: 22 }}>💬</span>
+            <MessageCircle size={22} style={navIconStyle} />
             {unreadCount > 0 && (
               <span style={{
-                position: 'absolute', top: -4, right: -8,
+                // Offsets re-tuned for the 22px outline icon (see Navbar.jsx).
+                position: 'absolute', top: -7, right: -13,
                 minWidth: 16, height: 16, padding: '0 4px',
                 borderRadius: 999, background: '#ef4444', color: '#fff',
                 fontSize: 10, fontWeight: 800,
@@ -329,7 +338,7 @@ export default function MobileNavbar() {
           <button
             onClick={() => adminActive ? navigate('/discover') : goTo('/admin-secret-portal')}
             style={{ ...navBtn(adminActive), color: adminActive ? '#2ecc71' : '#f39c12' }}>
-            <span style={{ fontSize: 22 }}>⚡</span>
+            <Zap size={22} style={navIconStyle} />
             <span>{tx.admin || 'Admin'}</span>
           </button>
         )}
@@ -352,9 +361,11 @@ export default function MobileNavbar() {
                   }}
                 />
               ) : isPremium ? (
-                <div style={{ ...avatarImgVipStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>👤</div>
+                <div style={{ ...avatarImgVipStyle, background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PersonIcon size={16} color="#94a3b8" />
+                </div>
               ) : (
-                <span style={{ fontSize: 22 }}>👤</span>
+                <PersonIcon size={22} color="currentColor" style={navIconStyle} />
               )}
             </div>
             <span>{tx.you || 'You'}</span>
@@ -367,21 +378,22 @@ export default function MobileNavbar() {
               boxShadow: '0 -6px 28px rgba(0,0,0,0.5)',
               overflow: 'hidden', zIndex: 1001,
             }}>
-              <MenuItem onClick={() => goTo('/profile-setup')}>
-                ✏️ {tx.editProfile || 'Edit Profile'}
+              <MenuItem icon={Pencil} onClick={() => goTo('/profile-setup')}>
+                {tx.editProfile || 'Edit Profile'}
               </MenuItem>
-              <MenuItem onClick={() => goTo('/account-settings')}>
-                ⚙️ {tx.accountSettings || 'Account Settings'}
+              <MenuItem icon={Settings} onClick={() => goTo('/account-settings')}>
+                {tx.accountSettings || 'Account Settings'}
               </MenuItem>
-              <MenuItem onClick={() => goTo('/help')}>
-                ❓ {tx.help || 'Help'}
+              <MenuItem icon={CircleHelp} onClick={() => goTo('/help')}>
+                {tx.help || 'Help'}
               </MenuItem>
-              <MenuItem onClick={() => goTo('/notifications')}>
-                🔔 {tx.notifications || 'Notifications'}
+              {/* Plain Bell glyph, not <NotificationBell /> - see Navbar.jsx. */}
+              <MenuItem icon={Bell} onClick={() => goTo('/notifications')}>
+                {tx.notifications || 'Notifications'}
               </MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
-              <MenuItem onClick={handleLogout} color="#e91e63">
-                🚪 {tx.logout || 'Logout'}
+              <MenuItem icon={LogOut} onClick={handleLogout} color="#e91e63">
+                {tx.logout || 'Logout'}
               </MenuItem>
             </div>
           )}

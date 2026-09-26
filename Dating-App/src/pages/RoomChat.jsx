@@ -9,6 +9,8 @@ import MobileRoomChat from "../components/MobileRoomChat";
 import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
+import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon } from "../components/Icons";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -179,8 +181,8 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
 
       {validPhotos.length > 1 && (
         <>
-          <button style={{ ...SC.arrow, left: 8 }} onClick={prev}>‹</button>
-          <button style={{ ...SC.arrow, right: 8 }} onClick={next}>›</button>
+          <button style={{ ...SC.arrow, left: 8 }} onClick={prev} aria-label="Previous photo"><CaretLineLeftIcon size={18} /></button>
+          <button style={{ ...SC.arrow, right: 8 }} onClick={next} aria-label="Next photo"><CaretLineRightIcon size={18} /></button>
           <div style={SC.counter}>{current + 1} / {validPhotos.length}</div>
           <div style={SC.dots}>
             {validPhotos.map((_, i) => (
@@ -219,7 +221,7 @@ const SC = {
   // sized to the photo-filled one - the sidebar shouldn't shift depending
   // on whether a profile happens to have photos.
   noPhoto: { width: '100%', height: 400, borderRadius: 16, background: '#0f172a', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, marginBottom: 8 },
-  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.9)', border: '1px solid #334155', borderRadius: '50%', width: 32, height: 32, fontSize: 22, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', color: '#f1f5f9', lineHeight: 1, paddingBottom: 3, zIndex: 5 },
+  arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.9)', border: '1px solid #334155', borderRadius: '50%', width: 32, height: 32, padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', color: '#f1f5f9', zIndex: 5 },
   counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
   freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 3 },
@@ -722,7 +724,7 @@ function RoomChatDesktop() {
 
       <div style={S.header}>
         <button className="back-btn-big" style={S.backBtnBig} onClick={() => navigate(-1)}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          <BackIcon />
           <span style={{ fontSize: 14, fontWeight: 800 }}>Back</span>
         </button>
         <div style={{ ...S.headerInfo, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
@@ -744,21 +746,21 @@ function RoomChatDesktop() {
               <img key={i} src={url} alt="" className="photo-thumb" style={S.photoThumb} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)} />
             )) : (
               <div style={{ ...S.photoPlaceholder, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#64748b"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+                <PersonIcon />
               </div>
             )}
           </div>
         )}
         {isDesktop && <div style={{ flex: 1 }} />}
         {isAdmin && !otherIsAdmin && (
-          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}>📢 Send Official Message</button>
+          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}><Megaphone size={16} style={{ flexShrink: 0 }} />Send Official Message</button>
         )}
         <div style={{position:'relative'}}>
-          <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)}><span style={S.moreDots}>···</span></button>
+          <button style={S.moreBtn} onClick={() => setShowMenu(v => !v)} aria-label="More options"><EllipsisVertical size={22} color="#94a3b8" style={{ display: 'block' }} /></button>
           {showMenu && (
             <div style={{position:'absolute',right:0,top:'110%',background:'#1e293b',borderRadius:12,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:100,minWidth:160,overflow:'hidden',border:'1px solid #334155'}}>
-              <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}>🚨 Report User</button>
-              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'block',width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#cbd5e1'}}>🎫 Support Ticket</button>
+              <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#e91e63'}}><TriangleAlert size={16} style={{flexShrink:0}} />Report User</button>
+              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={{display:'flex',alignItems:'center',gap:8,width:'100%',padding:'12px 16px',border:'none',background:'none',textAlign:'left',cursor:'pointer',fontSize:14,color:'#cbd5e1'}}><Ticket size={16} style={{flexShrink:0}} />Support Ticket</button>
             </div>
           )}
         </div>
@@ -851,9 +853,7 @@ function RoomChatDesktop() {
 
       <div style={S.inputBar}>
         <button className="icon-btn" style={{ ...S.iconBtn, background: showEmoji ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8 }} onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>
-          </svg>
+          <SmileyIcon />
         </button>
 
         <button className="icon-btn" style={{ ...S.iconBtn, ...S.gifBtn, background: showGif ? '#c2185b' : '#e91e63' }} onClick={() => { setShowGif(v => !v); setShowEmoji(false); }}>
@@ -861,9 +861,7 @@ function RoomChatDesktop() {
         </button>
 
         <button className="icon-btn" style={S.iconBtn} title="Photo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-          </svg>
+          <CameraIcon />
         </button>
 
         <div style={S.inputWrap}>
@@ -876,12 +874,7 @@ function RoomChatDesktop() {
           </button>
         ) : (
           <button className="icon-btn" style={{...S.iconBtn, background: recording ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={recording ? "#f87171" : "#e91e63"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
+            <MicIcon color={recording ? "#f87171" : "#e91e63"} />
           </button>
         )}
       </div>
@@ -933,7 +926,6 @@ const S = {
   photoThumb: { width: 52, height: 52, borderRadius: 10, objectFit: "cover", border: "2px solid #334155", flexShrink: 0 },
   photoPlaceholder: { width: 52, height: 52, borderRadius: 10, background: "#0f172a", border: '1px solid #334155', display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   moreBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 6px", flexShrink: 0 },
-  moreDots: { fontSize: 22, color: "#94a3b8", letterSpacing: 1, fontWeight: 900 },
   // Same visual chrome (color/border/borderRadius/fontSize/fontWeight/
   // vertical padding) as the button previously had in DesktopSidebar's
   // DS.officialMsgBtn - width:'100%' doesn't make sense in this horizontal
@@ -941,7 +933,7 @@ const S = {
   // horizontal padding is added (16px, matching backBtnBig's convention in
   // this same header) since there's no longer a 100%-width parent giving it
   // shape. Vertical padding (10px) is unchanged from the original.
-  officialMsgBtn: { padding: "10px 16px", background: "transparent", border: "1px solid #f59e0b66", borderRadius: 24, color: "#f59e0b", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" },
+  officialMsgBtn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", background: "transparent", border: "1px solid #f59e0b66", borderRadius: 24, color: "#f59e0b", fontSize: 13, fontWeight: 600, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" },
   messageArea: { flex: 1, overflowY: "auto", padding: "16px 12px 8px", display: "flex", flexDirection: "column", gap: 4, background: "#0f172a" },
   emptyState: { textAlign: "center", color: "#64748b", fontSize: 14, marginTop: 40, fontWeight: 600 },
   separator: { textAlign: "center", color: "#64748b", fontSize: 12, fontWeight: 700, margin: "12px 0 8px", letterSpacing: 0.3 },

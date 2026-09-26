@@ -9,6 +9,8 @@ import { optimizeImage } from "../lib/imageUtils";
 import officialLogo from "../lib/LotusConnexs-full.jpeg";
 import { useOnline } from "../context/OnlineContext";
 import { useAuditLogger } from "../hooks/useAuditLogger";
+import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
+import { SmileyIcon, MicIcon, BackIcon } from "./Icons";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -132,7 +134,7 @@ const GP = {
 };
 
 const menuItemStyle = (variant) => ({
-  display: "block", width: "100%", padding: "12px 16px", border: "none", background: "none",
+  display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "12px 16px", border: "none", background: "none",
   textAlign: "left", cursor: "pointer", fontSize: 14,
   color: variant === "pink" ? "#e91e63" : "#cbd5e1",
 });
@@ -481,7 +483,7 @@ export default function MobileRoomChat() {
 
       {/* ── Header ── */}
       <div style={S.header}>
-        <button style={S.backBtn} onClick={() => navigate(-1)}>←</button>
+        <button style={S.backBtn} onClick={() => navigate(-1)} aria-label="Back"><BackIcon /></button>
 
         <div style={S.avatarWrap} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           {/* VIP ring: same .tcn-vip-frame technique as MobileNavbar's own
@@ -521,15 +523,15 @@ export default function MobileRoomChat() {
             icon-only here since the full "📢 Send Official Message" label
             doesn't fit this header's much tighter width. */}
         {isAdmin && !otherIsAdmin && (
-          <button style={S.officialMsgBtnMobile} onClick={() => setShowOfficialMsg(true)} aria-label="Send Official Message" title="Send Official Message">📢</button>
+          <button style={S.officialMsgBtnMobile} onClick={() => setShowOfficialMsg(true)} aria-label="Send Official Message" title="Send Official Message"><Megaphone size={16} color="#f59e0b" /></button>
         )}
 
         <div ref={menuRef} style={{ position: "relative" }}>
-          <button style={S.menuBtn} onClick={() => setShowMenu(v => !v)}>⋯</button>
+          <button style={S.menuBtn} onClick={() => setShowMenu(v => !v)} aria-label="More options"><EllipsisVertical size={22} style={{ display: "block" }} /></button>
           {showMenu && (
             <div style={S.menuDropdown}>
-              <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={menuItemStyle("pink")}>🚨 Report User</button>
-              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={menuItemStyle("default")}>🎫 Support Ticket</button>
+              <button onClick={() => { setShowReport(true); setShowMenu(false); }} style={menuItemStyle("pink")}><TriangleAlert size={16} style={{ flexShrink: 0 }} />Report User</button>
+              <button onClick={() => { setShowTicket(true); setShowMenu(false); }} style={menuItemStyle("default")}><Ticket size={16} style={{ flexShrink: 0 }} />Support Ticket</button>
             </div>
           )}
         </div>
@@ -604,9 +606,7 @@ export default function MobileRoomChat() {
           style={{ ...S.iconBtn, background: showEmoji ? "rgba(233,30,99,0.15)" : "none" }}
           onClick={() => { setShowEmoji(v => !v); setShowGif(false); }}
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e91e63" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" />
-          </svg>
+          <SmileyIcon />
         </button>
 
         <button
@@ -640,12 +640,7 @@ export default function MobileRoomChat() {
             onMouseDown={startRecording} onMouseUp={stopRecording}
             onTouchStart={startRecording} onTouchEnd={stopRecording}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={recording ? "#f87171" : "#e91e63"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
+            <MicIcon color={recording ? "#f87171" : "#e91e63"} />
           </button>
         )}
       </div>
@@ -757,11 +752,11 @@ const S = {
   vipBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
-  menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 22, padding: "4px 6px", letterSpacing: 1, fontWeight: 900, lineHeight: 1, flexShrink: 0 },
+  menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "4px 6px", flexShrink: 0, display: "flex", alignItems: "center" },
   // Icon-only counterpart to RoomChat.jsx's (desktop) officialMsgBtn pill -
   // same amber outline treatment, compacted to a round icon button to fit
   // this header's tighter width.
-  officialMsgBtnMobile: { background: "transparent", border: "1px solid #f59e0b66", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, cursor: "pointer", flexShrink: 0, marginRight: 2 },
+  officialMsgBtnMobile: { background: "transparent", border: "1px solid #f59e0b66", borderRadius: "50%", width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, cursor: "pointer", flexShrink: 0, marginRight: 2 },
   menuDropdown: { position: "absolute", right: 0, top: "110%", background: "#1e293b", borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", zIndex: 100, minWidth: 160, overflow: "hidden", border: "1px solid #334155" },
 
   // Messages

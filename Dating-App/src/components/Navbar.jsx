@@ -11,6 +11,8 @@ import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
 import InvisibleModeToggle from './InvisibleModeToggle';
+import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, Bell, LogOut } from 'lucide-react';
+import { PersonIcon } from './Icons';
 
 function NavbarDesktop() {
   const navigate  = useNavigate();
@@ -160,16 +162,19 @@ function NavbarDesktop() {
       {/* Center: Discover | Messages | Admin | Avatar dropdown */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 80, justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
-          <span style={{ display: 'block', fontSize: '24px' }}>🔍</span>
+          <Search size={24} style={navIconStyle} />
           <span style={{ fontSize: '11px' }}>{tx.discoverNav || 'Discover'}</span>
         </button>
 
         <button onClick={() => goTo('/messages')} style={navBtnStyle(isActive('/messages'))}>
           <span style={{ position: 'relative', display: 'inline-block', lineHeight: 1 }}>
-            <span style={{ display: 'block', fontSize: '24px' }}>💬</span>
+            <MessageCircle size={24} style={navIconStyle} />
             {unreadCount > 0 && (
               <span style={{
-                position: 'absolute', top: -4, right: -10,
+                // Offsets re-tuned for the 24px outline icon (the old emoji
+                // glyph was wider, so the badge could overlap more of it
+                // without hiding it).
+                position: 'absolute', top: -8, right: -16,
                 minWidth: 18, height: 18, padding: '0 5px',
                 borderRadius: 999, background: '#ef4444', color: '#fff',
                 fontSize: 11, fontWeight: 800,
@@ -186,7 +191,7 @@ function NavbarDesktop() {
           <button
             onClick={() => location.pathname.startsWith('/admin') ? navigate('/discover') : goTo('/admin-secret-portal')}
             style={{ ...navBtnStyle(location.pathname.startsWith('/admin')), color: location.pathname.startsWith('/admin') ? '#2ecc71' : '#f39c12' }}>
-            <span style={{ display: 'block', fontSize: '24px' }}>⚡</span>
+            <Zap size={24} style={navIconStyle} />
             <span style={{ fontSize: '11px' }}>{tx.admin || 'Admin'}</span>
           </button>
         )}
@@ -270,10 +275,15 @@ function NavbarDesktop() {
               {myAvatar ? (
                 <img src={myAvatar} alt="" style={isPremium ? avatarImgVipStyle : avatarImgStyle} />
               ) : (
-                <div style={{ ...(isPremium ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>👤</div>
+                <div style={{ ...(isPremium ? avatarImgVipStyle : avatarImgStyle), background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PersonIcon size={isPremium ? 20 : 22} color="#94a3b8" />
+                </div>
               )}
             </div>
-            <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>▼</span>
+            {/* -2px side margins: the old 12px "▼" glyph took ~12px of width;
+                this keeps the button (and the centred nav cluster) the same
+                width while the visible chevron stays a readable size. */}
+            <ChevronDown size={16} strokeWidth={2.5} color="#94a3b8" style={{ margin: '0 -2px', flexShrink: 0 }} />
           </button>
 
           {showProfileMenu && (
@@ -294,12 +304,18 @@ function NavbarDesktop() {
                   <div style={{ fontSize: 13, fontWeight: 800, color: '#f1f5f9' }}>{myUsername}</div>
                 </div>
               )}
-              <MenuItem onClick={() => goTo('/profile-setup')}>✏️ {tx.editProfile || 'Edit Profile'}</MenuItem>
-              <MenuItem onClick={() => goTo('/account-settings')}>⚙️ {tx.accountSettings || 'Account Settings'}</MenuItem>
-              <MenuItem onClick={() => goTo('/help')}>❓ {tx.help || 'Help'}</MenuItem>
-              <MenuItem onClick={() => goTo('/notifications')}>🔔 {tx.notifications || 'Notifications'}</MenuItem>
+              <MenuItem icon={Pencil} onClick={() => goTo('/profile-setup')}>{tx.editProfile || 'Edit Profile'}</MenuItem>
+              <MenuItem icon={Settings} onClick={() => goTo('/account-settings')}>{tx.accountSettings || 'Account Settings'}</MenuItem>
+              <MenuItem icon={CircleHelp} onClick={() => goTo('/help')}>{tx.help || 'Help'}</MenuItem>
+              {/* Plain nav link to /notifications, so a plain Bell glyph - NOT
+                  the <NotificationBell /> component (that's a self-contained
+                  widget with its own button, popover and useNotifications
+                  subscription; nesting it here would put a button inside a
+                  button and double the realtime/fetch work, since the desktop
+                  bar already renders one top-right). */}
+              <MenuItem icon={Bell} onClick={() => goTo('/notifications')}>{tx.notifications || 'Notifications'}</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
-              <MenuItem onClick={handleLogout} color="#e91e63">🚪 {tx.logout || 'Logout'}</MenuItem>
+              <MenuItem icon={LogOut} onClick={handleLogout} color="#e91e63">{tx.logout || 'Logout'}</MenuItem>
             </div>
           )}
         </div>
@@ -321,12 +337,14 @@ function NavbarDesktop() {
   );
 }
 
-function MenuItem({ children, onClick, color = '#94a3b8', background = 'none', hoverBackground = '#334155' }) {
+function MenuItem({ children, onClick, icon: Icon, color = '#94a3b8', background = 'none', hoverBackground = '#334155' }) {
   return (
     <button
       onClick={onClick}
       style={{
-        display: 'block',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
         width: '100%',
         padding: '12px 16px',
         border: 'none',
@@ -341,6 +359,7 @@ function MenuItem({ children, onClick, color = '#94a3b8', background = 'none', h
       onMouseEnter={(e) => e.currentTarget.style.background = hoverBackground}
       onMouseLeave={(e) => e.currentTarget.style.background = background}
     >
+      {Icon && <Icon size={16} style={{ flexShrink: 0 }} />}
       {children}
     </button>
   );
@@ -366,6 +385,12 @@ const avatarVipFrameStyle = {
 };
 const avatarImgStyle = { width: 38, height: 38, borderRadius: '50%', objectFit: 'cover', border: '2px solid #334155' };
 const avatarImgVipStyle = { width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' };
+
+// Nav icons (Discover/Messages/Admin) replaced 24px emoji glyphs. An emoji's
+// line box is taller than its 24px font-size, which used to leave a little
+// breathing room above the label; the margin keeps that spacing now that the
+// icon box is exactly 24px.
+const navIconStyle = { display: 'block', marginBottom: 3 };
 
 const navBtnStyle = (active) => ({
   background: 'none',
