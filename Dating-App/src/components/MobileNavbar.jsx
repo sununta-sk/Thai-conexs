@@ -10,8 +10,8 @@ import { useNavGuard } from '../context/NavGuardContext';
 import logoImg from '../lib/LotusConnexs.jpeg';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
-import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, Bell, LogOut } from 'lucide-react';
-import { PersonIcon } from './Icons';
+import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
+import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, BellRingingIcon } from './Icons';
 
 // Exported so other mobile-only fixed-position UI (e.g. Discover's mobile ad
 // banners) can size itself to exactly overlap these bars, rather than
@@ -259,9 +259,9 @@ export default function MobileNavbar() {
             width: 30, height: 30, flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 8,
-            cursor: 'pointer', padding: 0, fontSize: 15,
+            cursor: 'pointer', padding: 0,
           }}>
-          🚀
+          <RocketIcon size={17} color="#fff" />
         </button>
         {!isPremium ? (
           <button
@@ -271,16 +271,18 @@ export default function MobileNavbar() {
               background: 'linear-gradient(135deg, #22c55e, #16a34a)',
               border: 'none', cursor: 'pointer', color: '#fff',
               fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap',
+              display: 'inline-flex', alignItems: 'center', gap: 4,
             }}>
-            {tx.upgradeAccount || 'Upgrade'}
+            <DiamondIcon size={12} />{tx.upgradeAccount || 'Upgrade'}
           </button>
         ) : (
           <span style={{
             padding: '4px 8px', borderRadius: 6,
             background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.4)',
             color: '#a78bfa', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap',
+            display: 'inline-flex', alignItems: 'center', gap: 4,
           }}>
-            💎 {tx.vipMember || 'VIP'}
+            <CrownIcon size={12} />{tx.vipMember || 'VIP'}
           </span>
         )}
         {isActive('/discover') && (
@@ -387,8 +389,8 @@ export default function MobileNavbar() {
               <MenuItem icon={CircleHelp} onClick={() => goTo('/help')}>
                 {tx.help || 'Help'}
               </MenuItem>
-              {/* Plain Bell glyph, not <NotificationBell /> - see Navbar.jsx. */}
-              <MenuItem icon={Bell} onClick={() => goTo('/notifications')}>
+              {/* Plain bell glyph, not <NotificationBell /> - see Navbar.jsx. */}
+              <MenuItem icon={BellRingingIcon} onClick={() => goTo('/notifications')}>
                 {tx.notifications || 'Notifications'}
               </MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />

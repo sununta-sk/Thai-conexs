@@ -12,6 +12,8 @@ import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import { useAuditLogger } from '../hooks/useAuditLogger';
 import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
+import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
+import { toLookingForList, genderKind } from '../lib/profileFields';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -104,7 +106,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
             onUpgrade={onUpgrade}
             onClose={() => setEnlarged(false)}
             onIndexChange={setCurrent}
-            lockLabels={{ title: 'Priority Members Only', sub: 'This content is only available to Priority Members', btn: '🚀 Get your boarding pass to full access' }}
+            lockLabels={{ title: 'Priority Members Only', sub: 'This content is only available to Priority Members', btn: 'Get your boarding pass to full access' }}
           />
         )}
 
@@ -114,11 +116,11 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           <div style={C.lockOverlay}>
             <div style={C.lockBoxWrap}>
               <div style={C.lockBox}>
-                <div style={C.lockIcon}>🔒</div>
+                <div style={C.lockIcon}><LockIcon size={36} color="#e91e63" /></div>
                 <div style={C.lockTitle}>Priority Members Only</div>
                 <div style={C.lockSub}>This content is only available to Priority Members</div>
                 <button style={C.lockBtn} onClick={onUpgrade}>
-                  🚀 Get your boarding pass to full access
+                  <DiamondIcon size={16} />Get your boarding pass to full access
                 </button>
               </div>
             </div>
@@ -171,10 +173,10 @@ const C = {
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20, pointerEvents: 'none' },
   lockBoxWrap: { pointerEvents: 'auto' },
   lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(8px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.3)', maxWidth: 280, border: '1px solid #334155' },
-  lockIcon: { fontSize: 36, marginBottom: 8 },
+  lockIcon: { display: 'flex', justifyContent: 'center', marginBottom: 8 },
   lockTitle: { fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
   lockSub: { fontSize: 13, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 },
-  lockBtn: { width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
+  lockBtn: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
 };
 
 // ── Main Page ───────────────────────────────────────────────
@@ -296,7 +298,7 @@ export default function UserProfilePage() {
   const height     = d.height     || '';
   const weight     = d.weight     || '';
   const education  = d.education  || '';
-  const lookingFor = d.lookingFor || '';
+  const lookingFor = toLookingForList(d.lookingFor).join(', ');
 
   const rawPhotos = Array.isArray(profile.photos) ? profile.photos : [];
   const photoUrls = rawPhotos.map(extractPhotoUrl).filter(Boolean);
@@ -362,8 +364,8 @@ export default function UserProfilePage() {
         <div style={S.nameRow}>
           <span style={S.name}>{profile.username || '—'}</span>
           {age && <span style={S.ageBadge}>{age}</span>}
-          {profile.is_verified && <span style={S.verifiedBadge}>✓ Verified</span>}
-          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+          {profile.is_verified && <span style={S.verifiedBadge}><VerifiedIcon size={13} />Verified</span>}
+          {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}><CrownIcon size={13} />VIP</span>}
           {profile.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
         </div>
 
@@ -373,7 +375,7 @@ export default function UserProfilePage() {
           {displayCity && (
             <>
               <span style={{ color: '#475569' }}>·</span>
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>📍 {displayCity}</span>
+              <span style={{ fontSize: 13, color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: 4 }}><LocationIcon size={14} />{displayCity}</span>
             </>
           )}
         </div>
@@ -426,11 +428,11 @@ export default function UserProfilePage() {
           <div style={S.section}>
             <div style={S.sectionLabel}>General Info</div>
             <div style={S.chipRow}>
-              {gender     && <Chip icon="🧑"  label={gender} />}
-              {height     && <Chip icon="📏"  label={`${height} cm`} />}
-              {weight     && <Chip icon="⚖️"  label={`${weight} kg`} />}
-              {education  && <Chip icon="🎓"  label={education} />}
-              {lookingFor && <Chip icon="💬"  label={lookingFor} />}
+              {gender     && <Chip icon={genderKind(gender) !== 'other' && <GenderIcon gender={gender} size={16} />} label={gender} />}
+              {height     && <Chip icon={<HeightIcon size={16} />}    label={`${height} cm`} />}
+              {weight     && <Chip icon={<WeightIcon size={16} />}    label={`${weight} kg`} />}
+              {education  && <Chip icon={<EducationIcon size={16} />} label={education} />}
+              {lookingFor && <Chip icon={<HeartIcon size={16} />}     label={lookingFor} />}
             </div>
           </div>
         )}
@@ -479,7 +481,7 @@ export default function UserProfilePage() {
 function Chip({ icon, label }) {
   return (
     <div style={S.chip}>
-      <span>{icon}</span>
+      {icon && <span style={{ display: 'flex', color: '#e91e63' }}>{icon}</span>}
       <span style={{ color: '#cbd5e1', fontSize: 13 }}>{label}</span>
     </div>
   );
@@ -494,8 +496,8 @@ const S = {
   nameRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   name: { fontSize: 24, fontWeight: 800, color: '#f1f5f9' },
   ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
-  verifiedBadge: { background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
-  vipBadge: { background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
+  verifiedBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
+  vipBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
   founderBadge: { background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.3 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },

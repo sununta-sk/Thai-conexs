@@ -9,6 +9,8 @@ import BoostButton from '../components/BoostButton'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { TOP_H, BOTTOM_H } from '../components/MobileNavbar'
 import { useTranslation } from '../hooks/useTranslation'
+import { LocationIcon, GenderIcon, HeightIcon, EducationIcon, HeartIcon, LotusIcon } from '../components/Icons'
+import { genderKind } from '../lib/profileFields'
 
 // Photo entries are JSON-stringified objects with crop metadata, same
 // shape RoomChat.jsx/MobileRoomChat.jsx already parse via their own
@@ -114,7 +116,7 @@ export default function ProfilePage() {
         </div>
 
         {profile.location && (
-          <p style={S.location}>📍 {profile.location}</p>
+          <p style={S.location}><LocationIcon size={14} />{profile.location}</p>
         )}
 
         <div style={S.boostWrap}>
@@ -137,11 +139,11 @@ export default function ProfilePage() {
       {/* ── Details ── */}
       <Section title={tx.generalInfo || 'ข้อมูลทั่วไป'}>
         <div style={S.chipRow}>
-          {profile.gender            && <Chip icon="🧑"  label={profile.gender} />}
-          {profile.height            && <Chip icon="📏"  label={`${profile.height} cm`} />}
-          {profile.education         && <Chip icon="🎓"  label={profile.education} />}
+          {profile.gender            && <Chip icon={genderKind(profile.gender) !== 'other' && <GenderIcon gender={profile.gender} size={16} />} label={profile.gender} />}
+          {profile.height            && <Chip icon={<HeightIcon size={16} />}    label={`${profile.height} cm`} />}
+          {profile.education         && <Chip icon={<EducationIcon size={16} />} label={profile.education} />}
           {profile.occupation        && <Chip icon="💼"  label={profile.occupation} />}
-          {profile.relationship_goal && <Chip icon="💬"  label={profile.relationship_goal} />}
+          {profile.relationship_goal && <Chip icon={<HeartIcon size={16} />}     label={profile.relationship_goal} />}
         </div>
       </Section>
 
@@ -173,7 +175,7 @@ export default function ProfilePage() {
       {/* ── Buttons ── */}
       <div style={S.btnGroup}>
         <button style={S.lotusBtn} onClick={() => navigate('/lotus')}>
-          🪷 {tx.getMoreLotus || 'รับดอกบัวเพิ่ม'}
+          <LotusIcon size={18} />{tx.getMoreLotus || 'รับดอกบัวเพิ่ม'}
         </button>
       </div>
 
@@ -196,7 +198,7 @@ function Section({ title, children, style }) {
 function Chip({ icon, label }) {
   return (
     <div style={S.chip}>
-      <span>{icon}</span>
+      {icon && <span style={{ display: 'flex', color: '#e91e63' }}>{icon}</span>}
       <span style={S.chipText}>{label}</span>
     </div>
   )
@@ -276,6 +278,7 @@ const S = {
   },
   location: {
     margin: 0,
+    display: 'flex', alignItems: 'center', gap: 4,
     fontSize: 13,
     color: '#94a3b8',
   },
@@ -396,6 +399,7 @@ const S = {
   },
   lotusBtn: {
     width: '100%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
     padding: 14,
     background: 'rgba(233,30,99,0.1)',
     border: '1px solid rgba(233,30,99,0.3)',

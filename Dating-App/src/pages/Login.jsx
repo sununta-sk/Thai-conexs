@@ -13,6 +13,8 @@ import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
+import { GenderIcon } from '../components/Icons';
+import { genderKind } from '../lib/profileFields';
 
 const CONTENT = {
   en: {
@@ -47,16 +49,12 @@ const HERO_TEXT_EN = [
   "Join now and start your search today!",
 ];
 
-// Same matching lists Discover.jsx's gender filter uses (kept verbatim so
-// both pages agree on what counts as male/female/transgender) - anything
-// that isn't a male/female match (transgender, other, blank, null, etc.)
-// gets a generic pride-flag icon instead of guessing.
+// Male / female / transgender get their symbol (shared classification in
+// lib/profileFields.js, same lists as Discover's gender filter); any other
+// value, or blank, keeps the generic pride-flag instead of guessing.
 function genderBadge(rawGender) {
-  const g = (rawGender || '').toLowerCase().trim();
-  const isMale = ['male', 'ชาย', 'm', 'man'].includes(g);
-  const isFemale = ['female', 'หญิง', 'f', 'woman'].includes(g);
-  if (isMale) return '♂';
-  if (isFemale) return '♀';
+  const kind = genderKind(rawGender);
+  if (kind === 'male' || kind === 'female' || kind === 'transgender') return <GenderIcon gender={rawGender} size={11} />;
   return '🏳️‍🌈';
 }
 
@@ -184,6 +182,7 @@ const G = {
   badge: {
     position: 'absolute',
     bottom: 4, right: 4,
+    display: 'flex', alignItems: 'center',
     background: 'rgba(233,30,99,0.9)',
     color: '#fff',
     fontSize: 10,

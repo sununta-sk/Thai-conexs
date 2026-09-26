@@ -12,6 +12,7 @@
 // a second copy of the rule that could drift from it.
 
 import { useEffect, useRef, useState } from 'react';
+import { LockIcon, DiamondIcon } from './Icons';
 
 export default function PhotoEnlargeModal({
   photos,
@@ -44,7 +45,7 @@ export default function PhotoEnlargeModal({
   const labels = {
     title: 'Priority Members Only',
     sub: 'Available to Priority Members',
-    btn: '🚀 Upgrade for full access',
+    btn: 'Upgrade for full access',
     ...lockLabels,
   };
 
@@ -105,10 +106,10 @@ export default function PhotoEnlargeModal({
         {isLocked && (
           <div style={S.lockOverlay}>
             <div style={S.lockBox}>
-              <div style={S.lockIcon}>🔒</div>
+              <div style={S.lockIcon}><LockIcon size={36} color="#e91e63" /></div>
               <div style={S.lockTitle}>{labels.title}</div>
               <div style={S.lockSub}>{labels.sub}</div>
-              <button type="button" style={S.lockBtn} onClick={onUpgrade}>{labels.btn}</button>
+              <button type="button" style={S.lockBtn} onClick={onUpgrade}><DiamondIcon size={16} />{labels.btn}</button>
             </div>
           </div>
         )}
@@ -194,8 +195,8 @@ const S = {
   },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', border: '1px solid #334155', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', maxWidth: 280 },
-  lockIcon: { fontSize: 36, marginBottom: 8 },
+  lockIcon: { display: 'flex', justifyContent: 'center', marginBottom: 8 },
   lockTitle: { fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 8 },
   lockSub: { fontSize: 13, color: '#94a3b8', marginBottom: 16, lineHeight: 1.5 },
-  lockBtn: { width: '100%', padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
+  lockBtn: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 16px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', lineHeight: 1.4 },
 };

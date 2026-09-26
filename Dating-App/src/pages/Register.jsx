@@ -6,6 +6,8 @@ import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
+import { GenderIcon } from '../components/Icons';
+import { genderKind } from '../lib/profileFields';
 
 const CONTENT = {
   en: {
@@ -91,7 +93,9 @@ function UserPhotoGrid({ isMobile }) {
                   onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.style.background = fallbackColors[i % fallbackColors.length]; }}
                 />
                 {p.details?.gender && (
-                  <div style={G.badge}>{p.details.gender === 'female' || p.details.gender === 'หญิง' ? '♀' : '♂'}</div>
+                  // Same rule as Login.jsx's photo grid (was: anything not
+                  // female showed ♂, including transgender profiles).
+                  <div style={G.badge}>{genderKind(p.details.gender) === 'other' ? '🏳️‍🌈' : <GenderIcon gender={p.details.gender} size={11} />}</div>
                 )}
               </div>
             );
@@ -163,6 +167,7 @@ const G = {
   badge: {
     position: 'absolute',
     bottom: 4, right: 4,
+    display: 'flex', alignItems: 'center',
     background: 'rgba(233,30,99,0.9)',
     color: '#fff',
     fontSize: 10,

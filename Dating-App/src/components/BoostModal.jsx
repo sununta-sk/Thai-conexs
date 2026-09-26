@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react'
 import { formatCountdown } from '../hooks/useBoost'
 import { useTranslation } from '../hooks/useTranslation'
+import { RocketIcon } from './Icons'
 
 // Structural data only (hours + which one is highlighted) - display strings
 // (label/desc) are derived from tx at render time so they respond to the
@@ -42,7 +43,7 @@ export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive,
         {/* ── Header ── */}
         <div style={S.header}>
           <div style={S.rocketWrap}>
-            <span style={S.rocket}>🚀</span>
+            <span style={S.rocket}><RocketIcon size={52} color="#e91e63" /></span>
             <div style={S.glow} />
           </div>
           <button style={S.closeBtn} onClick={onClose}>✕</button>
@@ -98,7 +99,7 @@ export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive,
               {activating ? (
                 <span style={S.spinner} />
               ) : (
-                <>🚀 {tx.startCta || 'เริ่ม Boost เลย'}</>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><RocketIcon size={18} />{tx.startCta || 'เริ่ม Boost เลย'}</span>
               )}
             </button>
           </>
@@ -173,7 +174,7 @@ const S = {
     alignItems: 'center', justifyContent: 'center',
   },
   rocket: {
-    fontSize: '52px',
+    display: 'flex',
     filter: 'drop-shadow(0 0 16px #e91e63)',
     animation: 'boostFloat 2s ease-in-out infinite',
   },

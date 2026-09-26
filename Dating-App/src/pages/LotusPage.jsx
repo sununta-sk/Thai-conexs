@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTranslation } from '../hooks/useTranslation'
+import { LotusIcon } from '../components/Icons'
 
 export default function LotusPage() {
   const navigate = useNavigate()
@@ -160,7 +161,7 @@ export default function LotusPage() {
 
         {/* ── Balance ── */}
         <div style={S.balanceCard}>
-          <span style={S.balanceEmoji}>🪷</span>
+          <span style={S.balanceEmoji}><LotusIcon size={40} color="#e91e63" /></span>
           <div>
             <p style={S.balanceLabel}>{tx.yourBalance || 'Your lotus balance'}</p>
             <p style={S.balanceValue}>{balance.toLocaleString()}</p>
@@ -182,7 +183,7 @@ export default function LotusPage() {
                 onClick={() => setSelectedPack(pack.base_lotus)}
                 disabled={disabled}
               >
-                <span style={S.packTotal}>🪷 {pack.total_lotus.toLocaleString()}</span>
+                <span style={S.packTotal}><LotusIcon size="1.1em" style={{ verticalAlign: '-0.15em' }} /> {pack.total_lotus.toLocaleString()}</span>
                 {pack.total_lotus > pack.base_lotus && (
                   <span style={S.packBonus}>+{(pack.total_lotus - pack.base_lotus).toLocaleString()} {tx.bonus || 'bonus'}</span>
                 )}
@@ -208,7 +209,7 @@ export default function LotusPage() {
               disabled={purchasingPack !== null}
             >
               {isBusy ? <span style={S.spinnerSm} /> : (
-                <>{tx.confirmAndPay || 'Confirm & Pay'} · 🪷 {pack.total_lotus.toLocaleString()} · ฿{Number(pack.price_thb).toLocaleString()}</>
+                <>{tx.confirmAndPay || 'Confirm & Pay'} · <LotusIcon size="1.1em" style={{ verticalAlign: '-0.15em' }} /> {pack.total_lotus.toLocaleString()} · ฿{Number(pack.price_thb).toLocaleString()}</>
               )}
             </button>
           )
@@ -232,7 +233,7 @@ export default function LotusPage() {
                   {tier.duration_days} {tier.duration_days === 1 ? (tx.day || 'day') : (tx.days || 'days')}
                 </span>
                 <span style={S.tierCost}>
-                  {isBusy ? <span style={S.spinnerSm} /> : `🪷 ${tier.lotus_cost.toLocaleString()}`}
+                  {isBusy ? <span style={S.spinnerSm} /> : <><LotusIcon size="1.1em" style={{ verticalAlign: '-0.15em', marginRight: 4 }} />{tier.lotus_cost.toLocaleString()}</>}
                 </span>
               </button>
             )
@@ -316,7 +317,7 @@ const S = {
     padding: '20px 24px',
     margin: '12px 0 28px',
   },
-  balanceEmoji: { fontSize: 40 },
+  balanceEmoji: { display: 'flex' },
   balanceLabel: { margin: '0 0 4px', fontSize: 13, color: '#94a3b8' },
   balanceValue: { margin: 0, fontSize: 30, fontWeight: 800, color: '#f1f5f9' },
 

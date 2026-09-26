@@ -11,8 +11,8 @@ import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
 import InvisibleModeToggle from './InvisibleModeToggle';
-import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, Bell, LogOut } from 'lucide-react';
-import { PersonIcon } from './Icons';
+import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
+import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, LotusIcon, BellRingingIcon } from './Icons';
 
 function NavbarDesktop() {
   const navigate  = useNavigate();
@@ -217,8 +217,9 @@ function NavbarDesktop() {
               fontWeight: 800,
               boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
               whiteSpace: 'nowrap',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
             }}>
-            🚀 {tx.boostProfile || 'Boost Profile'}
+            <RocketIcon size={15} />{tx.boostProfile || 'Boost Profile'}
           </button>
           {!isPremium ? (
             <button
@@ -234,8 +235,9 @@ function NavbarDesktop() {
                 fontWeight: 800,
                 boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)',
                 whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              {tx.upgradeAccount || 'Upgrade Account'}
+              <DiamondIcon size={15} />{tx.upgradeAccount || 'Upgrade Account'}
             </button>
           ) : (
             <span style={{
@@ -247,8 +249,9 @@ function NavbarDesktop() {
               fontSize: 12,
               fontWeight: 800,
               whiteSpace: 'nowrap',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
             }}>
-              💎 {tx.vipMember || 'VIP Member'}
+              <CrownIcon size={15} />{tx.vipMember || 'VIP Member'}
             </span>
           )}
           <button
@@ -307,13 +310,13 @@ function NavbarDesktop() {
               <MenuItem icon={Pencil} onClick={() => goTo('/profile-setup')}>{tx.editProfile || 'Edit Profile'}</MenuItem>
               <MenuItem icon={Settings} onClick={() => goTo('/account-settings')}>{tx.accountSettings || 'Account Settings'}</MenuItem>
               <MenuItem icon={CircleHelp} onClick={() => goTo('/help')}>{tx.help || 'Help'}</MenuItem>
-              {/* Plain nav link to /notifications, so a plain Bell glyph - NOT
+              {/* Plain nav link to /notifications, so a plain bell glyph - NOT
                   the <NotificationBell /> component (that's a self-contained
                   widget with its own button, popover and useNotifications
                   subscription; nesting it here would put a button inside a
                   button and double the realtime/fetch work, since the desktop
                   bar already renders one top-right). */}
-              <MenuItem icon={Bell} onClick={() => goTo('/notifications')}>{tx.notifications || 'Notifications'}</MenuItem>
+              <MenuItem icon={BellRingingIcon} onClick={() => goTo('/notifications')}>{tx.notifications || 'Notifications'}</MenuItem>
               <div style={{ borderTop: '1px solid #334155' }} />
               <MenuItem icon={LogOut} onClick={handleLogout} color="#e91e63">{tx.logout || 'Logout'}</MenuItem>
             </div>
@@ -327,7 +330,7 @@ function NavbarDesktop() {
           display: 'flex', alignItems: 'center', gap: 5,
           background: 'rgba(233,30,99,0.15)', border: '1px solid rgba(233,30,99,0.3)', borderRadius: 14, padding: '6px 12px',
         }}>
-          <span style={{ fontSize: 14, lineHeight: 1 }}>🪷</span>
+          <LotusIcon size={16} color="#e91e63" />
           <span style={{ fontSize: 13, fontWeight: 700, color: '#e91e63' }}>{lotusBalance.toLocaleString()}</span>
         </div>
         <NotificationBell />

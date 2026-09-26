@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import BoostModal from './BoostModal'
 import { useBoost, formatCountdown } from '../hooks/useBoost'
+import { RocketIcon } from './Icons'
 
 export default function BoostButton({ userId, size = 'md' }) {
   const [open, setOpen] = useState(false)
@@ -24,7 +25,7 @@ export default function BoostButton({ userId, size = 'md' }) {
         onClick={() => setOpen(true)}
         title={isActive ? `Boost หมดใน ${formatCountdown(timeLeft)}` : 'เปิดใช้ Boost'}
       >
-        <span style={size === 'lg' ? S.iconLg : S.icon}>🚀</span>
+        <RocketIcon size={size === 'lg' ? 22 : 15} />
         {isActive ? (
           <span style={size === 'lg' ? S.labelLg : S.label}>
             {formatCountdown(timeLeft)}
@@ -71,7 +72,6 @@ const S = {
     border: '1.5px solid #e91e63',
     boxShadow: '0 0 14px rgba(233,30,99,0.25)',
   },
-  icon: { fontSize: '15px' },
   label: {
     fontVariantNumeric: 'tabular-nums',
     fontFamily: 'inherit',
@@ -92,7 +92,6 @@ const S = {
     justifyContent: 'center',
     boxShadow: '0 4px 20px rgba(233,30,99,0.3)',
   },
-  iconLg: { fontSize: '22px' },
   labelLg: {
     fontVariantNumeric: 'tabular-nums',
     fontFamily: 'inherit',

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, memo } from 'react';
+﻿import { useState, useEffect, useMemo, memo, Fragment } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { PROVINCES } from '../data/thaiLocations';
 import { getStatesForCountryName } from '../data/worldLocations';
@@ -11,6 +11,8 @@ import { BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
 import { useTranslation } from '../hooks/useTranslation';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import ThumbImg from '../components/ThumbImg';
+import { VerifiedIcon, CrownIcon, LotusIcon, GenderIcon } from '../components/Icons';
+import { genderKind } from '../lib/profileFields';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -905,7 +907,12 @@ export default function Discover() {
             const age = profile.details?.age ?? '';
             const gender = profile.details?.gender ?? '';
             const city = profile.city || profile.details?.city || '';
-            const metaParts = [age, gender ? gender[0].toUpperCase() : '', city].filter(Boolean);
+            // Male/female/transgender show their symbol; any other value
+            // keeps the old initial-letter shorthand (no symbol for it).
+            const genderPart = !gender ? ''
+              : genderKind(gender) === 'other' ? gender[0].toUpperCase()
+              : <GenderIcon gender={gender} size="1.1em" style={{ verticalAlign: '-0.15em' }} />;
+            const metaParts = [age, genderPart, city].filter(Boolean);
             // founderBadge already occupies bottom-right (S.founderBadge) -
             // nudge the lotus badge one slot further left only on cards
             // that actually have a founder badge, rather than moving
@@ -920,8 +927,8 @@ export default function Discover() {
                   <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
                     <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
                       <ThumbImg src={photoUrl} width={400} height={500} resize="cover" quality={75} alt={profile.username} style={S.photo} loading="lazy" />
-                      {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
-                      {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
+                      {profile.is_verified && <div style={verifiedBadgeStyle} title="Verified"><VerifiedIcon size={14} /></div>}
+                      {isVipProfile(profile) && <div style={vipBadgeStyle}><CrownIcon size="1.2em" />VIP</div>}
                       {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
                       <div
                         style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
@@ -934,14 +941,14 @@ export default function Discover() {
                           onClick={e => handleGiftBadgeClick(e, profile.id)}
                           title={tx.giftLotus || 'Gift lotus'}
                         >
-                          🪷 {(profile.lotus_balance ?? 0).toLocaleString()}
+                          <LotusIcon size="1.3em" />{(profile.lotus_balance ?? 0).toLocaleString()}
                         </button>
                       )}
                     </div>
                   </div>
                   <div style={S.info}>
                     <div style={nameStyle}>{profile.username || '-'}</div>
-                    {metaParts.length > 0 && <div style={metaStyle}>{metaParts.join(', ')}</div>}
+                    {metaParts.length > 0 && <div style={metaStyle}>{metaParts.map((part, i) => <Fragment key={i}>{i > 0 && ', '}{part}</Fragment>)}</div>}
                   </div>
                   <div style={S.actions}>
                     <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
@@ -955,7 +962,7 @@ export default function Discover() {
                 {!isMobile && giftOpenForId === profile.id && (
                   <div style={S.giftPopover} onClick={e => e.stopPropagation()}>
                     <div style={S.giftPopoverHeader}>
-                      <span>🪷 {tx.giftLotus || 'Gift lotus'}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><LotusIcon size={15} color="#e91e63" />{tx.giftLotus || 'Gift lotus'}</span>
                       <button type="button" style={S.giftCloseBtn} onClick={() => setGiftOpenForId(null)}>✕</button>
                     </div>
                     <div style={S.giftAmountRow}>
@@ -984,7 +991,7 @@ export default function Discover() {
                       onClick={e => handleGiftConfirm(e, profile)}
                       disabled={giftSending}
                     >
-                      {giftSending ? '…' : `${tx.send || 'Send'} 🪷 ${giftAmount}`}
+                      {giftSending ? '…' : <>{tx.send || 'Send'} <LotusIcon size="1.1em" style={{ verticalAlign: '-0.15em' }} /> {giftAmount}</>}
                     </button>
                   </div>
                 )}
@@ -1104,7 +1111,7 @@ const S = {
   photoWrap: { position: 'relative', width: '100%', aspectRatio: '1/1', background: '#334155', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   verifiedBadge: { position: 'absolute', top: 5, left: 5, width: 18, height: 18, borderRadius: '50%', background: '#3b82f6', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  vipBadge: { position: 'absolute', bottom: 5, left: 5, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
+  vipBadge: { position: 'absolute', bottom: 5, left: 5, display: 'flex', alignItems: 'center', gap: 2, padding: '2px 6px', borderRadius: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', fontSize: 8, fontWeight: 800, letterSpacing: 0.3 },
   founderBadge: { position: 'absolute', bottom: 5, right: 5, width: 18, height: 18, borderRadius: '50%', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   onlineBadge: { position: 'absolute', top: 5, right: 5, width: 11, height: 11, borderRadius: '50%', border: '2px solid #1e293b' },
 

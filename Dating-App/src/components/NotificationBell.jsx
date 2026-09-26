@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNavGuard } from "../context/NavGuardContext";
+import { BellRingingIcon } from "./Icons";
 
 const TYPE_ICON = {
   new_match:    "💕",
   new_message:  "💬",
   like_received:"❤️",
-  system:       "🔔",
 };
 
 export default function NotificationBell() {
@@ -50,10 +50,11 @@ export default function NotificationBell() {
         onClick={() => setOpen(o => !o)}
         style={{
           position: "relative", background: "none", border: "none",
-          cursor: "pointer", fontSize: 24, padding: 4,
+          cursor: "pointer", padding: 4, display: "flex", color: "#cbd5e1",
         }}
+        aria-label="Notifications"
       >
-        🔔
+        <BellRingingIcon size={26} />
         {hasUnread && (
           <span style={{
             position: "absolute", top: 0, right: 0,
@@ -122,7 +123,7 @@ export default function NotificationBell() {
                 borderBottom: "1px solid #1e293b",
                 display: "flex", gap: 10, alignItems: "flex-start",
               }}>
-                <span style={{ fontSize: 20 }}>{TYPE_ICON[notif.type] || "🔔"}</span>
+                <span style={{ fontSize: 20 }}>{TYPE_ICON[notif.type] || <BellRingingIcon size={20} color="#e91e63" />}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: notif.is_read ? 400 : 700, fontSize: 14 }}>
                     {notif.title}

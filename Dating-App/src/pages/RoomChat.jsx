@@ -10,7 +10,8 @@ import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon } from "../components/Icons";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon } from "../components/Icons";
+import { toLookingForList } from "../lib/profileFields";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -129,6 +130,11 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
   const src = validPhotos[current];
 
   return (
+    // SC.outer exists only so the prev/next arrows can sit OUTSIDE the
+    // photo, in the sidebar gutter either side of it (SK: don't overlay
+    // them on the picture). SC.wrap keeps overflow:hidden for the rounded
+    // photo/VIP ring, so the arrows can't live inside it any more.
+    <div style={SC.outer}>
     <div style={SC.wrap}>
       {/* VIP ring: same .tcn-vip-frame technique as Discover's card photo
           and Navbar's avatar - here wrapping just the <img> (not the
@@ -164,25 +170,23 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
           onUpgrade={onUpgrade}
           onClose={() => setEnlarged(false)}
           onIndexChange={setCurrent}
-          lockLabels={{ title: 'Priority Members Only', sub: 'Available to Priority Members', btn: '🚀 Upgrade for full access' }}
+          lockLabels={{ title: 'Priority Members Only', sub: 'Available to Priority Members', btn: 'Upgrade for full access' }}
         />
       )}
 
       {isLocked && (
         <div style={SC.lockOverlay}>
           <div style={SC.lockBox}>
-            <div style={SC.lockIcon}>🔒</div>
+            <div style={SC.lockIcon}><LockIcon size={32} color="#e91e63" /></div>
             <div style={SC.lockTitle}>Priority Members Only</div>
             <div style={SC.lockSub}>Available to Priority Members</div>
-            <button style={SC.lockBtn} onClick={onUpgrade}>🚀 Upgrade for full access</button>
+            <button style={SC.lockBtn} onClick={onUpgrade}><DiamondIcon size={15} />Upgrade for full access</button>
           </div>
         </div>
       )}
 
       {validPhotos.length > 1 && (
         <>
-          <button style={{ ...SC.arrow, left: 8 }} onClick={prev} aria-label="Previous photo"><CaretLineLeftIcon size={18} /></button>
-          <button style={{ ...SC.arrow, right: 8 }} onClick={next} aria-label="Next photo"><CaretLineRightIcon size={18} /></button>
           <div style={SC.counter}>{current + 1} / {validPhotos.length}</div>
           <div style={SC.dots}>
             {validPhotos.map((_, i) => (
@@ -196,15 +200,28 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
         <div style={SC.freeBadge}>🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free</div>
       )}
     </div>
+    {validPhotos.length > 1 && (
+      <>
+        <button style={{ ...SC.arrow, left: SC_ARROW_OFFSET }} onClick={prev} aria-label="Previous photo"><CaretLineLeftIcon size={18} /></button>
+        <button style={{ ...SC.arrow, right: SC_ARROW_OFFSET }} onClick={next} aria-label="Next photo"><CaretLineRightIcon size={18} /></button>
+      </>
+    )}
+    </div>
   );
 }
 
+// The photo is 260px wide inside a 360px sidebar (DS.wrap 360, DS.inner
+// maxWidth 300 + 20px padding), leaving a 50px gutter each side. -41 puts
+// the 32px arrow ~9px off the photo edge and ~9px off the sidebar edge.
+const SC_ARROW_OFFSET = -41;
+
 const SC = {
+  outer: { position: 'relative', width: '100%', marginBottom: 8 },
   // Explicit height (not just aspectRatio) so the box size can't depend on
   // aspect-ratio resolving correctly against a percentage-height child img -
   // 400 = DS.inner's 300px maxWidth at a 3:4 ratio (300 * 4/3). If DS.inner's
   // maxWidth ever changes, this needs updating to match.
-  wrap: { position: 'relative', width: '100%', height: 400, borderRadius: 16, overflow: 'hidden', background: '#0f172a', marginBottom: 8, border: '1px solid #334155' },
+  wrap: { position: 'relative', width: '100%', height: 400, borderRadius: 16, overflow: 'hidden', background: '#0f172a', border: '1px solid #334155' },
   // object-fit: contain (not cover) so the full photo is always visible,
   // letterboxed/pillarboxed rather than cropped - the empty bars show
   // SC.wrap's own background (#0f172a, the app's dark theme color) through
@@ -228,10 +245,10 @@ const SC = {
   dot: { width: 6, height: 6, borderRadius: '50%', cursor: 'pointer' },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20 },
   lockBox: { textAlign: 'center', padding: '20px 16px', background: 'rgba(30, 41, 59, 0.95)', border: '1px solid #334155', borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxWidth: 220 },
-  lockIcon: { fontSize: 32, marginBottom: 6 },
+  lockIcon: { display: 'flex', justifyContent: 'center', marginBottom: 6 },
   lockTitle: { fontSize: 14, fontWeight: 800, color: '#f1f5f9', marginBottom: 6 },
   lockSub: { fontSize: 12, color: '#94a3b8', marginBottom: 12, lineHeight: 1.4 },
-  lockBtn: { width: '100%', padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
+  lockBtn: { width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 12px', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 24, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' },
 };
 
 function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, onlineStatusText, isSubscriber, onUpgrade, onBlock, liked, onLike }) {
@@ -241,7 +258,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
   const height = d.height || '';
   const weight = d.weight || '';
   const education = d.education || '';
-  const lookingFor = d.lookingFor || '';
+  const lookingFor = toLookingForList(d.lookingFor).join(', ');
   const city = profile?.city || d.city || '';
   const bio = profile?.bio || profile?.about_me || '';
 
@@ -264,8 +281,8 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
 
         <div style={DS.nameRow}>
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
-          {profile?.is_verified && <span style={DS.verified}>✓ Verified</span>}
-          {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && <span style={DS.vip}>VIP</span>}
+          {profile?.is_verified && <span style={DS.verified}><VerifiedIcon size={13} />Verified</span>}
+          {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && <span style={DS.vip}><CrownIcon size={13} />VIP</span>}
           {profile?.is_founder_member && <span style={DS.founder}>🌟 Founder</span>}
         </div>
 
@@ -274,7 +291,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
           <span style={{ ...DS.statusText, color: isOnline ? '#4caf50' : isRecentlyActive ? '#fbbf24' : '#94a3b8' }}>{onlineStatusText}</span>
         </div>
 
-        {city && <div style={DS.city}>📍 {city}</div>}
+        {city && <div style={DS.city}><LocationIcon size={14} />{city}</div>}
 
         {bio && (
           <>
@@ -290,12 +307,12 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
 
         <div style={DS.sectionTitle}>GENERAL INFO</div>
         <div style={DS.chipRow}>
-          {gender && <span style={DS.chip}>👤 {gender}</span>}
+          {gender && <span style={DS.chip}><GenderIcon gender={gender} size={14} />{gender}</span>}
           {age && <span style={DS.chip}>🎂 {age}</span>}
-          {height && <span style={DS.chip}>📏 {height} cm</span>}
-          {weight && <span style={DS.chip}>⚖️ {weight} kg</span>}
-          {education && <span style={DS.chip}>🎓 {education}</span>}
-          {lookingFor && <span style={DS.chip}>💬 {lookingFor}</span>}
+          {height && <span style={DS.chip}><HeightIcon size={14} />{height} cm</span>}
+          {weight && <span style={DS.chip}><WeightIcon size={14} />{weight} kg</span>}
+          {education && <span style={DS.chip}><EducationIcon size={14} />{education}</span>}
+          {lookingFor && <span style={DS.chip}><HeartIcon size={14} />{lookingFor}</span>}
         </div>
 
         <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
@@ -319,19 +336,19 @@ const DS = {
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
-  verified: { fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
-  vip: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
+  verified: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
+  vip: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   founder: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
-  city: { fontSize: 13, color: '#94a3b8', fontWeight: 600 },
+  city: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#94a3b8', fontWeight: 600 },
   sectionTitle: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, marginTop: 14, alignSelf: 'flex-start' },
   bioText: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left' },
   bioTextClamped: { fontSize: 14, color: '#cbd5e1', lineHeight: 1.5, fontWeight: 500, alignSelf: 'flex-start', textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
   bioToggle: { alignSelf: 'flex-start', background: 'none', border: 'none', color: '#e91e63', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: '2px 0 0', marginTop: -4 },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  chip: { fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
+  chip: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
   likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
@@ -623,7 +640,10 @@ function RoomChatDesktop() {
     inputRef.current?.focus();
   }, [newMessage, session, chatId, sending, touchActivity]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  // Enter sends (PC and phone keyboards alike - enterKeyHint="send" on the
+  // textarea labels the phone's return key "Send"); Shift+Enter = newline.
+  // isComposing: an IME committing a word with Enter must not send mid-word.
+  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendMessage(); } };
   const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
 
   const handleGifSelect = (gifUrl) => {
@@ -730,8 +750,8 @@ function RoomChatDesktop() {
         <div style={{ ...S.headerInfo, cursor: 'pointer' }} onClick={() => otherUserId && navigate(`/profile/${otherUserId}`)}>
           <div style={S.nameGenderRow}>
             <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
-            {profileGender && <span style={S.genderBadge}>{profileGender}</span>}
-            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}>VIP</span>}
+            {profileGender && <span style={S.genderBadge}><GenderIcon gender={profileGender} size={12} />{profileGender}</span>}
+            {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}><CrownIcon size={12} />VIP</span>}
             {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
@@ -865,18 +885,26 @@ function RoomChatDesktop() {
         </button>
 
         <div style={S.inputWrap}>
-          <textarea ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder="Message" rows={1} style={S.textInput} />
+          <textarea ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyDown={handleKeyDown} enterKeyHint="send" placeholder="Message" rows={1} style={S.textInput} />
         </div>
 
-        {newMessage.trim() ? (
-          <button className="send-btn" style={S.sendBtn} onClick={() => sendMessage()} disabled={sending}>
-            <span style={S.sendText}>Send</span>
-          </button>
-        ) : (
-          <button className="icon-btn" style={{...S.iconBtn, background: recording ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
-            <MicIcon color={recording ? "#f87171" : "#e91e63"} />
-          </button>
-        )}
+        <button className="icon-btn" style={{...S.iconBtn, background: recording ? 'rgba(233, 30, 99, 0.15)' : 'none', borderRadius: 8}} title="Voice" onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording}>
+          <MicIcon color={recording ? "#f87171" : "#e91e63"} />
+        </button>
+
+        {/* Always-visible send button (Enter still sends too); pointerdown
+            preventDefault keeps focus in the textarea. */}
+        <button
+          className="send-btn"
+          style={{ ...S.sendBtn, opacity: newMessage.trim() ? 1 : 0.45 }}
+          onPointerDown={e => e.preventDefault()}
+          onClick={() => sendMessage()}
+          disabled={sending || !newMessage.trim()}
+          aria-label="Send"
+          title="Send"
+        >
+          <PaperPlaneIcon size={18} color="#fff" />
+        </button>
       </div>
     </div>
   );
@@ -915,8 +943,8 @@ const S = {
   headerInfo: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0, flexShrink: 0, marginLeft: 30 },
   nameGenderRow: { display: "flex", alignItems: "center", gap: 6 },
   headerName: { fontSize: 16, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap" },
-  genderBadge: { fontSize: 11, fontWeight: 700, color: "#e91e63", background: "rgba(233, 30, 99, 0.15)", border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
-  vipBadge: { fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
+  genderBadge: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#e91e63", background: "rgba(233, 30, 99, 0.15)", border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
+  vipBadge: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
   founderBadge: { fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
   headerMeta: { fontSize: 12, color: "#94a3b8", fontWeight: 600 },
   onlineRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 1 },
@@ -953,8 +981,7 @@ const S = {
   gifText: { color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 0.5 },
   inputWrap: { flex: 1, background: "#0f172a", border: '1px solid #334155', borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
   textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 15, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
-  sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
-  sendText: { fontSize: 15, fontWeight: 800, color: "#e91e63" },
+  sendBtn: { width: 36, height: 36, padding: 0, borderRadius: "50%", border: "none", background: "linear-gradient(135deg, #e91e63, #c2185b)", boxShadow: "0 2px 6px rgba(233,30,99,0.35)", cursor: "pointer", transition: "transform 0.1s, opacity 0.15s", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
 };
 
 // --- Mobile responsive wrapper (v5b-2) ---

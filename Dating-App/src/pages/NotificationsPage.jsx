@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { BellRingingIcon, RocketIcon } from "../components/Icons";
 
 const TYPE_ICON = {
   new_match: "🎉",
@@ -11,7 +12,7 @@ const TYPE_ICON = {
   profile_view: "👀",
   subscription_expiring: "⏰",
   subscription_updated: "✅",
-  boost_started: "🚀",
+  boost_started: <RocketIcon size={20} color="#e91e63" />,
   system: "📢",
 };
 
@@ -71,7 +72,7 @@ export default function NotificationsPage() {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0f172a" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 32, marginBottom: 8 }}>🔔</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}><BellRingingIcon size={32} color="#e91e63" /></div>
           <p style={{ color: "#94a3b8" }}>Loading...</p>
         </div>
       </div>
@@ -117,7 +118,7 @@ export default function NotificationsPage() {
             displayed.map(notif => (
               <div key={notif.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 16px", background: notif.is_read ? "#1e293b" : "rgba(233, 30, 99, 0.08)", borderBottom: "1px solid #334155", cursor: "pointer" }} onClick={() => handleClick(notif)}>
                 <div style={{ width: 44, height: 44, borderRadius: "50%", backgrod: notif.is_read ? "#0f172a" : "rgba(233, 30, 99, 0.2)", border: "1px solid #334155", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
-                  {TYPE_ICON[notif.type] || "🔔"}
+                  {TYPE_ICON[notif.type] || <BellRingingIcon size={20} color="#e91e63" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

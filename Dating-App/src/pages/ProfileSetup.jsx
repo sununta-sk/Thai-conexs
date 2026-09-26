@@ -6,6 +6,8 @@ import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
 import { useNavGuard } from '../context/NavGuardContext';
+import { GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon } from '../components/Icons';
+import { toLookingForList } from '../lib/profileFields';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -659,12 +661,12 @@ export default function ProfileSetup() {
         <div style={S.sidebarSection}>{tx.sidebarInfo}</div>
         <table style={S.infoTable}>
           <tbody>
-            {details.gender     && <tr><td style={S.infoKey}>{tx.gender}</td><td style={S.infoVal}>{details.gender}</td></tr>}
+            {details.gender     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><GenderIcon gender={details.gender} size={13} />{tx.gender}</span></td><td style={S.infoVal}>{details.gender}</td></tr>}
             {details.age        && <tr><td style={S.infoKey}>{tx.age}</td><td style={S.infoVal}>{details.age}</td></tr>}
-            {details.height     && <tr><td style={S.infoKey}>{tx.height}</td><td style={S.infoVal}>{details.height} cm</td></tr>}
-            {details.weight     && <tr><td style={S.infoKey}>{tx.weight}</td><td style={S.infoVal}>{details.weight} kg</td></tr>}
-            {details.education  && <tr><td style={S.infoKey}>{tx.education}</td><td style={S.infoVal}>{details.education}</td></tr>}
-            {details.lookingFor && <tr><td style={S.infoKey}>{tx.lookingFor}</td><td style={S.infoVal}>{details.lookingFor}</td></tr>}
+            {details.height     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeightIcon size={13} />{tx.height}</span></td><td style={S.infoVal}>{details.height} cm</td></tr>}
+            {details.weight     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><WeightIcon size={13} />{tx.weight}</span></td><td style={S.infoVal}>{details.weight} kg</td></tr>}
+            {details.education  && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><EducationIcon size={13} />{tx.education}</span></td><td style={S.infoVal}>{details.education}</td></tr>}
+            {toLookingForList(details.lookingFor).length > 0 && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeartIcon size={13} />{tx.lookingFor}</span></td><td style={S.infoVal}>{toLookingForList(details.lookingFor).join(', ')}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -931,12 +933,15 @@ export default function ProfileSetup() {
           {tx.genderOptions.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       </Field>
-      <Field label={tx.lookingFor}>
-        <select value={details.lookingFor} onChange={e => setDetails({...details, lookingFor: e.target.value})} style={S.input}>
-          <option value="">—</option>
-          {tx.lookingOptions.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </Field>
+      {/* Multi-select (was a single-choice <select>): stored as an array.
+          Older profiles still hold a plain string - toLookingForList() reads
+          both shapes, and the value becomes an array on the next save. */}
+      <ChipSelect
+        label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><HeartIcon size={14} color="#e91e63" />{tx.lookingFor}</span>}
+        multi={true}
+        value={toLookingForList(details.lookingFor)}
+        onChange={v => setDetails(d => ({ ...d, lookingFor: v }))}
+        options={tx.lookingOptions} />
       <Field label="Children">
         <select value={details.children || ''} onChange={e => setDetails({...details, children: e.target.value})} style={S.input}>
           <option value="">--</option>
@@ -948,7 +953,7 @@ export default function ProfileSetup() {
       </Field>
 
       {/* Location — duplicated from Sidebar so mobile users can fill required fields */}
-      <SectionTitle>📍 Location</SectionTitle>
+      <SectionTitle><span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><LocationIcon size={16} />Location</span></SectionTitle>
       <Field label={<span>Country <span style={{ color: '#ef4444' }}>*</span></span>}>
         <select value={details.country || ''} onChange={e => setDetails({...details, country: e.target.value, province: '', city: ''})} style={{ ...S.input, borderColor: details.country ? '#334155' : '#ef4444' }}>
           <option value="">-- Select your country --</option>
@@ -1268,6 +1273,7 @@ const S = {
   infoTable: { width: '100%', borderCollapse: 'collapse' },
   infoKey: { fontSize: 11, color: '#64748b', fontWeight: 600, padding: '6px 0', textTransform: 'capitalize', whiteSpace: 'nowrap' },
   infoVal: { fontSize: 13, color: '#f1f5f9', fontWeight: 600, padding: '6px 0', textAlign: 'right' },
+  infoKeyInner: { display: 'inline-flex', alignItems: 'center', gap: 5 },
   sidebarChipRow: { display: 'flex', flexWrap: 'wrap', gap: 5 },
   sidebarChip: { fontSize: 11, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '4px 9px', borderRadius: 99 },
 

@@ -10,7 +10,7 @@ import officialLogo from "../lib/LotusConnexs-full.jpeg";
 import { useOnline } from "../context/OnlineContext";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, MicIcon, BackIcon } from "./Icons";
+import { SmileyIcon, MicIcon, BackIcon, CrownIcon, LocationIcon, PaperPlaneIcon } from "./Icons";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -357,7 +357,10 @@ export default function MobileRoomChat() {
     inputRef.current?.focus();
   }, [newMessage, session, chatId, sending, touchActivity]);
 
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
+  // Enter sends (PC and phone keyboards alike - enterKeyHint="send" on the
+  // textarea labels the phone's return key "Send"); Shift+Enter = newline.
+  // isComposing: an IME committing a word with Enter must not send mid-word.
+  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); sendMessage(); } };
   const handleEmojiSelect = (emoji) => { setNewMessage(prev => prev + emoji.native); setShowEmoji(false); inputRef.current?.focus(); };
   const handleGifSelect = (gifUrl) => { setShowGif(false); sendMessage(gifUrl); };
 
@@ -506,12 +509,12 @@ export default function MobileRoomChat() {
           <div style={S.headerName}>
             <span style={S.headerNameText}>{otherProfile?.username ?? "User"}</span>
             <div style={S.headerBadges}>
-              {otherIsVip && <span style={S.vipBadge}>VIP</span>}
+              {otherIsVip && <span style={S.vipBadge}><CrownIcon size={11} />VIP</span>}
               {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
             </div>
           </div>
           <div style={S.headerSub}>
-            {profileCity ? <span>📍 {profileCity} · </span> : null}
+            {profileCity ? <span><LocationIcon size={11} style={{ verticalAlign: "-1px", marginRight: 3 }} />{profileCity} · </span> : null}
             <span style={{ color: isOnline ? "#4caf50" : isRecentlyActive ? "#fbbf24" : "#94a3b8" }}>{onlineStatusText}</span>
           </div>
         </div>
@@ -623,26 +626,35 @@ export default function MobileRoomChat() {
             value={newMessage}
             onChange={e => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
+            enterKeyHint="send"
             placeholder="Message..."
             rows={1}
             style={S.textInput}
           />
         </div>
 
-        {newMessage.trim() ? (
-          <button className="mc-send" style={S.sendBtn} onClick={() => sendMessage()} disabled={sending}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: "#e91e63" }}>Send</span>
-          </button>
-        ) : (
-          <button
-            className="mc-icon"
-            style={{ ...S.iconBtn, background: recording ? "rgba(233,30,99,0.15)" : "none" }}
-            onMouseDown={startRecording} onMouseUp={stopRecording}
-            onTouchStart={startRecording} onTouchEnd={stopRecording}
-          >
-            <MicIcon color={recording ? "#f87171" : "#e91e63"} />
-          </button>
-        )}
+        <button
+          className="mc-icon"
+          style={{ ...S.iconBtn, background: recording ? "rgba(233,30,99,0.15)" : "none" }}
+          onMouseDown={startRecording} onMouseUp={stopRecording}
+          onTouchStart={startRecording} onTouchEnd={stopRecording}
+        >
+          <MicIcon color={recording ? "#f87171" : "#e91e63"} />
+        </button>
+
+        {/* Always-visible send button (Enter still sends too). preventDefault
+            on pointerdown keeps focus in the textarea, so tapping Send doesn't
+            close the phone keyboard between messages. */}
+        <button
+          className="mc-send"
+          style={{ ...S.sendBtn, opacity: newMessage.trim() ? 1 : 0.45 }}
+          onPointerDown={e => e.preventDefault()}
+          onClick={() => sendMessage()}
+          disabled={sending || !newMessage.trim()}
+          aria-label="Send"
+        >
+          <PaperPlaneIcon size={18} color="#fff" />
+        </button>
       </div>
 
       {/* ── Report Modal ── */}
@@ -749,7 +761,7 @@ const S = {
   // whatever badges the user has are always fully visible - headerNameText
   // above absorbs all the shrinking via its own ellipsis instead.
   headerBadges: { display: "flex", alignItems: "center", flexShrink: 0 },
-  vipBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
+  vipBadge: { display: "inline-flex", alignItems: "center", gap: 3, marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "4px 6px", flexShrink: 0, display: "flex", alignItems: "center" },
@@ -784,7 +796,7 @@ const S = {
   iconBtn: { background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.1s", borderRadius: 8 },
   inputWrap: { flex: 1, background: "#1e293b", border: "1px solid #334155", borderRadius: 22, padding: "8px 14px", display: "flex", alignItems: "center" },
   textInput: { background: "none", border: "none", outline: "none", resize: "none", width: "100%", fontSize: 16, fontFamily: "'Nunito', sans-serif", fontWeight: 600, color: "#f1f5f9", lineHeight: 1.4, maxHeight: 80 },
-  sendBtn: { background: "none", border: "none", cursor: "pointer", padding: "4px 8px", transition: "transform 0.1s", flexShrink: 0 },
+  sendBtn: { width: 36, height: 36, padding: 0, borderRadius: "50%", border: "none", background: "linear-gradient(135deg, #e91e63, #c2185b)", boxShadow: "0 2px 6px rgba(233,30,99,0.35)", cursor: "pointer", transition: "transform 0.1s, opacity 0.15s", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
 
   // Modals
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" },
