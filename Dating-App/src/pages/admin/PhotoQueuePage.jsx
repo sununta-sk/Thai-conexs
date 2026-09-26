@@ -3,6 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { CheckIcon, XIcon, WarningIcon, MagnifyingGlassPlusIcon, ArrowLeftIcon, ArrowRightIcon, IconText } from '../../components/Icons';
+import { CheckCircleIcon } from '../../components/MoreIcons';
+import { ImagesIcon, TrayIcon, TrashIcon, LinkIcon } from '../../components/admin/AdminIcons';
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons';
 
 const STATUS_TABS = ['pending', 'approved', 'rejected'];
 const MOBILE_PAGE_SIZE = 40;
@@ -194,7 +198,7 @@ export default function PhotoQueuePage() {
         {/* ── Header ── */}
         <div style={S.pageHeader}>
           <div>
-            <h2 style={S.pageTitle}>🖼️ Photo Queue</h2>
+            <h2 style={S.pageTitle}><ImagesIcon size={24} color="#e91e63" />Photo Queue</h2>
             <p style={S.pageSubtitle}>Review and approve user photos</p>
           </div>
         </div>
@@ -229,12 +233,12 @@ export default function PhotoQueuePage() {
                 style={{ ...S.actionBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
                 onClick={() => moderate('approve', selectedArr)}
                 disabled={actionLoading}
-              >✓ Approve {selected.size}</button>
+              ><CheckIcon size={14} />Approve {selected.size}</button>
               <button
                 style={{ ...S.actionBtn, background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444' }}
                 onClick={() => moderate('reject', selectedArr)}
                 disabled={actionLoading}
-              >✕ Reject {selected.size}</button>
+              ><XIcon size={14} />Reject {selected.size}</button>
               <button style={{ ...S.actionBtn, background: 'none', color: '#475569', border: '1px solid #334155' }}
                 onClick={() => setSelected(new Set())}>Clear</button>
             </div>
@@ -259,8 +263,8 @@ export default function PhotoQueuePage() {
           </div>
         ) : photos.length === 0 ? (
           <div style={S.empty}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>
-              {activeTab === 'pending' ? '📭' : activeTab === 'approved' ? '✅' : '🗑️'}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              {activeTab === 'pending' ? <TrayIcon size={52} /> : activeTab === 'approved' ? <CheckCircleIcon size={52} /> : <TrashIcon size={52} />}
             </div>
             <div>No photos in {activeTab}</div>
           </div>
@@ -281,7 +285,7 @@ export default function PhotoQueuePage() {
                   <img src={photo.photo_url} alt="" style={S.img} />
                   {photo.is_profile_photo && <span style={S.primaryBadge}>Primary</span>}
                   <div style={S.imgOverlay}>
-                    <span style={{ fontSize: 20 }}>🔍</span>
+                    <MagnifyingGlassPlusIcon size={26} color="#fff" />
                   </div>
                 </div>
 
@@ -308,12 +312,12 @@ export default function PhotoQueuePage() {
                   </div>
                   {!photo.profiles && (
                     <div style={S.noProfileNote} title="This user hasn't completed onboarding — nothing will visibly change on a live profile.">
-                      ⚠ No active profile yet
+                      <WarningIcon size={11} style={S.noteIcon} />No active profile yet
                     </div>
                   )}
                   {photo.isOrphaned && (
                     <div style={S.orphanedNote} title="This photo isn't in the user's current profile photos/avatar — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.">
-                      🔗 Not on profile
+                      <LinkIcon size={11} style={S.noteIcon} />Not on profile
                     </div>
                   )}
                 </div>
@@ -327,7 +331,7 @@ export default function PhotoQueuePage() {
                         color:      justActioned[photo.id] === 'approved' ? '#10b981' : '#ef4444',
                         background: justActioned[photo.id] === 'approved' ? '#10b98122' : '#ef444422',
                       }}>
-                        {justActioned[photo.id] === 'approved' ? '✓ Approved' : '✕ Rejected'}
+                        {justActioned[photo.id] === 'approved' ? <><CheckIcon size={14} />Approved</> : <><XIcon size={14} />Rejected</>}
                       </span>
                     </div>
                   ) : (
@@ -336,12 +340,14 @@ export default function PhotoQueuePage() {
                         style={{ ...S.quickBtn, background: '#10b98122', color: '#10b981' }}
                         onClick={e => { e.stopPropagation(); moderate('approve', [photo.id]); }}
                         disabled={actionLoading}
-                      >✓</button>
+                        aria-label="Approve"
+                      ><CheckIcon size={15} /></button>
                       <button
                         style={{ ...S.quickBtn, background: '#ef444422', color: '#ef4444' }}
                         onClick={e => { e.stopPropagation(); moderate('reject', [photo.id]); }}
                         disabled={actionLoading}
-                      >✕</button>
+                        aria-label="Reject"
+                      ><XIcon size={15} /></button>
                     </div>
                   )
                 )}
@@ -357,13 +363,13 @@ export default function PhotoQueuePage() {
               onClick={() => setMobilePage(p => Math.max(0, p - 1))}
               disabled={mobilePage === 0}
               style={{ ...S.pageBtn, opacity: mobilePage === 0 ? 0.4 : 1 }}
-            >← Prev</button>
+            ><ArrowLeftIcon size={13} />Prev</button>
             <span style={{ color: '#64748b', fontSize: 13 }}>Page {mobilePage + 1} / {mobileTotalPages}</span>
             <button
               onClick={() => setMobilePage(p => Math.min(mobileTotalPages - 1, p + 1))}
               disabled={mobilePage >= mobileTotalPages - 1}
               style={{ ...S.pageBtn, opacity: mobilePage >= mobileTotalPages - 1 ? 0.4 : 1 }}
-            >Next →</button>
+            >Next<ArrowRightIcon size={13} /></button>
           </div>
         )}
 
@@ -371,7 +377,7 @@ export default function PhotoQueuePage() {
         {preview && (
           <div style={S.overlay} onClick={() => setPreview(null)}>
             <div style={S.modal} onClick={e => e.stopPropagation()}>
-              <button style={S.closeBtn} onClick={() => setPreview(null)}>✕</button>
+              <button style={S.closeBtn} onClick={() => setPreview(null)} aria-label="Close"><XIcon size={15} /></button>
               <img src={preview.photo_url} alt="" style={{ width: '100%', maxHeight: 400, objectFit: 'contain', background: '#0a0f1e', borderRadius: '12px 12px 0 0' }} />
               <div style={{ padding: 20 }}>
                 {/* User row */}
@@ -392,12 +398,12 @@ export default function PhotoQueuePage() {
                 </div>
                 {!preview.profiles && (
                   <div style={{ ...S.noProfileNote, marginBottom: 12 }}>
-                    ⚠ No active profile yet — this user hasn't completed onboarding, so approving won't show up on a live profile.
+                    <WarningIcon size={11} style={S.noteIcon} />No active profile yet — this user hasn't completed onboarding, so approving won't show up on a live profile.
                   </div>
                 )}
                 {preview.isOrphaned && (
                   <div style={{ ...S.orphanedNote, marginBottom: 12 }}>
-                    🔗 Not on this user's current profile — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.
+                    <LinkIcon size={11} style={S.noteIcon} />Not on this user's current profile — they likely removed it (or never saved it) after uploading. Approving won't make it appear anywhere.
                   </div>
                 )}
 
@@ -408,20 +414,21 @@ export default function PhotoQueuePage() {
                       style={{ ...S.modalActionBtn, background: '#10b981', flex: 1 }}
                       onClick={() => moderate('approve', [preview.id])}
                       disabled={actionLoading}
-                    >✓ Approve</button>
+                    ><CheckIcon size={16} />Approve</button>
                     <button
                       style={{ ...S.modalActionBtn, background: '#ef4444', flex: 1 }}
                       onClick={() => moderate('reject', [preview.id])}
                       disabled={actionLoading}
-                    >✕ Reject</button>
+                    ><XIcon size={16} />Reject</button>
                   </div>
                 ) : (
                   <div style={{
                     textAlign: 'center', padding: '10px 0', borderRadius: 10, fontWeight: 700, fontSize: 14,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     background: (justActioned[preview.id] || preview.status) === 'approved' ? '#10b98122' : '#ef444422',
                     color:      (justActioned[preview.id] || preview.status) === 'approved' ? '#10b981'   : '#ef4444',
                   }}>
-                    {(justActioned[preview.id] || preview.status) === 'approved' ? '✓ Approved' : '✕ Rejected'}
+                    {(justActioned[preview.id] || preview.status) === 'approved' ? <><CheckIcon size={14} />Approved</> : <><XIcon size={14} />Rejected</>}
                   </div>
                 )}
               </div>
@@ -438,7 +445,7 @@ export default function PhotoQueuePage() {
                 borderColor: t.tone === 'approved' ? '#10b98155' : '#ef444455',
                 color:       t.tone === 'approved' ? '#10b981'   : '#ef4444',
               }}>
-                {t.message}
+                <IconText text={t.message} icons={ADMIN_TEXT_ICONS} size="1.1em" />
               </div>
             ))}
           </div>
@@ -455,7 +462,7 @@ const TAB_COLOR = { pending: '#f59e0b', approved: '#10b981', rejected: '#ef4444'
 const S = {
   page:        { padding: 24 },
   pageHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
 
   tabs: { display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
@@ -475,6 +482,7 @@ const S = {
     background: '#1e293b', borderRadius: 10, border: '1px solid #334155',
   },
   actionBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 5,
     padding: '6px 14px', borderRadius: 8,
     fontSize: 12, fontWeight: 700, cursor: 'pointer',
   },
@@ -485,7 +493,7 @@ const S = {
     gap: 12,
   },
   mobilePagination: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '16px 0' },
-  pageBtn: { padding: '6px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  pageBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   card: {
     background: '#1e293b', borderRadius: 12,
     overflow: 'hidden', position: 'relative',
@@ -507,6 +515,7 @@ const S = {
   cardBody: { padding: '8px 10px' },
   quickActions: { display: 'flex', gap: 6, padding: '0 10px 10px' },
   quickBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
     flex: 1, padding: '5px 0', borderRadius: 8,
     border: 'none', fontSize: 14, fontWeight: 700, cursor: 'pointer',
   },
@@ -516,6 +525,8 @@ const S = {
     fontSize: 10, fontWeight: 700, padding: '2px 8px',
     borderRadius: 20, backdropFilter: 'blur(4px)',
   },
+  // Small icon at the start of the yellow/orange photo notes.
+  noteIcon: { verticalAlign: '-1px', marginRight: 3 },
   noProfileNote: {
     color: '#fbbf24', fontSize: 10.5, fontWeight: 600,
     marginTop: 3, lineHeight: 1.3,
@@ -525,6 +536,7 @@ const S = {
     marginTop: 3, lineHeight: 1.3,
   },
   actionedBadge: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
     flex: 1, textAlign: 'center', padding: '5px 0',
     borderRadius: 8, fontSize: 12, fontWeight: 700,
   },
@@ -561,11 +573,13 @@ const S = {
   },
   closeBtn: {
     position: 'absolute', top: 10, right: 10, zIndex: 2,
-    width: 30, height: 30, borderRadius: '50%',
+    width: 30, height: 30, borderRadius: '50%', padding: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
     background: 'rgba(0,0,0,0.5)', border: 'none',
     color: '#f1f5f9', fontSize: 14, cursor: 'pointer',
   },
   modalActionBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
     padding: '10px 0', borderRadius: 10,
     border: 'none', color: '#fff', fontWeight: 700,
     fontSize: 14, cursor: 'pointer',

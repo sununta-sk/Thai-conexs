@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { IconText } from '../../components/Icons'
+import { UserGearIcon, PlusIcon } from '../../components/admin/AdminIcons'
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons'
 
 export default function TeamPage() {
   const [members, setMembers] = useState([])
@@ -96,13 +99,13 @@ export default function TeamPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}>{toast.msg}</div>}
+        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}><IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
 
         <div style={S.hdr}>
-          <div><h2 style={S.title}>👤 Team</h2><p style={S.sub}>Manage admin accounts and permissions</p></div>
+          <div><h2 style={S.title}><UserGearIcon size={24} color="#e91e63" />Team</h2><p style={S.sub}>Manage admin accounts and permissions</p></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={S.stat}>{members.filter(m => m.is_active).length} active admins</div>
-            <button onClick={() => setShowModal(true)} style={S.btnAdd}>+ Add Admin</button>
+            <button onClick={() => setShowModal(true)} style={S.btnAdd}><PlusIcon size={14} />Add Admin</button>
           </div>
         </div>
 
@@ -227,10 +230,10 @@ export default function TeamPage() {
 const S = {
   page: { padding: 24 },
   hdr: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   sub: { color: '#64748b', fontSize: 13, margin: 0 },
   stat: { background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '6px 14px', color: '#94a3b8', fontSize: 13 },
-  btnAdd: { background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  btnAdd: { display: 'flex', alignItems: 'center', gap: 6, background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   rolesRow: { display: 'flex', gap: 12, marginBottom: 24 },
   roleCard: { flex: 1, background: '#1e293b', borderRadius: 12, padding: '16px 20px', border: '1px solid #334155' },
   card: { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },

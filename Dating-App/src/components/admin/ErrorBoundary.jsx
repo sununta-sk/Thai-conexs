@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { WarningIcon } from '../Icons'
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -29,7 +30,7 @@ export default class ErrorBoundary extends Component {
           padding: '40px 48px', maxWidth: 480, textAlign: 'center',
           boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
         }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><WarningIcon size={44} color="#f59e0b" /></div>
           <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: '#111' }}>
             Something went wrong
           </h2>

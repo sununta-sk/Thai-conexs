@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { XIcon } from '../../components/Icons'
+import { HandCoinsIcon, ClipboardTextIcon, BankIcon, NotePencilIcon, HourglassIcon, CheckCircleIcon } from '../../components/MoreIcons'
+import { HandshakeIcon, FileTextIcon, PlusIcon } from '../../components/admin/AdminIcons'
 
 const STATUS_TABS = ['all', 'approved', 'inactive']
 
@@ -128,11 +131,11 @@ export default function AffiliateListPage() {
         {/* Header */}
         <div style={S.header}>
           <div>
-            <h1 style={S.title}>🤝 Affiliates</h1>
+            <h1 style={S.title}><HandshakeIcon size={26} color="#e91e63" />Affiliates</h1>
             <p style={S.subtitle}>Manage affiliates and referral data</p>
           </div>
           <button onClick={() => navigate('/admin/payouts/new')} style={S.btnPink}>
-            + New Payout Request
+            <PlusIcon size={15} />New Payout Request
           </button>
         </div>
 
@@ -182,7 +185,7 @@ export default function AffiliateListPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.contact_name || '—'}</div>
                   </div>
-                  <button onClick={() => openDetail(a)} style={S.btnDetail}>📄 Details</button>
+                  <button onClick={() => openDetail(a)} style={S.btnDetail}><FileTextIcon size={13} />Details</button>
                 </div>
               ))}
             </div>
@@ -214,9 +217,9 @@ export default function AffiliateListPage() {
                     <td style={S.td}><span style={{ color: '#475569', fontSize: 12 }}>{new Date(a.created_at).toLocaleDateString('en-GB')}</span></td>
                     <td style={S.td}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={() => openDetail(a)} style={S.btnDetail}>📄 Details</button>
-                        <button onClick={() => navigate(`/admin/payouts/new?affiliate_id=${a.id}`)} style={S.btnPayout}>💸</button>
-                        <button onClick={() => handleDelete(a.id, a.contact_name)} style={S.btnDelete}>✕</button>
+                        <button onClick={() => openDetail(a)} style={S.btnDetail}><FileTextIcon size={13} />Details</button>
+                        <button onClick={() => navigate(`/admin/payouts/new?affiliate_id=${a.id}`)} style={S.btnPayout} aria-label="New payout request" title="New payout request"><HandCoinsIcon size={15} /></button>
+                        <button onClick={() => handleDelete(a.id, a.contact_name)} style={S.btnDelete} aria-label="Delete" title="Delete"><XIcon size={14} /></button>
                       </div>
                     </td>
                   </tr>
@@ -232,7 +235,7 @@ export default function AffiliateListPage() {
       {detailModal && (
         <div style={S.overlay} onClick={() => setDetailModal(null)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <button style={S.closeBtn} onClick={() => setDetailModal(null)}>✕</button>
+            <button style={S.closeBtn} onClick={() => setDetailModal(null)} aria-label="Close"><XIcon size={14} /></button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
               <div style={{ ...S.avatar, width: 52, height: 52, fontSize: 20 }}>
@@ -245,14 +248,14 @@ export default function AffiliateListPage() {
             </div>
 
             <div style={S.section}>
-              <div style={S.sectionTitle}>📋 Contact Info</div>
+              <div style={S.sectionTitle}><ClipboardTextIcon size={14} />Contact Info</div>
               <Row label="Full Name"  value={detailModal.contact_name  || '—'} />
               <Row label="Phone"       value={detailModal.contact_phone || '—'} highlight />
               <Row label="Email"          value={detailModal.contact_email || '—'} />
             </div>
 
             <div style={S.section}>
-              <div style={S.sectionTitle}>🏦 Payment Info</div>
+              <div style={S.sectionTitle}><BankIcon size={14} />Payment Info</div>
               <Row label="Method"         value={detailModal.payout_method  || '—'} />
               <Row label="Aails" value={detailModal.payout_details || '—'} highlight />
               <Row label="Commission"      value={`${detailModal.commission_rate || 20}%`} />
@@ -260,7 +263,7 @@ export default function AffiliateListPage() {
 
             {detailModal.payouts?.length > 0 && (
               <div style={S.section}>
-                <div style={S.sectionTitle}>💸 Recent Payouts</div>
+                <div style={S.sectionTitle}><HandCoinsIcon size={14} />Recent Payouts</div>
                 {detailModal.payouts.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1e293b', fontSize: 13 }}>
                     <div>
@@ -277,8 +280,8 @@ export default function AffiliateListPage() {
             )}
 
             {detailModal.notes && (
-              <div style={{ background: '#0f172a', borderRadius: 8, padding: '10px 14px', color: '#94a3b8', fontSize: 13, marginTop: 8 }}>
-                📝 {detailModal.notes}
+              <div style={{ background: '#0f172a', borderRadius: 8, padding: '10px 14px', color: '#94a3b8', fontSize: 13, marginTop: 8, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <NotePencilIcon size={15} style={{ marginTop: 1 }} />{detailModal.notes}
               </div>
             )}
 
@@ -291,8 +294,8 @@ export default function AffiliateListPage() {
               <button
                 onClick={handleConfirmPayout}
                 disabled={confirming}
-                style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, opacity: confirming ? 0.6 : 1 }}>
-                {confirming ? '⏳ Saving...' : '✅ Transfer confirmed'}
+                style={{ flex: 1, padding: '11px 0', borderRadius: 10, border: 'none', background: '#10b981', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14, opacity: confirming ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                {confirming ? <><HourglassIcon size={16} />Saving...</> : <><CheckCircleIcon size={16} />Transfer confirmed</>}
               </button>
             </div>
           </div>
@@ -334,9 +337,9 @@ function payoutStatusStyle(s) {
 const S = {
   page:        { padding: 24, maxWidth: 1200, margin: '0 auto', color: '#f1f5f9' },
   header:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  title:       { margin: '0 0 4px', fontSize: 24, fontWeight: 800 },
+  title:       { margin: '0 0 4px', fontSize: 24, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 },
   subtitle:    { margin: 0, color: '#64748b', fontSize: 14 },
-  btnPink:     { background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' },
+  btnPink:     { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap' },
   statsGrid:   { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 },
   statCard:    { borderRadius: 12, padding: '20px 24px' },
   statVal:     { fontSize: 32, fontWeight: 800, marginBottom: 4 },
@@ -357,13 +360,13 @@ const S = {
   affiliateCell: { display: 'flex', alignItems: 'center', gap: 10 },
   avatar:      { width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #e91e63, #9c27b0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 15, fontWeight: 700, flexShrink: 0 },
   statusPill:  { borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600, display: 'inline-block' },
-  btnDetail:   { background: '#334155', color: '#f1f5f9', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
-  btnPayout:   { background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 13 },
-  btnDelete:   { background: '#ef444422', color: '#f87171', border: '1px solid #ef444444', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 13 },
+  btnDetail:   { display: 'inline-flex', alignItems: 'center', gap: 5, background: '#334155', color: '#f1f5f9', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' },
+  btnPayout:   { display: 'inline-flex', alignItems: 'center', background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 13 },
+  btnDelete:   { display: 'inline-flex', alignItems: 'center', background: '#ef444422', color: '#f87171', border: '1px solid #ef444444', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 13 },
   empty:       { padding: 60, textAlign: 'center', color: '#475569', fontSize: 14 },
   overlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modal:       { background: '#1e293b', border: '1px solid #334155', borderRadius: 16, width: '100%', maxWidth: 480, padding: 28, position: 'relative', maxHeight: '90vh', overflowY: 'auto' },
-  closeBtn:    { position: 'absolute', top: 14, right: 14, background: '#334155', border: 'none', color: '#94a3b8', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', fontSize: 13 },
+  closeBtn:    { position: 'absolute', top: 14, right: 14, background: '#334155', border: 'none', color: '#94a3b8', borderRadius: '50%', width: 28, height: 28, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 13 },
   section:     { marginBottom: 16 },
-  sectionTitle:{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #334155' },
+  sectionTitle:{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #334155' },
 }

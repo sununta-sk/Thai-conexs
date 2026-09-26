@@ -225,7 +225,7 @@ export default function MobileNavbar() {
         boxSizing: 'border-box',
       }}>
         <img
-          src={logoImg} alt="Thai Conexns"
+          src={logoImg} alt="Lotus ConneXs"
           onClick={() => goTo('/discover')}
           style={{
             width: 32, height: 32, borderRadius: '50%',

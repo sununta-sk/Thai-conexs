@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { MagnifyingGlassIcon, ArrowLeftIcon, ArrowRightIcon } from '../../components/Icons'
+import { ScrollIcon } from '../../components/admin/AdminIcons'
 
 export default function AuditLogPage() {
   const [logs, setLogs]     = useState([])
@@ -71,15 +73,18 @@ export default function AuditLogPage() {
       <div style={S.page}>
         <div style={S.hdr}>
           <div>
-            <h2 style={S.title}>📜 Audit Log</h2>
+            <h2 style={S.title}><ScrollIcon size={24} color="#e91e63" />Audit Log</h2>
             <p style={S.sub}>All admin action history</p>
           </div>
-          <input
-            value={filter}
-            onChange={e => setFilter(e.target.value)}
-            placeholder="🔍 Filter..."
-            style={S.search}
-          />
+          <div style={S.searchWrap}>
+            <MagnifyingGlassIcon size={15} color="#64748b" style={S.searchIcon} />
+            <input
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              placeholder="Filter..."
+              style={S.search}
+            />
+          </div>
         </div>
 
         <div style={S.card}>
@@ -171,9 +176,9 @@ export default function AuditLogPage() {
               )}
 
               <div style={S.pager}>
-                <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={S.pageBtn}>← Prev</button>
+                <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={S.pageBtn}><ArrowLeftIcon size={13} />Prev</button>
                 <span style={{ color: '#64748b', fontSize: 13 }}>Page {page + 1}</span>
-                <button onClick={() => setPage(p => p + 1)} disabled={logs.length < PAGE_SIZE} style={S.pageBtn}>Next →</button>
+                <button onClick={() => setPage(p => p + 1)} disabled={logs.length < PAGE_SIZE} style={S.pageBtn}>Next<ArrowRightIcon size={13} /></button>
               </div>
             </>
           )}
@@ -186,9 +191,11 @@ export default function AuditLogPage() {
 const S = {
   page:    { padding: 24 },
   hdr:     { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, gap: 16 },
-  title:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  title:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   sub:     { color: '#64748b', fontSize: 13, margin: 0 },
-  search:  { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '10px 16px', color: '#f1f5f9', fontSize: 13, width: 280, outline: 'none' },
+  searchWrap: { position: 'relative', display: 'flex' },
+  searchIcon: { position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' },
+  search:  { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '10px 16px 10px 36px', color: '#f1f5f9', fontSize: 13, width: 260, outline: 'none' },
   card:    { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
   cardList:{ display: 'flex', flexDirection: 'column' },
   logCard: { padding: '12px 16px', borderBottom: '1px solid #0f172a' },
@@ -198,6 +205,6 @@ const S = {
   td:      { padding: '10px 16px', color: '#94a3b8', fontSize: 13, verticalAlign: 'middle' },
   badge:   { padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', display: 'inline-block' },
   pager:   { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 16 },
-  pageBtn: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '6px 14px', color: '#94a3b8', cursor: 'pointer', fontSize: 13 },
+  pageBtn: { display: 'flex', alignItems: 'center', gap: 4, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '6px 14px', color: '#94a3b8', cursor: 'pointer', fontSize: 13 },
   empty:   { padding: 40, textAlign: 'center', color: '#475569' },
 }

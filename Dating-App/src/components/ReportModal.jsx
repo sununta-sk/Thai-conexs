@@ -2,12 +2,23 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
+import { ProhibitIcon, WarningIcon, EnvelopeIcon, XIcon, CheckIcon } from './Icons';
+import { FlagIcon, HandPalmIcon, DotsThreeIcon, CaretDownIcon } from './MoreIcons';
+
+// Category icons by id - same for every language (were ⛔ ⚠ ⚑ ✖ ✉ …).
+const CATEGORY_ICONS = {
+  inappropriate: ProhibitIcon,
+  sex_work: WarningIcon,
+  fake_profile: FlagIcon,
+  harassment: HandPalmIcon,
+  spam: EnvelopeIcon,
+  other: DotsThreeIcon,
+};
 
 const CATEGORIES = {
   en: [
     {
       id: 'inappropriate',
-      icon: '\u26D4',
       title: 'Inappropriate Content',
       desc: 'Nudity, sexual content, or harmful imagery',
       reasons: [
@@ -19,7 +30,6 @@ const CATEGORIES = {
     },
     {
       id: 'sex_work',
-      icon: '\u26A0',
       title: 'Sex Work / Money Requests',
       desc: 'Selling services or asking for money',
       reasons: [
@@ -31,7 +41,6 @@ const CATEGORIES = {
     },
     {
       id: 'fake_profile',
-      icon: '\u2691',
       title: 'Fake Profile / Catfish',
       desc: 'Stolen photos or fake identity',
       reasons: [
@@ -43,7 +52,6 @@ const CATEGORIES = {
     },
     {
       id: 'harassment',
-      icon: '\u2716',
       title: 'Harassment / Threatening',
       desc: 'Abusive, threatening, or unsafe behavior',
       reasons: [
@@ -55,7 +63,6 @@ const CATEGORIES = {
     },
     {
       id: 'spam',
-      icon: '\u2709',
       title: 'Spam / Scam',
       desc: 'Promoting unrelated content or fraud',
       reasons: [
@@ -67,7 +74,6 @@ const CATEGORIES = {
     },
     {
       id: 'other',
-      icon: '\u2026',
       title: 'Other',
       desc: 'Something else not listed above',
       reasons: [],
@@ -76,7 +82,6 @@ const CATEGORIES = {
   th: [
     {
       id: 'inappropriate',
-      icon: '\u26D4',
       title: 'เนื้อหาไม่เหมาะสม',
       desc: 'รูปโป๊ เนื้อหาทางเพศ หรือภาพอันตราย',
       reasons: [
@@ -88,7 +93,6 @@ const CATEGORIES = {
     },
     {
       id: 'sex_work',
-      icon: '\u26A0',
       title: 'ค้าประเวณี / ขอเงิน',
       desc: 'ขายบริการทางเพศหรือขอเงิน',
       reasons: [
@@ -100,7 +104,6 @@ const CATEGORIES = {
     },
     {
       id: 'fake_profile',
-      icon: '\u2691',
       title: 'โปรไฟล์ปลอม',
       desc: 'รูปขโมยมาหรือตัวตนปลอม',
       reasons: [
@@ -112,7 +115,6 @@ const CATEGORIES = {
     },
     {
       id: 'harassment',
-      icon: '\u2716',
       title: 'คุกคาม / ข่มขู่',
       desc: 'พฤติกรรมรุนแรง ข่มขู่ หรือไม่ปลอดภัย',
       reasons: [
@@ -124,7 +126,6 @@ const CATEGORIES = {
     },
     {
       id: 'spam',
-      icon: '\u2709',
       title: 'สแปม / หลอกลวง',
       desc: 'โปรโมตเนื้อหาอื่นหรือฉ้อโกง',
       reasons: [
@@ -136,7 +137,6 @@ const CATEGORIES = {
     },
     {
       id: 'other',
-      icon: '\u2026',
       title: 'อื่นๆ',
       desc: 'เหตุผลอื่นที่ไม่ได้ระบุข้างต้น',
       reasons: [],
@@ -226,11 +226,11 @@ export default function ReportModal({ targetUserId, targetUsername, onClose }) {
   return (
     <div style={S.backdrop} onClick={onClose}>
       <div style={S.modal} onClick={(e) => e.stopPropagation()}>
-        <button style={S.closeBtn} onClick={onClose}>{'\u2715'}</button>
+        <button style={S.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={15} /></button>
 
         {success ? (
           <div style={S.successWrap}>
-            <div style={S.successIcon}>{'\u2713'}</div>
+            <div style={S.successIcon}><CheckIcon size={38} /></div>
             <h2 style={S.successTitle}>{t.success}</h2>
             <p style={S.successDesc}>{t.successDesc}</p>
           </div>
@@ -252,6 +252,7 @@ export default function ReportModal({ targetUserId, targetUsername, onClose }) {
 
               {categories.map((cat) => {
                 const isOpen = openCat === cat.id;
+                const CatIcon = CATEGORY_ICONS[cat.id] || DotsThreeIcon;
                 return (
                   <div key={cat.id} style={S.catItem}>
                     <button
@@ -262,13 +263,13 @@ export default function ReportModal({ targetUserId, targetUsername, onClose }) {
                         setCustomText('');
                       }}
                     >
-                      <span style={S.catIcon}>{cat.icon}</span>
+                      <span style={S.catIcon}><CatIcon size={18} /></span>
                       <div style={S.catTextWrap}>
                         <div style={S.catTitle}>{cat.title}</div>
                         <div style={S.catDesc}>{cat.desc}</div>
                       </div>
                       <span style={{ ...S.chevron, transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
-                        {'\u25BC'}
+                        <CaretDownIcon size={14} />
                       </span>
                     </button>
 
@@ -377,6 +378,7 @@ const S = {
     border: `1px solid ${BORDER}`,
     color: TEXT_SOFT,
     fontSize: 14,
+    padding: 0,
     cursor: 'pointer',
     zIndex: 10,
     display: 'flex',
@@ -471,6 +473,7 @@ const S = {
     lineHeight: 1.4,
   },
   chevron: {
+    display: 'flex',
     fontSize: 10,
     color: TEXT_MUTED,
     transition: 'transform 0.2s',

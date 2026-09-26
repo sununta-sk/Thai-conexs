@@ -6,7 +6,8 @@ import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
 import { useNavGuard } from '../context/NavGuardContext';
-import { XIcon, CopyIcon, CheckIcon, CropIcon, GiftIcon, ImageIcon, CameraPhIcon, HeightIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
+import { XIcon, CopyIcon, CheckIcon, CropIcon, GiftIcon, ImageIcon, CameraPhIcon, HeightIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon, PersonIcon, VerifiedIcon, ArrowRightIcon } from '../components/Icons';
+import { HandCoinsIcon, FloppyDiskIcon } from '../components/MoreIcons';
 import { toLookingForList, formatHeight, cmToFeetInches, feetInchesToCm } from '../lib/profileFields';
 import { LifestyleLabel, LifestyleHeading, SparkleIcon, TargetIcon, MoonIcon, BeerSteinIcon, CigaretteIcon, PersonRunIcon, BrainIcon } from '../components/LifestyleIcons';
 
@@ -38,7 +39,7 @@ const T = {
     education:'การศึกษา', preferences:'ความต้องการ', gender:'เพศ', lookingFor:'มองหา',
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
-    continueBtn:'ไปที่หน้าค้นหา →', saveContinueBtn:'บันทึกและไปที่หน้าค้นหา', savingStatus:'กำลังบันทึก...', savedStatus:'บันทึกแล้ว ✓', errorStatus:'บันทึกไม่สำเร็จ กำลังลองใหม่...',
+    continueBtn:'ไปที่หน้าค้นหา', saveContinueBtn:'บันทึกและไปที่หน้าค้นหา', savingStatus:'กำลังบันทึก...', savedStatus:'บันทึกแล้ว', errorStatus:'บันทึกไม่สำเร็จ กำลังลองใหม่...',
     navGuardNoPhotoTitle:'อัปโหลดรูปโปรไฟล์ก่อน', navGuardNoPhotoBody:'คุณต้องอัปโหลดรูปโปรไฟล์อย่างน้อย 1 รูปก่อนออกจากหน้านี้',
     navGuardConfirmTitle:'บันทึกโปรไฟล์ก่อนออกจากหน้านี้', navGuardConfirmBody:'คุณยังไม่ได้กดบันทึกโปรไฟล์ ต้องการบันทึกตอนนี้เลยไหม?',
     navGuardConfirmBtn:'บันทึกโปรไฟล์ ยืนยัน', navGuardConfirmingBtn:'กำลังบันทึก...', navGuardDismissBtn:'เข้าใจแล้ว', navGuardCancelBtn:'ยกเลิก',
@@ -58,7 +59,7 @@ const T = {
     education:'Education', preferences:'Preferences', gender:'Gender', lookingFor:'Looking For',
     referralLabel:"Enter a friend's code to get €30 bonus",
     saveBtn:'Save Profile', logoutBtn:'Logout',
-    continueBtn:'Continue to Discover →', saveContinueBtn:'Save and Continue to Discover', savingStatus:'Saving...', savedStatus:'Saved ✓', errorStatus:"Couldn't save — retrying...",
+    continueBtn:'Continue to Discover', saveContinueBtn:'Save and Continue to Discover', savingStatus:'Saving...', savedStatus:'Saved', errorStatus:"Couldn't save — retrying...",
     navGuardNoPhotoTitle:'Upload a Photo First', navGuardNoPhotoBody:'Please upload at least 1 profile photo before leaving this page.',
     navGuardConfirmTitle:'Save Your Profile First', navGuardConfirmBody:"You haven't clicked Save yet. Save your profile now?",
     navGuardConfirmBtn:'Save Profile, confirm', navGuardConfirmingBtn:'Saving...', navGuardDismissBtn:'Got it', navGuardCancelBtn:'Cancel',
@@ -650,9 +651,9 @@ export default function ProfileSetup() {
         {mainPhoto ? (
           <img src={mainPhoto} alt="me" style={S.avatarImg} />
         ) : (
-          <div style={S.avatarPlaceholder}>👤</div>
+          <div style={S.avatarPlaceholder}><PersonIcon size={56} color="#475569" /></div>
         )}
-        {isVerified && <div style={S.verifiedRibbon}>✓ Verified</div>}
+        {isVerified && <div style={S.verifiedRibbon}><VerifiedIcon size={13} />Verified</div>}
       </div>
 
       <div style={S.sidebarUsername}>{username || '—'}</div>
@@ -826,7 +827,7 @@ export default function ProfileSetup() {
           border: `1px solid ${saveStatus === 'error' ? 'rgba(239,68,68,0.4)' : saveStatus === 'saving' ? 'rgba(148,163,184,0.4)' : 'rgba(74,222,128,0.4)'}`,
           color: saveStatus === 'error' ? '#f87171' : saveStatus === 'saving' ? '#cbd5e1' : '#4ade80',
         }}>
-          {saveStatus === 'saving' ? tx.savingStatus : saveStatus === 'error' ? tx.errorStatus : tx.savedStatus}
+          {saveStatus === 'saving' ? tx.savingStatus : saveStatus === 'error' ? tx.errorStatus : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{tx.savedStatus}<CheckIcon size={14} /></span>}
         </div>
       )}
       {/* Profile Photos */}
@@ -1154,7 +1155,7 @@ export default function ProfileSetup() {
         <input placeholder="TCN-XXXX" value={friendCode}
           onChange={e => setFriendCode(e.target.value)} disabled={referralDisabled}
           style={{ ...S.input, opacity: referralDisabled ? 0.5 : 1 }} />
-        {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0' }}>✓ ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
+        {referralDisabled && <p style={{ fontSize: '11px', color: '#64748b', margin: '6px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}><CheckIcon size={12} />ใส่โค้ดแล้ว ไม่สามารถแก้ไขได้</p>}
       </div>
 
       {/* Primary CTA. On desktop this is the ONLY save/continue button —
@@ -1166,11 +1167,11 @@ export default function ProfileSetup() {
           "Continue to Discover →" label there and the two coexist as
           before. Both platforms' prominent button shares S.glowCta. */}
       <button onClick={handleContinue} style={isDesktop ? { ...S.saveBtn, ...S.glowCta, padding: '16px' } : S.saveBtn}>
-        {isDesktop ? tx.saveContinueBtn : tx.continueBtn}
+        {isDesktop ? tx.saveContinueBtn : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{tx.continueBtn}<ArrowRightIcon size={18} /></span>}
       </button>
 
-      <button onClick={() => requestNavigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
-        💸 {lang === 'th' ? 'ถอนเงิน / Request Payout' : 'Request Payout'} · €{balance}
+      <button onClick={() => requestNavigate('/payout')} style={{ width: '100%', padding: '14px', borderRadius: '30px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: '15px', marginTop: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <HandCoinsIcon size={20} />{lang === 'th' ? 'ถอนเงิน / Request Payout' : 'Request Payout'} · €{balance}
       </button>
 
 
@@ -1264,14 +1265,14 @@ export default function ProfileSetup() {
           <div style={S.navGuardCard} onClick={e => e.stopPropagation()}>
             {pending.reason === 'no-photo' ? (
               <>
-                <div style={S.navGuardIcon}>📷</div>
+                <div style={S.navGuardIcon}><CameraPhIcon size={48} /></div>
                 <h3 style={S.navGuardTitle}>{tx.navGuardNoPhotoTitle}</h3>
                 <p style={S.navGuardBody}>{tx.navGuardNoPhotoBody}</p>
                 <button onClick={cancelPending} style={S.navGuardPrimaryBtn}>{tx.navGuardDismissBtn}</button>
               </>
             ) : (
               <>
-                <div style={S.navGuardIcon}>💾</div>
+                <div style={S.navGuardIcon}><FloppyDiskIcon size={48} /></div>
                 <h3 style={S.navGuardTitle}>{tx.navGuardConfirmTitle}</h3>
                 <p style={S.navGuardBody}>{tx.navGuardConfirmBody}</p>
                 <button
@@ -1303,7 +1304,7 @@ const S = {
   avatarWrap: { position: 'relative', width: '100%', aspectRatio: '4/5', borderRadius: 16, overflow: 'hidden', background: '#0f172a', border: '1px solid #334155' },
   avatarImg: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   avatarPlaceholder: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: '#475569' },
-  verifiedRibbon: { position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', background: '#e91e63', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' },
+  verifiedRibbon: { position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', background: '#e91e63', color: '#fff', fontSize: 11, fontWeight: 700, padding: '4px 12px', borderRadius: 99, boxShadow: '0 2px 8px rgba(0,0,0,0.4)' },
   sidebarUsername: { textAlign: 'center', fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
   sidebarCard: { background: '#0f172a', border: '1px solid #334155', borderRadius: 12, padding: 14 },
   sidebarSection: { fontSize: 11, fontWeight: 800, color: '#e91e63', letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10 },
@@ -1386,7 +1387,7 @@ const S = {
   // a banned/warned user's modal must never end up buried behind this one.
   navGuardOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   navGuardCard:    { background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '28px 24px', maxWidth: 360, width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' },
-  navGuardIcon:    { fontSize: 40, marginBottom: 12 },
+  navGuardIcon:    { display: 'flex', justifyContent: 'center', color: '#e91e63', marginBottom: 12 },
   navGuardTitle:   { fontSize: 18, fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px' },
   navGuardBody:    { fontSize: 14, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' },
   navGuardPrimaryBtn: { width: '100%', padding: '14px', borderRadius: 30, border: 'none', background: 'linear-gradient(135deg, #e91e63, #c2185b)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },

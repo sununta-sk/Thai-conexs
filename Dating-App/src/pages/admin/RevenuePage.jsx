@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { CoinsIcon, ArrowsClockwiseIcon } from '../../components/admin/AdminIcons'
 
 export default function RevenuePage() {
   const [subs, setSubs]       = useState([])
@@ -36,10 +37,10 @@ export default function RevenuePage() {
       <div style={S.page}>
         <div style={S.hdr}>
           <div>
-            <h2 style={S.title}>💰 Revenue</h2>
+            <h2 style={S.title}><CoinsIcon size={24} color="#e91e63" />Revenue</h2>
             <p style={S.sub}>Subscription and payment history</p>
           </div>
-          <button onClick={fetchRevenue} style={S.btn}>🔄 Refresh</button>
+          <button onClick={fetchRevenue} style={S.btn}><ArrowsClockwiseIcon size={15} />Refresh</button>
         </div>
         <div style={S.kpiRow}>
           {[
@@ -83,8 +84,8 @@ export default function RevenuePage() {
 
 const S = {
   page:{padding:24}, hdr:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24},
-  title:{color:'#f1f5f9',fontSize:22,fontWeight:800,margin:'0 0 4px'}, sub:{color:'#64748b',fontSize:13,margin:0},
-  btn:{background:'#1e293b',border:'1px solid #334155',borderRadius:10,padding:'8px 16px',color:'#94a3b8',fontSize:13,fontWeight:600,cursor:'pointer'},
+  title:{color:'#f1f5f9',fontSize:22,fontWeight:800,margin:'0 0 4px',display:'flex',alignItems:'center',gap:8}, sub:{color:'#64748b',fontSize:13,margin:0},
+  btn:{display:'flex',alignItems:'center',gap:6,background:'#1e293b',border:'1px solid #334155',borderRadius:10,padding:'8px 16px',color:'#94a3b8',fontSize:13,fontWeight:600,cursor:'pointer'},
   kpiRow:{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24},
   kpiCard:{background:'#1e293b',borderRadius:14,padding:20,border:'1px solid #334155'},
   kpiVal:{fontSize:26,fontWeight:800,marginBottom:4}, kpiLbl:{color:'#64748b',fontSize:12,fontWeight:600},

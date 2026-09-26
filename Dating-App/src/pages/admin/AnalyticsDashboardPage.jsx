@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { DiamondIcon } from '../../components/Icons'
+import { UsersIcon, CoinsIcon, FireIcon } from '../../components/admin/AdminIcons'
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
@@ -39,10 +41,10 @@ const MOCK_ACTIVITY = [
 ]
 
 const STATS_CARDS = [
-  { key: 'total_users',   label: 'Total Users',    icon: '👥', color: '#3b82f6', format: v => v.toLocaleString() },
-  { key: 'premium_users', label: 'Premium Users',  icon: '💎', color: '#e91e63', format: v => v.toLocaleString() },
-  { key: 'monthly_rev',   label: 'Monthly Revenue',icon: '💰', color: '#10b981', format: v => `฿${(v/1000).toFixed(1)}k` },
-  { key: 'active_today',  label: 'Active Today',   icon: '🔥', color: '#f59e0b', format: v => v.toLocaleString() },
+  { key: 'total_users',   label: 'Total Users',    icon: UsersIcon, color: '#3b82f6', format: v => v.toLocaleString() },
+  { key: 'premium_users', label: 'Premium Users',  icon: DiamondIcon, color: '#e91e63', format: v => v.toLocaleString() },
+  { key: 'monthly_rev',   label: 'Monthly Revenue',icon: CoinsIcon, color: '#10b981', format: v => `฿${(v/1000).toFixed(1)}k` },
+  { key: 'active_today',  label: 'Active Today',   icon: FireIcon, color: '#f59e0b', format: v => v.toLocaleString() },
 ]
 
 const CustomTooltip = ({ active, payload, label, prefix = '' }) => {
@@ -110,7 +112,7 @@ export default function AnalyticsDashboardPage() {
         <div style={S.cards}>
           {STATS_CARDS.map(c => (
             <div key={c.key} style={S.card}>
-              <div style={{ ...S.cardIcon, background: c.color + '22', color: c.color }}>{c.icon}</div>
+              <div style={{ ...S.cardIcon, background: c.color + '22', color: c.color }}><c.icon size={22} /></div>
               <div>
                 <div style={S.cardLabel}>{c.label}</div>
                 <div style={{ ...S.cardValue, color: c.color }}>{statsLoading ? '—' : c.format(stats[c.key])}</div>

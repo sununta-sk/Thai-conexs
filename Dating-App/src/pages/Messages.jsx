@@ -4,6 +4,7 @@ import { useIsMobile } from "../hooks/useIsMobile";
 import { useTranslation } from "../hooks/useTranslation";
 import { supabase } from "../lib/supabaseClient";
 import officialLogo from "../lib/LotusConnexs-full.jpeg";
+import { ChatCircleIcon } from "../components/Icons";
 const OFFICIAL_ID = "00000000-0000-0000-0000-000000000001";
 
 function formatTime(iso) {
@@ -124,7 +125,7 @@ export default function Messages() {
           <p style={{ padding: '20px', color: '#64748b', textAlign: 'center' }}>{tx.loading || 'Loading...'}</p>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b' }}>
-            <div style={{ fontSize: 40, marginBottom: 10 }}>💬</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}><ChatCircleIcon size={44} color="#64748b" /></div>
             <p style={{ margin: 0 }}>{activeTab === 'Inbox' ? (tx.noIncoming || 'No incoming messages yet') : (tx.noOutgoing || 'No outgoing messages yet')}</p>
           </div>
         ) : (

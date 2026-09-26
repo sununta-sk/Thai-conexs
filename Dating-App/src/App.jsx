@@ -22,6 +22,7 @@ import LoadingScreen from './components/LoadingScreen';
 import GlobalToast from './components/GlobalToast';
 import Navbar       from './components/Navbar';
 import MobilePreviewFrame from './components/MobilePreviewFrame';
+import { MagnifyingGlassIcon, ArrowLeftIcon } from './components/Icons';
 
 // These were previously static imports, meaning every visitor — including
 // anonymous ones still on the login/register page — downloaded the JS for all
@@ -408,10 +409,10 @@ function NotFound() {
   if (location.pathname.startsWith('/admin')) {
     return (
       <div style={{ background: '#0f172a', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12 }}>
-        <div style={{ fontSize: 48 }}>🔍</div>
+        <MagnifyingGlassIcon size={52} color="#64748b" />
         <div style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 700 }}>Admin page not found</div>
         <div style={{ color: '#475569', fontSize: 13 }}>{location.pathname}</div>
-        <a href="/admin/dashboard" style={{ color: '#e91e63', fontSize: 13, marginTop: 8 }}>← Back to Dashboard</a>
+        <a href="/admin/dashboard" style={{ color: '#e91e63', fontSize: 13, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}><ArrowLeftIcon size={14} />Back to Dashboard</a>
       </div>
     );
   }

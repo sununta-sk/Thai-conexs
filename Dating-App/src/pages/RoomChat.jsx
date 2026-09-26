@@ -10,7 +10,8 @@ import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon, ShieldStarIcon, LockOpenIcon, HeightIcon } from "../components/Icons";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon, ShieldStarIcon, LockOpenIcon, HeightIcon, HeartFillIcon } from "../components/Icons";
+import { HandWavingIcon } from "../components/MoreIcons";
 import PhotoZoomButton from "../components/PhotoZoomButton";
 import { ZOOM_CURSOR, CAN_HOVER } from "../lib/zoomCursor";
 import { toLookingForList, formatHeight } from "../lib/profileFields";
@@ -158,7 +159,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
           style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : ZOOM_CURSOR }}
           onClick={() => { if (!isLocked) setEnlarged(true); }}
           onError={(e) => {
-            e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
+            e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><g transform="translate(15 15) scale(5)" fill="#64748b"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></g></svg>');
           }}
         />
         {!isLocked && !CAN_HOVER && <PhotoZoomButton onClick={() => setEnlarged(true)} />}
@@ -318,7 +319,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
           {lookingFor && <span style={DS.chip}><HeartIcon size={14} />{lookingFor}</span>}
         </div>
 
-        <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
+        <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? <><HeartFillIcon size={15} />Liked</> : <><HeartIcon size={15} />Like</>}</button>
         <button style={DS.blockBtn} onClick={onBlock}><ProhibitIcon size={16} />Block User</button>
       </div>
     </div>
@@ -355,8 +356,8 @@ const DS = {
   bioToggle: { alignSelf: 'flex-start', background: 'none', border: 'none', color: '#e91e63', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: '2px 0 0', marginTop: -4 },
   chipRow: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   chip: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
-  likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   blockBtn: { marginTop: 10, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
@@ -821,7 +822,7 @@ function RoomChatDesktop() {
         {showOfficialMsg && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowOfficialMsg(false)}>
             <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:340}} onClick={e => e.stopPropagation()}>
-              <div style={{fontWeight:700,marginBottom:4,color:'#f1f5f9'}}>📢 Send Official Message</div>
+              <div style={{fontWeight:700,marginBottom:4,color:'#f1f5f9',display:'flex',alignItems:'center',gap:8}}><Megaphone size={18} color="#f59e0b" style={{ flexShrink: 0 }} />Send Official Message</div>
               <div style={{fontSize:12,color:'#94a3b8',marginBottom:12}}>To {otherProfile?.username ?? 'this user'}, via Official Account</div>
               <input value={officialTitle} onChange={e => setOfficialTitle(e.target.value)} placeholder="Title..." style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',fontSize:14,marginBottom:10,boxSizing:'border-box'}} />
               <textarea value={officialBody} onChange={e => setOfficialBody(e.target.value)} placeholder="Message..." rows={4} style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid #334155',background:'#0f172a',color:'#f1f5f9',fontSize:14,resize:'vertical',boxSizing:'border-box'}} />
@@ -832,7 +833,7 @@ function RoomChatDesktop() {
       </div>
 
       <div style={S.messageArea}>
-        {messages.length === 0 && <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>}
+        {messages.length === 0 && <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} <HandWavingIcon size={18} color="#e91e63" style={{ verticalAlign: "-3px" }} /></div>}
         {messages.map((msg, i) => {
           const isMine = msg.sender_id === session?.user?.id;
           const prevMsg = messages[i - 1];

@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
+import { ProhibitIcon, WarningIcon, EnvelopeIcon, MagnifyingGlassIcon, CheckIcon, XIcon, ConfettiIcon } from '../../components/Icons';
+import { ClipboardTextIcon } from '../../components/MoreIcons';
+import { SirenIcon, MaskHappyIcon, ImagesIcon, CoinsIcon, QuestionIcon, UserIcon, CaretRightIcon } from '../../components/admin/AdminIcons';
 
 const STATUS_TABS = ['open', 'investigating', 'resolved', 'dismissed'];
 // Union of content_reports.report_type values (RoomChat.jsx's in-chat report)
@@ -15,17 +18,25 @@ const STATUS_COLOR = {
   resolved:      '#10b981',
   dismissed:     '#475569',
 };
-const CATEGORY_LABEL = {
-  inappropriate:       '⛔ Inappropriate Content',
-  sex_work:            '⚠️ Sex Work / Money',
-  harassment:          '🚨 Harassment',
-  fake_profile:        '🎭 Fake Profile',
-  inappropriate_photo: '🖼️ Inappropriate Photo',
-  spam:                '📩 Spam',
-  scam:                '💰 Scam',
-  underage:            '⚠️ Underage',
-  other:               '❓ Other',
+// [icon, label] per report category (icons were ⛔ ⚠️ 🚨 🎭 🖼️ 📩 💰 ⚠️ ❓).
+const CATEGORY = {
+  inappropriate:       [ProhibitIcon,  'Inappropriate Content'],
+  sex_work:            [WarningIcon,   'Sex Work / Money'],
+  harassment:          [SirenIcon,     'Harassment'],
+  fake_profile:        [MaskHappyIcon, 'Fake Profile'],
+  inappropriate_photo: [ImagesIcon,    'Inappropriate Photo'],
+  spam:                [EnvelopeIcon,  'Spam'],
+  scam:                [CoinsIcon,     'Scam'],
+  underage:            [WarningIcon,   'Underage'],
+  other:               [QuestionIcon,  'Other'],
 };
+// Icon + label for a report category; unknown types show the raw value.
+function CategoryLabel({ type }) {
+  const entry = CATEGORY[type];
+  if (!entry) return type;
+  const [Icon, label] = entry;
+  return <><Icon size={12} />{label}</>;
+}
 // user_reports rows are inserted with status 'pending' (ReportModal.jsx) — treat
 // that as this table's "open" state; every other status is written identically
 // to both tables going forward.
@@ -155,13 +166,13 @@ export default function ReportsPage() {
         {/* ── Header ── */}
         <div style={S.pageHeader}>
           <div>
-            <h2 style={S.pageTitle}>🚨 User Reports</h2>
+            <h2 style={S.pageTitle}><SirenIcon size={24} color="#e91e63" />User Reports</h2>
             <p style={S.pageSubtitle}>Manage user reports</p>
           </div>
         </div>
 
         {loadError && (
-          <div style={S.errorBanner}>⚠️ Couldn't load reports: {loadError}</div>
+          <div style={S.errorBanner}><WarningIcon size={15} />Couldn't load reports: {loadError}</div>
         )}
 
         {/* ── Status Tabs ── */}
@@ -196,7 +207,7 @@ export default function ReportsPage() {
                 ...(category === c ? { background: '#e91e63', color: '#fff', border: '1px solid #e91e63' } : {}),
               }}
             >
-              {c === 'all' ? '📋 All' : CATEGORY_LABEL[c] || c}
+              {c === 'all' ? <><ClipboardTextIcon size={12} />All</> : <CategoryLabel type={c} />}
             </button>
           ))}
         </div>
@@ -210,7 +221,7 @@ export default function ReportsPage() {
               <div style={S.empty}>Loading...</div>
             ) : reports.length === 0 ? (
               <div style={S.empty}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><ConfettiIcon size={44} /></div>
                 <div>No reports {activeTab}</div>
               </div>
             ) : (
@@ -242,7 +253,7 @@ export default function ReportsPage() {
                       </td>
                       {/* Category */}
                       <td style={S.td}>
-                        <span style={S.catChip}>{CATEGORY_LABEL[r.report_type] || r.report_type}</span>
+                        <span style={S.catChip}><CategoryLabel type={r.report_type} /></span>
                       </td>
                       {/* Ban duration applied, if any */}
                       <td style={{ ...S.td, fontSize: 12 }}>{r.ban_duration_applied || 'None'}</td>
@@ -271,7 +282,7 @@ export default function ReportsPage() {
             <div style={S.detailPanel}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <span style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 14 }}>Details</span>
-                <button style={S.closePanelBtn} onClick={() => setDetail(null)}>✕</button>
+                <button style={S.closePanelBtn} onClick={() => setDetail(null)} aria-label="Close"><XIcon size={14} /></button>
               </div>
 
               {/* Status badge */}
@@ -298,7 +309,7 @@ export default function ReportsPage() {
               {/* Category + Description */}
               <div style={S.panelSection}>
                 <div style={S.panelLabel}>Type</div>
-                <span style={S.catChip}>{CATEGORY_LABEL[detail.report_type] || detail.report_type}</span>
+                <span style={S.catChip}><CategoryLabel type={detail.report_type} /></span>
               </div>
               {detail.evidence && (
                 <div style={S.panelSection}>
@@ -324,15 +335,15 @@ export default function ReportsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button style={{ ...S.actBtn, background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b44' }}
                     onClick={() => updateStatus(detail, 'investigating')} disabled={actionLoading}>
-                    🔍 Investigate
+                    <MagnifyingGlassIcon size={15} />Investigate
                   </button>
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
                     onClick={() => updateStatus(detail, 'resolved')} disabled={actionLoading}>
-                    ✓ Resolve
+                    <CheckIcon size={15} />Resolve
                   </button>
                   <button style={{ ...S.actBtn, background: '#47556922', color: '#64748b', border: '1px solid #47556944' }}
                     onClick={() => updateStatus(detail, 'dismissed')} disabled={actionLoading}>
-                    ✕ Dismiss
+                    <XIcon size={15} />Dismiss
                   </button>
                 </div>
               )}
@@ -340,11 +351,11 @@ export default function ReportsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
                     onClick={() => updateStatus(detail, 'resolved')} disabled={actionLoading}>
-                    ✓ Mark Resolved
+                    <CheckIcon size={15} />Mark Resolved
                   </button>
                   <button style={{ ...S.actBtn, background: '#47556922', color: '#64748b', border: '1px solid #47556944' }}
                     onClick={() => updateStatus(detail, 'dismissed')} disabled={actionLoading}>
-                    ✕ Dismiss
+                    <XIcon size={15} />Dismiss
                   </button>
                 </div>
               )}
@@ -377,7 +388,7 @@ export default function ReportsPage() {
                 style={{ ...S.actBtn, background: '#3b82f622', color: '#3b82f6', border: '1px solid #3b82f644', marginTop: 12 }}
                 onClick={() => navigate(`/admin/users/${detail.reported?.id}`)}
               >
-                👤 View Profile
+                <UserIcon size={15} />View Profile
               </button>
             </div>
           )}
@@ -419,7 +430,7 @@ function UserRow({ user, navigate }) {
         <div style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 13 }}>{user?.username}</div>
         <div style={{ color: '#64748b', fontSize: 11 }}>{user?.email}</div>
       </div>
-      <span style={{ color: '#334155', fontSize: 18 }}>›</span>
+      <span style={{ color: '#334155', display: 'flex' }}><CaretRightIcon size={16} /></span>
     </div>
   );
 }
@@ -428,9 +439,9 @@ function UserRow({ user, navigate }) {
 const S = {
   page:        { padding: 24 },
   pageHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
-  errorBanner: { background: '#ef444422', border: '1px solid #ef444444', borderRadius: 10, padding: '10px 16px', marginBottom: 16, color: '#f87171', fontSize: 13, fontWeight: 600 },
+  errorBanner: { display: 'flex', alignItems: 'center', gap: 8, background: '#ef444422', border: '1px solid #ef444444', borderRadius: 10, padding: '10px 16px', marginBottom: 16, color: '#f87171', fontSize: 13, fontWeight: 600 },
 
   tabs: { display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
   tab:  {
@@ -445,11 +456,13 @@ const S = {
 
   catRow: { display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' },
   catBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
     padding: '5px 12px', borderRadius: 20,
     border: '1px solid #1e293b', background: '#0a0f1e',
     color: '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer',
   },
   catChip: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
     padding: '3px 10px', borderRadius: 20,
     background: '#1e293b', color: '#94a3b8',
     fontSize: 11, fontWeight: 600,
@@ -472,6 +485,7 @@ const S = {
     background: '#0f172a', border: '1px solid #334155',
     borderRadius: 8, color: '#64748b',
     width: 28, height: 28, cursor: 'pointer', fontSize: 13,
+    padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   panelSection: { marginBottom: 14 },
   panelLabel:   { color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
@@ -484,6 +498,7 @@ const S = {
     fontFamily: "'Segoe UI', sans-serif",
   },
   actBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
     width: '100%', padding: '9px 0',
     borderRadius: 10, fontSize: 13,
     fontWeight: 700, cursor: 'pointer',

@@ -4,24 +4,31 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { useIsMobile } from '../hooks/useIsMobile';
+import logoImg from '../lib/LotusConnexs.jpeg';
+import { ProhibitIcon } from './Icons';
+import { HandCoinsIcon, CreditCardIcon, MegaphoneIcon } from './MoreIcons';
+import {
+  ChartBarIcon, UsersIcon, ImagesIcon, SirenIcon, TicketIcon, HandshakeIcon, CoinsIcon, TagIcon, GearIcon,
+  StorefrontIcon, PercentIcon, UserGearIcon, ScrollIcon, ListIcon, ArrowSquareOutIcon, PauseCircleIcon,
+} from './admin/AdminIcons';
 
 const NAV_ITEMS = [
-  { icon: '📊', label: 'Dashboard',         path: '/admin-secret-portal',          module: null },
-  { icon: '👥', label: 'Users',             path: '/admin/users',                  module: 'users' },
-  { icon: '🖼️', label: 'Photo Queue',      path: '/admin/moderation/photos',      module: 'content' },
-  { icon: '🚨', label: 'Reports',           path: '/admin/moderation/reports',     module: 'content' },
-  { icon: '🎫', label: 'Tickets',           path: '/admin/moderation/tickets',     module: 'content' },
-  { icon: '🤝', label: 'Affiliates',        path: '/admin/affiliates',             module: 'affiliates' },
-  { icon: '💸', label: 'Payouts',           path: '/admin/payouts',                module: 'affiliates' },
-  { icon: '💰', label: 'Revenue',           path: '/admin/revenue',                module: 'finance' },
-  { icon: '📋', label: 'Subscriptions',     path: '/admin/subscriptions',          module: 'finance' },
-  { icon: '🏷️', label: 'Plans',            path: '/admin/plans',                  module: 'finance' },
-  { icon: '⚙️', label: 'Platform Settings', path: '/admin/platform/settings',     module: 'platform' },
-  { icon: '📢', label: 'Announcements',     path: '/admin/platform/announcements', module: 'platform' },
-  { icon: '📣', label: 'Advertisers',       path: '/admin/ads',                    module: 'platform' },
-  { icon: '🏆', label: 'Commission',        path: '/admin/commission-settings',    module: 'platform' },
-  { icon: '👤', label: 'Team',              path: '/admin/team',                   module: 'platform' },
-  { icon: '📜', label: 'Audit Log',         path: '/admin/audit-log',              module: 'platform' },
+  { icon: ChartBarIcon,        label: 'Dashboard',         path: '/admin-secret-portal',          module: null },
+  { icon: UsersIcon,           label: 'Users',             path: '/admin/users',                  module: 'users' },
+  { icon: ImagesIcon,          label: 'Photo Queue',      path: '/admin/moderation/photos',      module: 'content' },
+  { icon: SirenIcon,           label: 'Reports',           path: '/admin/moderation/reports',     module: 'content' },
+  { icon: TicketIcon,          label: 'Tickets',           path: '/admin/moderation/tickets',     module: 'content' },
+  { icon: HandshakeIcon,       label: 'Affiliates',        path: '/admin/affiliates',             module: 'affiliates' },
+  { icon: HandCoinsIcon,       label: 'Payouts',           path: '/admin/payouts',                module: 'affiliates' },
+  { icon: CoinsIcon,           label: 'Revenue',           path: '/admin/revenue',                module: 'finance' },
+  { icon: CreditCardIcon,      label: 'Subscriptions',     path: '/admin/subscriptions',          module: 'finance' },
+  { icon: TagIcon,             label: 'Plans',            path: '/admin/plans',                  module: 'finance' },
+  { icon: GearIcon,            label: 'Platform Settings', path: '/admin/platform/settings',     module: 'platform' },
+  { icon: MegaphoneIcon,       label: 'Announcements',     path: '/admin/platform/announcements', module: 'platform' },
+  { icon: StorefrontIcon, label: 'Advertisers',       path: '/admin/ads',                    module: 'platform' },
+  { icon: PercentIcon,         label: 'Commission',        path: '/admin/commission-settings',    module: 'platform' },
+  { icon: UserGearIcon,        label: 'Team',              path: '/admin/team',                   module: 'platform' },
+  { icon: ScrollIcon,          label: 'Audit Log',         path: '/admin/audit-log',              module: 'platform' },
 ];
 
 const NAV_GROUPS = [
@@ -110,7 +117,7 @@ export default function AdminLayout({ children }) {
   if (!adminUser) {
     return (
       <div style={S.loadingScreen}>
-        <div style={{ fontSize: 48 }}>🚫</div>
+        <ProhibitIcon size={52} color="#ef4444" />
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Access Denied</h2>
         <p style={{ color: '#64748b' }}>This account does not have access to the Admin Portal</p>
         <button onClick={() => navigate('/discover')} style={S.backBtn}>Back to home</button>
@@ -121,7 +128,7 @@ export default function AdminLayout({ children }) {
   if (adminUser.is_active === false) {
     return (
       <div style={S.loadingScreen}>
-        <div style={{ fontSize: 48 }}>⏸️</div>
+        <PauseCircleIcon size={52} color="#f59e0b" />
         <h2 style={{ color: '#f1f5f9', marginTop: 16 }}>Account Suspended</h2>
         <p style={{ color: '#64748b' }}>This admin account has been suspended</p>
         <button onClick={handleSignOut} style={S.backBtn}>Sign Out</button>
@@ -143,12 +150,13 @@ export default function AdminLayout({ children }) {
       <div key={group.label || 'main'}>
         {group.label && <div style={S.navGroupLabel}>{group.label}</div>}
         {visibleItems.map(item => {
+          const NavIcon = item.icon
           const isActive = location.pathname === item.path ||
             (item.path !== '/admin-secret-portal' && location.pathname.startsWith(item.path))
           return (
             <button key={item.path} onClick={() => navigate(item.path)}
               style={{ ...S.navItem, ...(isActive ? S.navItemActive : {}) }}>
-              <span style={{ fontSize: 15 }}>{item.icon}</span>
+              <span style={{ display: 'flex', width: 18, justifyContent: 'center', flexShrink: 0 }}><NavIcon size={17} /></span>
               <span>{item.label}</span>
               {isActive && <div style={S.navIndicator} />}
             </button>
@@ -163,8 +171,8 @@ export default function AdminLayout({ children }) {
       {isMobile && drawerOpen && <div style={S.drawerOverlay} onClick={() => setDrawerOpen(false)} />}
       <aside style={{ ...S.sidebar, ...(isMobile ? { ...S.sidebarMobile, transform: drawerOpen ? "translateX(0)" : "translateX(-100%)" } : {}) }}>
         <div style={S.logo}>
-          <span style={{ fontSize: 22 }}>💞</span>
-          <span style={S.logoText}>Thai Conexns</span>
+          <img src={logoImg} alt="" style={S.logoImg} />
+          <span style={S.logoText}>Lotus ConneXs</span>
         </div>
         <div style={{ fontSize: 10, color: '#475569', padding: '0 20px 12px', fontWeight: 600, letterSpacing: 1 }}>
           ADMIN PORTAL
@@ -183,7 +191,7 @@ export default function AdminLayout({ children }) {
       <main style={S.main}>
         <div style={S.header}>
           {isMobile && (
-            <button onClick={() => setDrawerOpen(true)} style={S.hamburger} aria-label="Open menu">☰</button>
+            <button onClick={() => setDrawerOpen(true)} style={S.hamburger} aria-label="Open menu"><ListIcon size={24} /></button>
           )}
           <div style={{ color: '#94a3b8', fontSize: 13 }}>
             {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -194,7 +202,7 @@ export default function AdminLayout({ children }) {
               style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: '1px solid #10b98140', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: '#10b98118', color: '#34d399' }}
               onMouseEnter={e => e.currentTarget.style.background = '#10b98130'}
               onMouseLeave={e => e.currentTarget.style.background = '#10b98118'}>
-              ↗ View App
+              <ArrowSquareOutIcon size={14} />View App
             </button>
 
             {/* ── Role + Name ── */}
@@ -214,6 +222,7 @@ const S = {
   shell:         { display: 'flex', height: '100vh', overflow: 'hidden', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif" },
   sidebar:       { width: 220, flexShrink: 0, background: '#0a0f1e', borderRight: '1px solid #1e293b', display: 'flex', flexDirection: 'column', overflowY: 'auto' },
   logo:          { display: 'flex', alignItems: 'center', gap: 10, padding: '20px 20px 8px' },
+  logoImg:       { width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 },
   logoText:      { color: '#f1f5f9', fontWeight: 800, fontSize: 15 },
   navGroupLabel: { padding: '12px 20px 4px', fontSize: 9, fontWeight: 700, color: '#334155', letterSpacing: 1.5 },
   navItem:       { display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 20px', background: 'none', border: 'none', color: '#475569', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'left', position: 'relative', transition: 'color 0.15s' },
@@ -232,7 +241,7 @@ const S = {
   backBtn:       { marginTop: 20, padding: '10px 24px', background: '#e91e63', border: 'none', borderRadius: 10, color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
   sidebarMobile: { position: 'fixed', top: 0, left: 0, height: '100vh', paddingTop: 'env(safe-area-inset-top)', zIndex: 1000, transition: 'transform 0.25s ease', boxSizing: 'border-box' },
   drawerOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 },
-  hamburger:     { background: 'none', border: 'none', color: '#f1f5f9', fontSize: 24, cursor: 'pointer', padding: '0 12px 0 0', lineHeight: 1 },
+  hamburger:     { background: 'none', border: 'none', color: '#f1f5f9', fontSize: 24, cursor: 'pointer', padding: '0 12px 0 0', lineHeight: 1, display: 'flex', alignItems: 'center' },
 
   // ── Language Switcher ──
   langBtn: {

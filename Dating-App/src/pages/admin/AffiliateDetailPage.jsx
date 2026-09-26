@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { ArrowLeftIcon } from '../../components/Icons'
+import { DeviceMobileIcon, BankIcon, NotePencilIcon } from '../../components/MoreIcons'
 
 export default function AffiliateDetailPage() {
   const { id } = useParams()
@@ -66,7 +68,7 @@ export default function AffiliateDetailPage() {
 
         {/* Header */}
         <div style={S.topBar}>
-          <button onClick={() => navigate('/admin/affiliates')} style={S.back}>← Back to Affiliates</button>
+          <button onClick={() => navigate('/admin/affiliates')} style={S.back}><ArrowLeftIcon size={14} />Back to Affiliates</button>
           <button onClick={toggleStatus} disabled={togglingStatus}
             style={{ ...S.toggleBtn, background: affiliate.status === 'approved' ? '#334155' : '#16a34a22', color: affiliate.status === 'approved' ? '#94a3b8' : '#4ade80', border: `1px solid ${affiliate.status === 'approved' ? '#475569' : '#16a34a'}` }}>
             {affiliate.status === 'approved' ? 'Deactivate' : 'Activate'}
@@ -86,7 +88,7 @@ export default function AffiliateDetailPage() {
               </span>
             </div>
             <p style={S.profileEmail}>{displayEmail}</p>
-            {displayPhone && <p style={{ ...S.profileEmail, marginTop: -8 }}>📱 {displayPhone}</p>}
+            {displayPhone && <p style={{ ...S.profileEmail, marginTop: -8, display: 'flex', alignItems: 'center', gap: 6 }}><DeviceMobileIcon size={14} />{displayPhone}</p>}
             <div style={S.metaRow}>
               <span style={S.metaTag}>Code: <strong style={{ color: '#e91e63' }}>{affiliate.referral_code}</strong></span>
               <span style={S.metaTag}>Commission: {affiliate.commission_rate || 20}%</span>
@@ -94,13 +96,13 @@ export default function AffiliateDetailPage() {
               {affiliate.payout_method && <span style={S.metaTag}>Payout: {affiliate.payout_method}</span>}
             </div>
             {affiliate.payout_details && (
-              <div style={{ marginTop: 10, background: '#0f172a', borderRadius: 8, padding: '8px 12px', color: '#94a3b8', fontSize: 13 }}>
-                🏦 {affiliate.payout_details}
+              <div style={{ marginTop: 10, background: '#0f172a', borderRadius: 8, padding: '8px 12px', color: '#94a3b8', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <BankIcon size={15} />{affiliate.payout_details}
               </div>
             )}
             {affiliate.notes && (
-              <div style={{ marginTop: 6, background: '#0f172a', borderRadius: 8, padding: '8px 12px', color: '#94a3b8', fontSize: 13 }}>
-                📝 {affiliate.notes}
+              <div style={{ marginTop: 6, background: '#0f172a', borderRadius: 8, padding: '8px 12px', color: '#94a3b8', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <NotePencilIcon size={15} />{affiliate.notes}
               </div>
             )}
           </div>
@@ -208,7 +210,7 @@ const S = {
   page:         { padding: '24px', maxWidth: '1100px', margin: '0 auto', color: '#f1f5f9' },
   center:       { textAlign: 'center', padding: '80px', color: '#64748b', fontSize: '16px' },
   topBar:       { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' },
-  back:         { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px', padding: 0 },
+  back:         { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px', padding: 0, display: 'flex', alignItems: 'center', gap: 6 },
   toggleBtn:    { padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 },
   profileCard:  { display: 'flex', alignItems: 'flex-start', gap: '20px', background: '#1e293b', borderRadius: '12px', padding: '28px', marginBottom: '20px', border: '1px solid #334155' },
   avatar:       { width: '76px', height: '76px', borderRadius: '50%', background: 'linear-gradient(135deg, #e91e63, #9c27b0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },

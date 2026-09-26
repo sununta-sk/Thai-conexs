@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { WarningIcon } from './Icons';
 
 const COPY = {
   en: {
@@ -70,7 +71,7 @@ export default function WarnModal({ expiresAt, reason, message }) {
     <div style={S.backdrop}>
       <div style={S.modal}>
         <div style={S.iconWrap}>
-          <div style={S.icon}>{'\u26A0'}</div>
+          <WarningIcon size={38} color={AMBER} />
         </div>
 
         <h2 style={S.title}>{t.title}</h2>

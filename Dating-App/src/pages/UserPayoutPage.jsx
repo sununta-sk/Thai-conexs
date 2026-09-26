@@ -2,14 +2,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { ArrowLeftIcon, WarningIcon } from '../components/Icons';
+import { HandCoinsIcon, DeviceMobileIcon, BankIcon, PaypalLogoIcon, CurrencyBtcIcon, CheckCircleIcon, HourglassIcon, ClipboardTextIcon, NotePencilIcon } from '../components/MoreIcons';
 
 const THAI_BANKS = ['Bangkok Bank', 'Kasikorn Bank (KBank)', 'Siam Commercial Bank (SCB)', 'Krungthai Bank (KTB)', 'Bank of Ayudhya (Krungsri)', 'TMBThanachart Bank (TTB)', 'Government Savings Bank (GSB)', 'CIMB Thai Bank', 'UOB Thailand', 'Other'];
 
 const PAYMENT_METHODS = [
-  { value: 'promptpay',      label: 'PromptPay',       icon: '📱', hint: 'เบอร์โทรหรือเลขบัตรประชาชน' },
-  { value: 'bank_transfer',  label: 'Bank Transfer',   icon: '🏦', hint: 'เลขบัญชี, ชื่อธนาคาร, ชื่อบัญชี' },
-  { value: 'paypal',         label: 'PayPal',          icon: '🅿️', hint: 'PayPal email' },
-  { value: 'crypto',         label: 'Crypto (USDT)',   icon: '₿',  hint: 'USDT wallet address' },
+  { value: 'promptpay',      label: 'PromptPay',       icon: DeviceMobileIcon, hint: 'เบอร์โทรหรือเลขบัตรประชาชน' },
+  { value: 'bank_transfer',  label: 'Bank Transfer',   icon: BankIcon,         hint: 'เลขบัญชี, ชื่อธนาคาร, ชื่อบัญชี' },
+  { value: 'paypal',         label: 'PayPal',          icon: PaypalLogoIcon,   hint: 'PayPal email' },
+  { value: 'crypto',         label: 'Crypto (USDT)',   icon: CurrencyBtcIcon,  hint: 'USDT wallet address' },
 ];
 
 export default function UserPayoutPage() {
@@ -141,6 +143,7 @@ export default function UserPayoutPage() {
   }
 
   const selectedMethod = PAYMENT_METHODS.find(m => m.value === method);
+  const SelectedMethodIcon = selectedMethod?.icon;
 
   return (
     <div style={{ background: '#f1f5f9', minHeight: '100vh', paddingBottom: 100 }}>
@@ -148,11 +151,11 @@ export default function UserPayoutPage() {
 
         {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)', padding: '40px 20px 30px', color: '#fff', textAlign: 'center' }}>
-          <button onClick={() => navigate(-1)} style={{ position: 'absolute', left: 16, top: 16, background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: 20, padding: '6px 14px', cursor: 'pointer', fontSize: 13 }}>
-            ← Back
+          <button onClick={() => navigate(-1)} style={{ position: 'absolute', left: 16, top: 16, background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: 20, padding: '6px 14px', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ArrowLeftIcon size={14} />Back
           </button>
           <p style={{ margin: 0, fontSize: 12, opacity: 0.8, fontWeight: 'bold' }}>TCN AFFILIATE</p>
-          <h2 style={{ margin: '6px 0 4px', fontSize: 28, fontWeight: 900 }}>💸 Request Payout</h2>
+          <h2 style={{ margin: '6px 0 4px', fontSize: 28, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}><HandCoinsIcon size={30} />Request Payout</h2>
           <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.2)', padding: '6px 20px', borderRadius: 20, fontSize: 22, fontWeight: 900, marginTop: 4 }}>
             €{balance.toFixed(2)}
           </div>
@@ -164,7 +167,7 @@ export default function UserPayoutPage() {
           {/* Success state */}
           {success && (
             <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 16, padding: 20, textAlign: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><CheckCircleIcon size={44} color="#16a34a" /></div>
               <div style={{ fontWeight: 800, color: '#16a34a', fontSize: 16 }}>Request Submitted!</div>
               <div style={{ fontSize: 13, color: '#4ade80', marginTop: 4 }}>Admin จะตรวจสอบและโอนเงินให้ภายใน 1-3 วันทำการ</div>
             </div>
@@ -173,7 +176,7 @@ export default function UserPayoutPage() {
           {/* Not enough balance */}
           {!canRequest && !success && (
             <div style={{ background: '#fef9c3', border: '1.5px solid #fde047', borderRadius: 16, padding: 16, marginBottom: 20, textAlign: 'center' }}>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>⚠️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><WarningIcon size={28} color="#d97706" /></div>
               <div style={{ fontWeight: 700, color: '#92400e', fontSize: 14 }}>ยอดไม่ถึงขั้นต่ำ</div>
               <div style={{ fontSize: 12, color: '#a16207', marginTop: 4 }}>
                 ต้องมีอย่างน้อย €{MIN_PAYOUT} ถึงจะ request ได้<br />
@@ -188,13 +191,16 @@ export default function UserPayoutPage() {
               {/* Payment Method */}
               <h3 style={Sx.sectionTitle}>Payment Method</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
-                {PAYMENT_METHODS.map(m => (
+                {PAYMENT_METHODS.map(m => {
+                  const MethodIcon = m.icon;
+                  return (
                   <button key={m.value} onClick={() => { setMethod(m.value); setDetail(''); }}
                     style={{ ...Sx.methodBtn, ...(method === m.value ? Sx.methodBtnActive : {}) }}>
-                    <span style={{ fontSize: 22 }}>{m.icon}</span>
+                    <MethodIcon size={24} />
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Payment Detail */}
@@ -239,7 +245,7 @@ export default function UserPayoutPage() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{ color: '#64748b', fontSize: 13 }}>ช่องทาง</span>
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>{selectedMethod?.icon} {selectedMethod?.label}</span>
+                  <span style={{ fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>{SelectedMethodIcon && <SelectedMethodIcon size={16} />}{selectedMethod?.label}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#64748b', fontSize: 13 }}>เวลาดำเนินการ</span>
@@ -248,8 +254,8 @@ export default function UserPayoutPage() {
               </div>
 
               <button onClick={handleSubmit} disabled={submitting}
-                style={{ width: '100%', padding: 18, borderRadius: 30, border: 'none', background: submitting ? '#d1d5db' : 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: 17, cursor: submitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
-                {submitting ? '⏳ กำลังส่ง...' : '💸 ยืนยัน Request Payout'}
+                style={{ width: '100%', padding: 18, borderRadius: 30, border: 'none', background: submitting ? '#d1d5db' : 'linear-gradient(135deg, #6366f1, #a855f7)', color: '#fff', fontWeight: 800, fontSize: 17, cursor: submitting ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                {submitting ? <><HourglassIcon size={20} />กำลังส่ง...</> : <><HandCoinsIcon size={20} />ยืนยัน Request Payout</>}
               </button>
             </>
           )}
@@ -266,8 +272,8 @@ export default function UserPayoutPage() {
                       <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
                         {h.payment_method} · {new Date(h.requested_at).toLocaleDateString('th-TH')}
                       </div>
-                      {h.payment_detail && <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>📋 {h.payment_detail}</div>}
-                      {h.review_notes && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 2 }}>📝 {h.review_notes}</div>}
+                      {h.payment_detail && <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><ClipboardTextIcon size={12} />{h.payment_detail}</div>}
+                      {h.review_notes && <div style={{ fontSize: 11, color: '#f59e0b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><NotePencilIcon size={12} />{h.review_notes}</div>}
                     </div>
                     <div style={{ ...Sx.statusPill, ...statusColor(h.status) }}>{h.status}</div>
                   </div>

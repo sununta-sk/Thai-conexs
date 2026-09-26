@@ -183,6 +183,30 @@ export const ImageIcon = phosphor('M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,
 // "Upload photos" hint (was 📸) - picked from the Phosphor set.
 export const CameraPhIcon = phosphor('M208,56H180.28L166.65,35.56A8,8,0,0,0,160,32H96a8,8,0,0,0-6.65,3.56L75.71,56H48A24,24,0,0,0,24,80V192a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V80A24,24,0,0,0,208,56Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V80a8,8,0,0,1,8-8H80a8,8,0,0,0,6.66-3.56L100.28,48h55.43l13.63,20.44A8,8,0,0,0,176,72h32a8,8,0,0,1,8,8ZM128,88a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,88Zm0,72a28,28,0,1,1,28-28A28,28,0,0,1,128,160Z', 'CameraPhIcon');
 
+// Welcome popup feature rows (were ✨ / ⚡).
+export const TranslateIcon = phosphor('M247.15,212.42l-56-112a8,8,0,0,0-14.31,0l-21.71,43.43A88,88,0,0,1,108,126.93,103.65,103.65,0,0,0,135.69,64H160a8,8,0,0,0,0-16H104V32a8,8,0,0,0-16,0V48H32a8,8,0,0,0,0,16h87.63A87.76,87.76,0,0,1,96,116.35a87.74,87.74,0,0,1-19-31,8,8,0,1,0-15.08,5.34A103.63,103.63,0,0,0,84,127a87.55,87.55,0,0,1-52,17,8,8,0,0,0,0,16,103.46,103.46,0,0,0,64-22.08,104.18,104.18,0,0,0,51.44,21.31l-26.6,53.19a8,8,0,0,0,14.31,7.16L148.94,192h70.11l13.79,27.58A8,8,0,0,0,240,224a8,8,0,0,0,7.15-11.58ZM156.94,176,184,121.89,211.05,176Z', 'TranslateIcon');
+export const LightningIcon = phosphor('M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z', 'LightningIcon');
+
+// Back / forward links and buttons (were ← / →).
+export const ArrowLeftIcon = phosphor('M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z', 'ArrowLeftIcon');
+export const ArrowRightIcon = phosphor('M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z', 'ArrowRightIcon');
+
+// Warnings (were ⚠ / ⚠️).
+export const WarningIcon = phosphor('M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8ZM120,144V104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,180Z', 'WarningIcon');
+
+// Username-changed popup (was ✏️).
+export const PencilSimpleIcon = phosphor('M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z', 'PencilSimpleIcon');
+
+// Search / not found (was 🔍).
+export const MagnifyingGlassIcon = phosphor('M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z', 'MagnifyingGlassIcon');
+
+// Email sent screens (was 📧).
+export const EnvelopeIcon = phosphor('M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM203.43,64,128,133.15,52.57,64ZM216,192H40V74.19l82.59,75.71a8,8,0,0,0,10.82,0L216,74.19V192Z', 'EnvelopeIcon');
+
+// Notification types in the bell (were 💬 / ❤️ / 💕🎉).
+export const ChatCircleIcon = phosphor('M128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z', 'ChatCircleIcon');
+export const HeartFillIcon = phosphor('M240,102c0,70-103.79,126.66-108.21,129a8,8,0,0,1-7.58,0C119.79,228.66,16,172,16,102A62.07,62.07,0,0,1,78,40c20.65,0,38.73,8.88,50,23.89C139.27,48.88,157.35,40,178,40A62.07,62.07,0,0,1,240,102Z', 'HeartFillIcon');
+export const ConfettiIcon = phosphor('M111.49,52.63a15.8,15.8,0,0,0-26,5.77L33,202.78A15.83,15.83,0,0,0,47.76,224a16,16,0,0,0,5.46-1l144.37-52.5a15.8,15.8,0,0,0,5.78-26Zm-8.33,135.21-35-35,13.16-36.21,58.05,58.05Zm-55,20,14-38.41,24.45,24.45ZM156,168.64,87.36,100l13-35.87,91.43,91.43ZM160,72a37.8,37.8,0,0,1,3.84-15.58C169.14,45.83,179.14,40,192,40c6.7,0,11-2.29,13.65-7.21A22,22,0,0,0,208,23.94,8,8,0,0,1,224,24c0,12.86-8.52,32-32,32-6.7,0-11,2.29-13.65,7.21A22,22,0,0,0,176,72.06,8,8,0,0,1,160,72ZM136,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm101.66,82.34a8,8,0,1,1-11.32,11.31l-16-16a8,8,0,0,1,11.32-11.32Zm4.87-42.75-24,8a8,8,0,0,1-5.06-15.18l24-8a8,8,0,0,1,5.06,15.18Z', 'ConfettiIcon');
 // Gender -> icon, via the shared male/female/transgender classification in
 // lib/profileFields.js. Renders nothing for 'other' (Non-binary, Gay,
 // Bisexual, Other...) and blank values - callers decide their own fallback.
@@ -222,15 +246,22 @@ export function AgeIcon({ size = 16, color = 'currentColor', style, ...rest }) {
   );
 }
 
-// Plain-text messages (toasts, whose wording lives in lib/I18.js as strings)
-// that contain the lotus/rocket emoji: renders the text with those two emoji
-// swapped for the app's LotusIcon/RocketIcon, so the translations don't need
-// to change shape.
+// Plain-text messages (toasts, whose wording lives in lib/I18.js or in the
+// admin pages as strings) that contain an emoji standing in for an icon:
+// renders the text with each such emoji swapped for the matching icon, so
+// the strings themselves don't need to change shape. The default map covers
+// the app's lotus/rocket toasts; callers can pass their own `icons` map
+// (emoji -> icon component), e.g. the admin pages' toast glyphs.
 const INLINE_ICONS = { '🪷': LotusIcon, '🚀': RocketIcon };
-export function IconText({ text, size = '1.15em' }) {
+const escapeRe = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export function IconText({ text, size = '1.15em', icons = INLINE_ICONS }) {
   if (typeof text !== 'string') return text ?? null;
-  return text.split(/(🪷|🚀)/u).map((part, i) => {
-    const Icon = INLINE_ICONS[part];
+  const keys = Object.keys(icons).sort((a, b) => b.length - a.length);
+  // An optional trailing U+FE0F (emoji presentation selector, as in ⚠️) is
+  // consumed with its glyph so it can't render as a stray box.
+  const re = new RegExp(`(${keys.map(escapeRe).join('|')})\uFE0F?`, 'u');
+  return text.split(re).map((part, i) => {
+    const Icon = i % 2 === 1 ? icons[part] : null;
     return Icon ? <Icon key={i} size={size} style={{ verticalAlign: '-0.2em' }} /> : part;
   });
 }

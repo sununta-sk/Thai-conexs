@@ -11,6 +11,7 @@ import { useOnline } from "../context/OnlineContext";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
 import { SmileyIcon, MicIcon, BackIcon, CrownIcon, LocationIcon, PaperPlaneIcon, ShieldStarIcon } from "./Icons";
+import { HandWavingIcon } from "./MoreIcons";
 import PhotoEnlargeModal from "./PhotoEnlargeModal";
 import PhotoZoomButton from "./PhotoZoomButton";
 import { ZOOM_CURSOR } from "../lib/zoomCursor";
@@ -548,7 +549,7 @@ export default function MobileRoomChat() {
       {/* ── Message Area ── */}
       <div style={S.messageArea}>
         {messages.length === 0 && (
-          <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} 👋</div>
+          <div style={S.emptyState}>Say hello to {otherProfile?.username ?? "them"} <HandWavingIcon size={18} color="#e91e63" style={{ verticalAlign: "-3px" }} /></div>
         )}
         {messages.map((msg, i) => {
           const isMine = msg.sender_id === session?.user?.id;
@@ -711,7 +712,7 @@ export default function MobileRoomChat() {
       {showOfficialMsg && createPortal(
         <div style={S.modalOverlay} onClick={() => setShowOfficialMsg(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={{ ...S.modalTitle, marginBottom: 4 }}>📢 Send Official Message</div>
+            <div style={{ ...S.modalTitle, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}><Megaphone size={18} color="#f59e0b" style={{ flexShrink: 0 }} />Send Official Message</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>To {otherProfile?.username ?? "this user"}, via Official Account</div>
             <input
               value={officialTitle}

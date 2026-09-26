@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
+import { PencilSimpleIcon, IconText } from '../../components/Icons';
+import { CheckCircleIcon, XCircleIcon } from '../../components/MoreIcons';
+import { TagIcon } from '../../components/admin/AdminIcons';
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons';
 
 export default function PlansPage() {
   const [plans, setPlans]     = useState([]);
@@ -55,11 +59,11 @@ export default function PlansPage() {
   return (
     <AdminLayout>
       <div style={{ padding: 24 }}>
-        {toast && <div style={{ position: 'fixed', bottom: 32, right: 32, background: toast.type === 'error' ? '#ef4444' : '#10b981', color: '#fff', padding: '12px 22px', borderRadius: 10, fontWeight: 700, zIndex: 999 }}>{toast.msg}</div>}
+        {toast && <div style={{ position: 'fixed', bottom: 32, right: 32, background: toast.type === 'error' ? '#ef4444' : '#10b981', color: '#fff', padding: '12px 22px', borderRadius: 10, fontWeight: 700, zIndex: 999 }}><IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
           <div>
-            <h2 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' }}>🎫 Subscription Plans</h2>
+            <h2 style={{ color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}><TagIcon size={24} color="#e91e63" />Subscription Plans</h2>
             <p style={{ color: '#475569', fontSize: 14, margin: 0 }}>All subscription plans</p>
           </div>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 20, padding: '6px 14px', color: '#94a3b8', fontSize: 13 }}>
@@ -90,7 +94,9 @@ export default function PlansPage() {
                     <Row label="Monthly Price" value={plan.price_monthly ? `THB ${plan.price_monthly}` : 'Free'} color={color} />
                     <Row label="Yearly Price"  value={plan.price_yearly  ? `THB ${plan.price_yearly}`  : 'Free'} color={color} />
                     {plan.trial_days > 0 && <Row label="Trial" value={`${plan.trial_days} days`} color={color} />}
-                    <Row label="Status" value={plan.is_active ? '✅ Active' : '❌ Inactive'} color={color} />
+                    <Row label="Status" value={plan.is_active
+                      ? <span style={S.inlineIcon}><CheckCircleIcon size={16} color="#10b981" />Active</span>
+                      : <span style={S.inlineIcon}><XCircleIcon size={16} color="#ef4444" />Inactive</span>} color={color} />
                     {plan.description && (
                       <div style={{ marginTop: 4, padding: '10px 12px', background: '#0f172a', borderRadius: 8 }}>
                         <p style={{ color: '#94a3b8', fontSize: 13, margin: 0 }}>{plan.description}</p>
@@ -99,8 +105,8 @@ export default function PlansPage() {
                   </div>
 
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => setEditing({ ...plan })} style={{ flex: 1, background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
-                      ✏️ Edit
+                    <button onClick={() => setEditing({ ...plan })} style={{ flex: 1, background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      <PencilSimpleIcon size={14} />Edit
                     </button>
                     <button onClick={() => toggleActive(plan)} style={{ flex: 1, background: 'transparent', border: `1px solid ${plan.is_active ? '#ef444444' : '#10b98144'}`, color: plan.is_active ? '#ef4444' : '#10b981', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                       {plan.is_active ? 'Deactivate' : 'Activate'}
@@ -117,7 +123,7 @@ export default function PlansPage() {
       {editing && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setEditing(null)}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 16, padding: 28, width: 440, maxWidth: '90vw' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 800, margin: '0 0 20px' }}>✏️ Edit: {editing.display_name || editing.name}</h3>
+            <h3 style={{ color: '#f1f5f9', fontSize: 18, fontWeight: 800, margin: '0 0 20px', display: 'flex', alignItems: 'center', gap: 8 }}><PencilSimpleIcon size={18} color="#e91e63" />Edit: {editing.display_name || editing.name}</h3>
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={S.label}>Display Name</label>
@@ -165,6 +171,7 @@ function Row({ label, value, color }) {
 }
 
 const S = {
+  inlineIcon: { display: 'inline-flex', alignItems: 'center', gap: 5 },
   label: { display: 'block', fontSize: 12, color: '#64748b', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase' },
   input: { width: '100%', background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 12px', color: '#f1f5f9', fontSize: 14, outline: 'none', boxSizing: 'border-box' },
 };

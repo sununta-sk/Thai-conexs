@@ -11,7 +11,7 @@ import { BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
 import { useTranslation } from '../hooks/useTranslation';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import ThumbImg from '../components/ThumbImg';
-import { VerifiedIcon, CrownIcon, LotusIcon, GenderIcon, XIcon, ShieldStarIcon, IconText } from '../components/Icons';
+import { VerifiedIcon, CrownIcon, LotusIcon, GenderIcon, XIcon, ShieldStarIcon, IconText, HeartIcon, HeartFillIcon } from '../components/Icons';
 import { genderKind, cmToFeetInches } from '../lib/profileFields';
 
 function getChatId(uid1, uid2) {
@@ -606,7 +606,7 @@ export default function Discover() {
   const getMainPhoto = (profile) => {
     if (profile.id === OFFICIAL_ID) return officialLogo;
     const raw = profile.avatar_url;
-    if (!raw) return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
+    if (!raw) return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><g transform="translate(15 15) scale(5)" fill="#64748b"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></g></svg>');
     if (typeof raw === 'string') return raw;
     return raw.url;
   };
@@ -961,7 +961,7 @@ export default function Discover() {
                   </div>
                   <div style={S.actions}>
                     <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || <XIcon size={14} />}</button>
-                    <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
+                    <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? <HeartFillIcon size={15} /> : <HeartIcon size={15} />}</button>
                   </div>
                 </div>
 
@@ -1199,8 +1199,8 @@ const S = {
   actions: { display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '4px', borderTop: '1px solid #334155' },
   btnX: { background: 'none', border: 'none', color: '#64748b', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
   btnChat: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '13px', cursor: 'pointer', padding: '3px 10px' },
-  btnLike: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
-  btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1 },
+  btnLike: { background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: '12px', color: '#e91e63', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1, display: 'flex', alignItems: 'center' },
+  btnLiked: { background: '#e91e63', border: '1px solid #e91e63', borderRadius: '12px', color: '#fff', fontSize: '16px', cursor: 'pointer', padding: '3px 14px', lineHeight: 1, display: 'flex', alignItems: 'center' },
   emptyState: { textAlign: 'center', padding: '60px 20px', color: '#64748b', fontSize: 14 },
 
   // Advertiser ad box (side margins, desktop-wide only — see .tcn-promo-box

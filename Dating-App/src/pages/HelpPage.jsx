@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { CheckIcon } from '../components/Icons';
+import { CaretDownIcon } from '../components/MoreIcons';
 
 const FAQ_ITEMS = [
   {
@@ -139,7 +141,7 @@ export default function HelpPage() {
                   onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
                   style={{ ...S.faqQuestion, background: openIdx === idx ? 'rgba(233, 30, 99, 0.15)' : '#0f172a' }}>
                   <span>{item.q}</span>
-                  <span style={{ fontSize: 18, color: '#e91e63', transition: 'transform 0.2s', transform: openIdx === idx ? 'rotate(180deg)' : 'rotate(0)' }}>▾</span>
+                  <span style={{ display: 'flex', alignItems: 'center', height: 22, flexShrink: 0, color: '#e91e63', transition: 'transform 0.2s', transform: openIdx === idx ? 'rotate(180deg)' : 'rotate(0)' }}><CaretDownIcon size={16} /></span>
                 </button>
                 {openIdx === idx && (
                   <div style={S.faqAnswer}>{item.a}</div>
@@ -197,7 +199,7 @@ export default function HelpPage() {
 
             {sent && (
               <div style={S.successMsg}>
-                ✓ Your message has been sent! We will reply within 24 hours.
+                <CheckIcon size={16} style={{ verticalAlign: '-3px', marginRight: 6 }} />Your message has been sent! We will reply within 24 hours.
               </div>
             )}
 

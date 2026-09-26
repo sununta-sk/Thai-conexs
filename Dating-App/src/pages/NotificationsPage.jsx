@@ -2,18 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { BellRingingIcon, RocketIcon, XIcon, BellSlashIcon } from "../components/Icons";
+import { BellRingingIcon, RocketIcon, XIcon, BellSlashIcon, ConfettiIcon, ChatCircleIcon, HeartFillIcon } from "../components/Icons";
+import { StarIcon, EyeIcon, AlarmIcon, CheckCircleIcon, MegaphoneIcon } from "../components/MoreIcons";
 
 const TYPE_ICON = {
-  new_match: "🎉",
-  new_message: "💬",
-  like_received: "❤️",
-  super_like: "⭐",
-  profile_view: "👀",
-  subscription_expiring: "⏰",
-  subscription_updated: "✅",
+  new_match: <ConfettiIcon size={20} color="#e91e63" />,
+  new_message: <ChatCircleIcon size={20} color="#e91e63" />,
+  like_received: <HeartFillIcon size={20} color="#e91e63" />,
+  super_like: <StarIcon size={20} color="#e91e63" />,
+  profile_view: <EyeIcon size={20} color="#e91e63" />,
+  subscription_expiring: <AlarmIcon size={20} color="#e91e63" />,
+  subscription_updated: <CheckCircleIcon size={20} color="#e91e63" />,
   boost_started: <RocketIcon size={20} color="#e91e63" />,
-  system: "📢",
+  system: <MegaphoneIcon size={20} color="#e91e63" />,
 };
 
 const TYPE_LABEL = {

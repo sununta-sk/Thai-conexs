@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
+import { PencilSimpleIcon } from './Icons';
 
 const BLOCKLIST = ['freelance'];
 // TODO: add more prohibited words here as needed (case-insensitive substring match)
@@ -103,7 +104,7 @@ export default function UsernameChangedModal({ id, userId, oldUsername, reason }
     <div style={S.backdrop}>
       <div style={S.modal}>
         <div style={S.iconWrap}>
-          <div style={S.icon}>{'\u270F\uFE0F'}</div>
+          <PencilSimpleIcon size={34} color="#0891b2" />
         </div>
 
         <h2 style={S.title}>{t.title}</h2>

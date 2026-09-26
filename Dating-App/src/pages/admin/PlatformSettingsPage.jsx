@@ -2,6 +2,10 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import { IconText } from '../../components/Icons'
+import { FloppyDiskIcon } from '../../components/MoreIcons'
+import { GearIcon } from '../../components/admin/AdminIcons'
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons'
 
 const DEFAULTS = [
   { key:'app_name',             label:'App Name',                     value:'Thai Conexns', type:'text',   group:'General' },
@@ -45,10 +49,10 @@ export default function PlatformSettingsPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        {toast && <div style={S.toast}>{toast}</div>}
+        {toast && <div style={S.toast}><IconText text={toast} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
         <div style={S.hdr}>
-          <div><h2 style={S.title}>⚙️ Platform Settings</h2><p style={S.sub}>Configure app behavior</p></div>
-          <button onClick={saveAll} disabled={!dirty||saving} style={{...S.saveBtn,opacity:dirty?1:0.4}}>{saving?'Saving…':'💾 Save Changes'}</button>
+          <div><h2 style={S.title}><GearIcon size={24} color="#e91e63" />Platform Settings</h2><p style={S.sub}>Configure app behavior</p></div>
+          <button onClick={saveAll} disabled={!dirty||saving} style={{...S.saveBtn,opacity:dirty?1:0.4}}>{saving?'Saving…':<><FloppyDiskIcon size={16} />Save Changes</>}</button>
         </div>
         {groups.map(group => (
           <div key={group} style={S.groupCard}>
@@ -74,8 +78,8 @@ export default function PlatformSettingsPage() {
 
 const S = {
   page:{padding:24}, hdr:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24},
-  title:{color:'#f1f5f9',fontSize:22,fontWeight:800,margin:'0 0 4px'}, sub:{color:'#64748b',fontSize:13,margin:0},
-  saveBtn:{background:'#e91e63',border:'none',borderRadius:10,padding:'10px 20px',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'},
+  title:{color:'#f1f5f9',fontSize:22,fontWeight:800,margin:'0 0 4px',display:'flex',alignItems:'center',gap:8}, sub:{color:'#64748b',fontSize:13,margin:0},
+  saveBtn:{display:'flex',alignItems:'center',gap:6,background:'#e91e63',border:'none',borderRadius:10,padding:'10px 20px',color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer'},
   groupCard:{background:'#1e293b',borderRadius:14,border:'1px solid #334155',overflow:'hidden',marginBottom:16},
   groupTitle:{padding:'12px 20px',fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:1,color:'#475569',borderBottom:'1px solid #334155',background:'#0f172a'},
   row:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 20px',borderBottom:'1px solid #0f172a'},

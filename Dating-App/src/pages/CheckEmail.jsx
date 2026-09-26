@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import logoImg from '../lib/LotusConnexs.jpeg';
+import { LotusIcon, ConfettiIcon, EnvelopeIcon, CheckIcon, ArrowLeftIcon } from '../components/Icons';
 
 export default function CheckEmail() {
   const [params] = useSearchParams();
@@ -44,13 +45,13 @@ export default function CheckEmail() {
       {showWelcome && (
         <div style={S.overlay}>
           <div style={S.popup}>
-            <div style={S.popupLogo}>🌸</div>
+            <div style={S.popupLogo}><LotusIcon size={56} /></div>
             <h2 style={S.popupTitle}>Welcome to</h2>
             <div style={S.popupBrand}>Lotus ConneXs</div>
             <p style={S.popupSub}>Where Connections Bloom</p>
             <div style={S.popupDivider} />
             <p style={S.popupMsg}>
-              You have successfully registered! 🎉<br />Please verify your email before getting started.
+              You have successfully registered! <ConfettiIcon size="1.15em" color="#e91e63" style={{ verticalAlign: '-0.2em' }} /><br />Please verify your email before getting started.
             </p>
             <button style={S.popupBtn} onClick={() => setShowWelcome(false)}>
               Got it!
@@ -62,7 +63,7 @@ export default function CheckEmail() {
       {/* ── Check Email Card ── */}
       <div style={S.card}>
         <img src={logoImg} alt="logo" style={S.logo} />
-        <div style={S.iconWrap}>📧</div>
+        <div style={S.iconWrap}><EnvelopeIcon size={60} /></div>
         <h1 style={S.heading}>Check your email</h1>
         <p style={S.text}>
           We've sent a verification link to<br />
@@ -81,13 +82,13 @@ export default function CheckEmail() {
         </div>
 
         {resent ? (
-          <div style={S.successBox}>✓ Email sent! Check your inbox.</div>
+          <div style={S.successBox}><CheckIcon size={16} />Email sent! Check your inbox.</div>
         ) : (
           <button onClick={handleResend} disabled={resending} style={S.resendBtn}>
             {resending ? 'Sending…' : 'Resend email'}
           </button>
         )}
-        <Link to="/login" style={S.backLink}>← Back to Login</Link>
+        <Link to="/login" style={S.backLink}><ArrowLeftIcon size={14} />Back to Login</Link>
       </div>
     </div>
   );
@@ -125,7 +126,7 @@ const S = {
     border: '1px solid #334155',
     boxShadow: '0 24px 64px rgba(233,30,99,0.3)',
   },
-  popupLogo: { fontSize: 52, marginBottom: 12 },
+  popupLogo: { display: 'flex', justifyContent: 'center', color: '#e91e63', marginBottom: 12 },
   popupTitle: { margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: '#94a3b8' },
   popupBrand: { fontSize: 30, fontWeight: 900, color: '#e91e63', marginBottom: 4, letterSpacing: '0.5px' },
   popupSub: { fontSize: 13, color: '#64748b', margin: '0 0 24px', letterSpacing: '1px' },
@@ -161,7 +162,7 @@ const S = {
     boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
   },
   logo: { width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 4px 20px rgba(233,30,99,0.4)', marginBottom: 16 },
-  iconWrap: { fontSize: 56, marginBottom: 16 },
+  iconWrap: { display: 'flex', justifyContent: 'center', color: '#e91e63', marginBottom: 16 },
   heading: { margin: '0 0 12px', fontSize: 26, fontWeight: 800, color: '#f1f5f9' },
   text: { color: '#cbd5e1', fontSize: 15, lineHeight: 1.6, margin: '0 0 16px' },
   emailText: { color: '#e91e63', fontWeight: 700 },
@@ -190,6 +191,6 @@ const S = {
     flexShrink: 0,
   },
   resendBtn: { width: '100%', padding: '13px', borderRadius: 30, border: '1px solid #334155', background: 'transparent', color: '#e91e63', fontWeight: 700, fontSize: 14, cursor: 'pointer', marginBottom: 16 },
-  successBox: { padding: '13px', borderRadius: 12, background: 'rgba(74,222,128,0.15)', color: '#4ade80', fontWeight: 700, fontSize: 14, marginBottom: 16, border: '1px solid rgba(74,222,128,0.3)' },
-  backLink: { display: 'block', color: '#94a3b8', fontSize: 13, fontWeight: 600, textDecoration: 'none', marginTop: 8 },
+  successBox: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '13px', borderRadius: 12, background: 'rgba(74,222,128,0.15)', color: '#4ade80', fontWeight: 700, fontSize: 14, marginBottom: 16, border: '1px solid rgba(74,222,128,0.3)' },
+  backLink: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#94a3b8', fontSize: 13, fontWeight: 600, textDecoration: 'none', marginTop: 8 },
 };

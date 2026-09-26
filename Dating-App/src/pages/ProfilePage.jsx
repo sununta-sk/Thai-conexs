@@ -10,6 +10,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { TOP_H, BOTTOM_H } from '../components/MobileNavbar'
 import { useTranslation } from '../hooks/useTranslation'
 import { LocationIcon, GenderIcon, EducationIcon, HeartIcon, LotusIcon, HeightIcon } from '../components/Icons'
+import { BriefcaseIcon } from '../components/MoreIcons'
 import { genderKind, formatHeight } from '../lib/profileFields'
 
 // Photo entries are JSON-stringified objects with crop metadata, same
@@ -142,7 +143,7 @@ export default function ProfilePage() {
           {profile.gender            && <Chip icon={genderKind(profile.gender) !== 'other' && <GenderIcon gender={profile.gender} size={16} />} label={profile.gender} />}
           {profile.height            && <Chip icon={<HeightIcon size={16} />} label={formatHeight(profile.height)} />}
           {profile.education         && <Chip icon={<EducationIcon size={16} />} label={profile.education} />}
-          {profile.occupation        && <Chip icon="💼"  label={profile.occupation} />}
+          {profile.occupation        && <Chip icon={<BriefcaseIcon size={16} />} label={profile.occupation} />}
           {profile.relationship_goal && <Chip icon={<HeartIcon size={16} />}     label={profile.relationship_goal} />}
         </div>
       </Section>

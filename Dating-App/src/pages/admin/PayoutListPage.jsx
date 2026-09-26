@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { CheckIcon, XIcon } from '../../components/Icons'
+import { CurrencyEurIcon } from '../../components/admin/AdminIcons'
 
 const STATUS_TABS = ['all', 'pending', 'approved', 'paid', 'rejected']
 
@@ -145,7 +147,7 @@ export default function PayoutListPage() {
             <span style={{ color: '#94a3b8', fontSize: '14px' }}>{selected.size} selected</span>
             {selectedPending.length > 0 && (
               <button onClick={handleBulkApprove} disabled={acting === 'bulk'} style={S.bulkBtn}>
-                {acting === 'bulk' ? 'Approving…' : `✓ Approve ${selectedPending.length} Pending`}
+                {acting === 'bulk' ? 'Approving…' : <><CheckIcon size={14} />Approve {selectedPending.length} Pending</>}
               </button>
             )}
             <button onClick={() => setSelected(new Set())} style={{ ...S.bulkBtn, background: '#334155', color: '#94a3b8' }}>
@@ -182,16 +184,16 @@ export default function PayoutListPage() {
                     {p.status === 'pending' && (
                       <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
                         <button onClick={() => handleApprove(p.id)} disabled={isBusy} style={{ ...S.btnApprove, flex: 1 }}>
-                          {isBusy ? '…' : '✓ Approve'}
+                          {isBusy ? '…' : <><CheckIcon size={13} />Approve</>}
                         </button>
                         <button onClick={() => setRejectModal(p)} disabled={isBusy} style={{ ...S.btnReject, flex: 1 }}>
-                          ✗ Reject
+                          <XIcon size={13} />Reject
                         </button>
                       </div>
                     )}
                     {p.status === 'approved' && (
                       <button onClick={() => setMarkPaidModal(p)} disabled={isBusy} style={{ ...S.btnPaid, width: '100%', marginTop: 10 }}>
-                        {isBusy ? '…' : '€ Mark Paid'}
+                        {isBusy ? '…' : <><CurrencyEurIcon size={13} />Mark Paid</>}
                       </button>
                     )}
                   </div>
@@ -273,16 +275,16 @@ export default function PayoutListPage() {
                           {p.status === 'pending' && (
                             <>
                               <button onClick={() => handleApprove(p.id)} disabled={isBusy} style={S.btnApprove}>
-                                {isBusy ? '…' : '✓ Approve'}
+                                {isBusy ? '…' : <><CheckIcon size={13} />Approve</>}
                               </button>
                               <button onClick={() => setRejectModal(p)} disabled={isBusy} style={S.btnReject}>
-                                ✗ Reject
+                                <XIcon size={13} />Reject
                               </button>
                             </>
                           )}
                           {p.status === 'approved' && (
                             <button onClick={() => setMarkPaidModal(p)} disabled={isBusy} style={S.btnPaid}>
-                              {isBusy ? '…' : '€ Mark Paid'}
+                              {isBusy ? '…' : <><CurrencyEurIcon size={13} />Mark Paid</>}
                             </button>
                           )}
                           {(p.status === 'paid' || p.status === 'rejected') && (
@@ -398,7 +400,7 @@ const S = {
   badge: { background: '#e91e63', color: '#fff', borderRadius: '20px', padding: '1px 7px', fontSize: '11px', fontWeight: 700 },
   searchInput: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '9px 14px', color: '#f1f5f9', fontSize: '14px', width: '280px', outline: 'none' },
   bulkBar: { display: 'flex', alignItems: 'center', gap: '10px', background: '#1e293b', border: '1px solid #e91e6333', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px' },
-  bulkBtn: { background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 },
+  bulkBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: '#e91e6322', color: '#e91e63', border: '1px solid #e91e6344', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 },
   tableWrap: { background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', overflow: 'hidden' },
   cardList: { display: 'flex', flexDirection: 'column' },
   payoutCard: { padding: '14px 16px', borderBottom: '1px solid #0f172a' },
@@ -423,9 +425,9 @@ const S = {
   statusPill: { borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' },
   noteText: { color: '#f87171', fontSize: '11px', marginTop: '4px' },
   actionBtns: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
-  btnApprove: { background: '#16a34a22', color: '#4ade80', border: '1px solid #16a34a44', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
-  btnReject: { background: '#ef444422', color: '#f87171', border: '1px solid #ef444444', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
-  btnPaid: { background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
+  btnApprove: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: '#16a34a22', color: '#4ade80', border: '1px solid #16a34a44', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
+  btnReject: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: '#ef444422', color: '#f87171', border: '1px solid #ef444444', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
+  btnPaid: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, background: '#3b82f622', color: '#60a5fa', border: '1px solid #3b82f644', borderRadius: '6px', padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 },
   emptyCell: { padding: '56px', textAlign: 'center', color: '#475569', fontSize: '14px' },
   // Modal
   modalOverlay: { position: 'fixed', inset: 0, background: '#00000088', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },

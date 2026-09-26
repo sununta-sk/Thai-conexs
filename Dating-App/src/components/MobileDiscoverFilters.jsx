@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { COUNTRY_LIST } from '../data/countryList';
 import { OPEN_DISCOVER_FILTERS_EVENT } from './MobileNavbar';
 import { XIcon } from './Icons';
+import { FunnelIcon } from './MoreIcons';
 
 const AGE_RANGES = [
   { value: '18-24', label: '18-24' },
@@ -102,7 +103,7 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
             }}
             onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9' }}>🔍 {tx.filters || 'Filters'}</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 6 }}><FunnelIcon size={16} color="#e91e63" />{tx.filters || 'Filters'}</div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}

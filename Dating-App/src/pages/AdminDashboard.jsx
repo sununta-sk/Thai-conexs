@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import AdminLayout from '../components/AdminLayout';
 import { useAdminAuth } from '../hooks/useAdminAuth';
+import { HourglassIcon, StarIcon } from '../components/MoreIcons';
+import { ChartBarIcon, ArrowsClockwiseIcon, CoinsIcon, UsersIcon, TicketIcon, HandshakeIcon } from '../components/admin/AdminIcons';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -107,11 +109,11 @@ export default function AdminDashboard() {
         {/* Header */}
         <div style={S.pageHeader}>
           <div>
-            <h2 style={S.pageTitle}>📊 Dashboard</h2>
-            <p style={S.pageSubtitle}>Business Overview - Thai Conexns</p>
+            <h2 style={S.pageTitle}><ChartBarIcon size={24} color="#e91e63" />Dashboard</h2>
+            <p style={S.pageSubtitle}>Business Overview - Lotus ConneXs</p>
           </div>
           <button onClick={fetchAll} style={S.refreshBtn} disabled={loading}>
-            {loading ? '⏳' : '🔄'} Refresh
+            {loading ? <HourglassIcon size={15} /> : <ArrowsClockwiseIcon size={15} />}Refresh
           </button>
         </div>
 
@@ -121,10 +123,10 @@ export default function AdminDashboard() {
           <>
             {/* KPI Cards */}
             <div style={S.kpiGrid}>
-              <KpiCard icon="💰" label="Gross Revenue"        value={`$${stats.grossRevenue.toLocaleString()}`} accent="#f97316" />
-              <KpiCard icon="👥" label="Total Users"          value={stats.totalUsers}                          accent="#3b82f6" />
-              <KpiCard icon="⭐" label="Active Subscriptions" value={stats.activeSubscriptions}                 accent="#8b5cf6" />
-              <KpiCard icon="🎫" label="Open Tickets"         value={stats.openTickets}                         accent="#ef4444"
+              <KpiCard icon={CoinsIcon} label="Gross Revenue"        value={`$${stats.grossRevenue.toLocaleString()}`} accent="#f97316" />
+              <KpiCard icon={UsersIcon} label="Total Users"          value={stats.totalUsers}                          accent="#3b82f6" />
+              <KpiCard icon={StarIcon} label="Active Subscriptions" value={stats.activeSubscriptions}                 accent="#8b5cf6" />
+              <KpiCard icon={TicketIcon} label="Open Tickets"         value={stats.openTickets}                         accent="#ef4444"
                 onClick={() => navigate('/admin/moderation/tickets')} clickable />
             </div>
 
@@ -148,7 +150,7 @@ export default function AdminDashboard() {
               {can('content', 'read') && (
                 <div style={S.tableCard}>
                   <div style={S.tableHeader}>
-                    <h3 style={S.tableTitle}>🎫 Recent Tickets</h3>
+                    <h3 style={S.tableTitle}><TicketIcon size={17} color="#e91e63" />Recent Tickets</h3>
                     <button onClick={() => navigate('/admin/moderation/tickets')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentTickets.length === 0 ? (
@@ -182,7 +184,7 @@ export default function AdminDashboard() {
               {can('affiliates', 'read') && (
                 <div style={S.tableCard}>
                   <div style={S.tableHeader}>
-                    <h3 style={S.tableTitle}>🤝 Recent Affiliates</h3>
+                    <h3 style={S.tableTitle}><HandshakeIcon size={17} color="#e91e63" />Recent Affiliates</h3>
                     <button onClick={() => navigate('/admin/affiliates')} style={S.viewAllBtn}>View All</button>
                   </div>
                   {recentAffiliates.length === 0 ? (
@@ -222,12 +224,13 @@ export default function AdminDashboard() {
 }
 
 function KpiCard({ icon, label, value, accent, onClick, clickable }) {
+  const KpiIcon = icon;
   return (
     <div
       onClick={onClick}
       style={{ ...S.kpiCard, borderTop: `3px solid ${accent}`, cursor: clickable ? 'pointer' : 'default' }}
     >
-      <div style={{ fontSize: 28 }}>{icon}</div>
+      <div style={{ display: 'flex' }}><KpiIcon size={30} color={accent} /></div>
       <div>
         <div style={S.kpiValue}>{value}</div>
         <div style={S.kpiLabel}>{label}</div>
@@ -239,9 +242,9 @@ function KpiCard({ icon, label, value, accent, onClick, clickable }) {
 const S = {
   page:       { padding: 24, minHeight: '100%' },
   pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  pageTitle:  { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageTitle:  { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   pageSubtitle: { color: '#64748b', fontSize: 13, margin: 0 },
-  refreshBtn: { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '8px 16px', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  refreshBtn: { background: '#1e293b', border: '1px solid #334155', borderRadius: 10, padding: '8px 16px', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 },
   loadingBox: { padding: 60, textAlign: 'center', color: '#475569' },
   kpiGrid:    { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: 16, marginBottom: 20 },
   kpiCard:    { background: '#1e293b', borderRadius: 16, padding: 20, border: '1px solid #334155', display: 'flex', alignItems: 'center', gap: 14 },
@@ -252,7 +255,7 @@ const S = {
   twoCol:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
   tableCard:  { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
   tableHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid #334155' },
-  tableTitle: { color: '#f1f5f9', fontWeight: 800, fontSize: 14, margin: 0 },
+  tableTitle: { color: '#f1f5f9', fontWeight: 800, fontSize: 14, margin: 0, display: 'flex', alignItems: 'center', gap: 8 },
   viewAllBtn: { background: 'none', border: '1px solid #334155', borderRadius: 6, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontWeight: 600 },
   table:      { width: '100%', borderCollapse: 'collapse' },
   th:         { padding: '10px 16px', textAlign: 'left', color: '#475569', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #334155', whiteSpace: 'nowrap' },

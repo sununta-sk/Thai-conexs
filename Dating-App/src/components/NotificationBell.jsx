@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNavGuard } from "../context/NavGuardContext";
-import { BellRingingIcon } from "./Icons";
+import { BellRingingIcon, ConfettiIcon, ChatCircleIcon, HeartFillIcon, ArrowRightIcon } from "./Icons";
 
+// Same type -> icon choices as NotificationsPage.jsx (were 💕 💬 ❤️).
 const TYPE_ICON = {
-  new_match:    "💕",
-  new_message:  "💬",
-  like_received:"❤️",
+  new_match:    <ConfettiIcon size={20} color="#e91e63" />,
+  new_message:  <ChatCircleIcon size={20} color="#e91e63" />,
+  like_received:<HeartFillIcon size={20} color="#e91e63" />,
 };
 
 export default function NotificationBell() {
@@ -92,7 +93,8 @@ export default function NotificationBell() {
               <button onClick={() => { requestNavigate("/notifications"); setOpen(false); }} style={{
                 background: "none", border: "none", color: "#94a3b8",
                 cursor: "pointer", fontSize: 12,
-              }}>See all →</button>
+                display: "flex", alignItems: "center", gap: 4,
+              }}>See all<ArrowRightIcon size={12} /></button>
             </div>
           </div>
 
@@ -123,7 +125,7 @@ export default function NotificationBell() {
                 borderBottom: "1px solid #1e293b",
                 display: "flex", gap: 10, alignItems: "flex-start",
               }}>
-                <span style={{ fontSize: 20 }}>{TYPE_ICON[notif.type] || <BellRingingIcon size={20} color="#e91e63" />}</span>
+                <span style={{ fontSize: 20, display: "flex", flexShrink: 0 }}>{TYPE_ICON[notif.type] || <BellRingingIcon size={20} color="#e91e63" />}</span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: notif.is_read ? 400 : 700, fontSize: 14 }}>
                     {notif.title}

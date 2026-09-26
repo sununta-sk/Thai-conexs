@@ -12,7 +12,7 @@
 // a second copy of the rule that could drift from it.
 
 import { useEffect, useRef, useState } from 'react';
-import { LockIcon, DiamondIcon, XIcon } from './Icons';
+import { LockIcon, DiamondIcon, XIcon, CaretLineLeftIcon, CaretLineRightIcon } from './Icons';
 
 export default function PhotoEnlargeModal({
   photos,
@@ -79,54 +79,94 @@ export default function PhotoEnlargeModal({
     touchEndX.current = null;
   };
 
+  const multi = list.length > 1;
+  const closeOnSelf = (e) => { if (e.target === e.currentTarget) onClose(); };
+  const prevBtn = (cls) => (
+    <button type="button" className={cls} style={S.arrow} onClick={prev} aria-label="Previous photo"><CaretLineLeftIcon size={22} /></button>
+  );
+  const nextBtn = (cls) => (
+    <button type="button" className={cls} style={S.arrow} onClick={next} aria-label="Next photo"><CaretLineRightIcon size={22} /></button>
+  );
+
   return (
-    <div style={S.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
+    <div style={S.overlay} onClick={closeOnSelf}>
+      <style>{CSS}</style>
       {/* Reuses the app's existing spinner (same border/borderTopColor/spin
           pattern as ProfilePage.jsx, UserProfilePage.jsx, AccountSettings.jsx,
           BoostModal.jsx) rather than inventing a new loading indicator.
           Positioned on the overlay itself, not inside .frame - .frame's size
           comes entirely from the <img>'s own natural dimensions, so while
           unloaded it has no stable size to center a spinner within. */}
-      {!loaded && !isLocked && (
-        <>
-          <div style={S.spinner} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </>
-      )}
-      <div style={S.frame} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-        <img
-          key={current}
-          src={src}
-          alt={altPrefix ? `${altPrefix}-${current}` : ''}
-          onLoad={() => setLoaded(true)}
-          onError={() => setLoaded(true)}
-          style={{ ...S.img, opacity: (loaded || isLocked) ? 1 : 0, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
-        />
+      {!loaded && !isLocked && <div style={S.spinner} />}
+      <div className={multi ? 'pem-multi' : undefined} style={S.wrap} onClick={closeOnSelf}>
+        <div style={S.stage} onClick={closeOnSelf}>
+          {/* Prev/next sit OUTSIDE the photo: beside it on wider screens,
+              in a row under it on phones (see CSS below), so they never
+              cover part of the picture. */}
+          {multi && prevBtn('pem-side')}
+          <div style={S.frame} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+            <img
+              key={current}
+              className="pem-img"
+              src={src}
+              alt={altPrefix ? `${altPrefix}-${current}` : ''}
+              onLoad={() => setLoaded(true)}
+              onError={() => setLoaded(true)}
+              style={{ ...S.img, opacity: (loaded || isLocked) ? 1 : 0, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)' }}
+            />
 
-        {isLocked && (
-          <div style={S.lockOverlay}>
-            <div style={S.lockBox}>
-              <div style={S.lockIcon}><LockIcon size={36} color="#e91e63" /></div>
-              <div style={S.lockTitle}>{labels.title}</div>
-              <div style={S.lockSub}>{labels.sub}</div>
-              <button type="button" style={S.lockBtn} onClick={onUpgrade}><DiamondIcon size={16} />{labels.btn}</button>
-            </div>
+            {isLocked && (
+              <div style={S.lockOverlay}>
+                <div style={S.lockBox}>
+                  <div style={S.lockIcon}><LockIcon size={36} color="#e91e63" /></div>
+                  <div style={S.lockTitle}>{labels.title}</div>
+                  <div style={S.lockSub}>{labels.sub}</div>
+                  <button type="button" style={S.lockBtn} onClick={onUpgrade}><DiamondIcon size={16} />{labels.btn}</button>
+                </div>
+              </div>
+            )}
+
+            {multi && <div className="pem-counter-in" style={S.counter}>{current + 1} / {list.length}</div>}
+
+            <button type="button" style={S.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={18} /></button>
+          </div>
+          {multi && nextBtn('pem-side')}
+        </div>
+        {multi && (
+          <div className="pem-bottom" style={S.bottom}>
+            {prevBtn()}
+            <div style={S.counterBottom}>{current + 1} / {list.length}</div>
+            {nextBtn()}
           </div>
         )}
-
-        {list.length > 1 && (
-          <>
-            <button type="button" style={{ ...S.arrow, left: -16 }} onClick={prev} aria-label="Previous photo">‹</button>
-            <button type="button" style={{ ...S.arrow, right: -16 }} onClick={next} aria-label="Next photo">›</button>
-            <div style={S.counter}>{current + 1} / {list.length}</div>
-          </>
-        )}
-
-        <button type="button" style={S.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={18} /></button>
       </div>
     </div>
   );
 }
+
+// Layout that has to change with screen width lives here rather than in the
+// inline styles (inline styles can't hold media queries). 767px matches the
+// app's MOBILE_BREAKPOINT; `.mobile-active` is the class useIsMobile puts on
+// <html> for real phones and Mobile Preview alike.
+//  - Wide: arrows beside the photo; the photo is capped 160px narrower than
+//    the screen (2 x 44px arrow + 2 x 12px gap + overlay padding) so there's
+//    always room for them, even for a wide landscape photo.
+//  - Phone: arrows + counter in a row under the photo, which keeps the photo
+//    full width instead of squeezing it between two arrows.
+const CSS = `
+@keyframes spin { to { transform: rotate(360deg); } }
+.pem-img { max-width: 92vw; max-height: 92vh; }
+.pem-multi .pem-img { max-width: calc(100vw - 160px); }
+.pem-bottom { display: none; }
+@media (max-width: 767px) {
+  .pem-side, .pem-counter-in { display: none !important; }
+  .pem-bottom { display: flex; }
+  .pem-multi .pem-img { max-width: 92vw; max-height: calc(92vh - 64px); }
+}
+.mobile-active .pem-side, .mobile-active .pem-counter-in { display: none !important; }
+.mobile-active .pem-bottom { display: flex; }
+.mobile-active .pem-multi .pem-img { max-width: 92vw; max-height: calc(92vh - 64px); }
+`;
 
 const S = {
   overlay: {
@@ -137,7 +177,9 @@ const S = {
     zIndex: 10000,
     padding: '24px',
   },
-  frame: { position: 'relative', maxWidth: '92vw', maxHeight: '92vh', touchAction: 'pan-y' },
+  wrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 },
+  stage: { display: 'flex', alignItems: 'center', gap: 12 },
+  frame: { position: 'relative', touchAction: 'pan-y' },
   // Same values as the app's existing small spinner (ProfilePage.jsx /
   // UserProfilePage.jsx's S.spinner) - centered on the viewport via the
   // overlay rather than the frame, since the frame has no stable size to
@@ -151,10 +193,9 @@ const S = {
     animation: 'spin 0.7s linear infinite',
     zIndex: 1,
   },
+  // max-width / max-height come from the .pem-img CSS above.
   img: {
     display: 'block',
-    maxWidth: '92vw',
-    maxHeight: '92vh',
     width: 'auto',
     height: 'auto',
     objectFit: 'contain',
@@ -175,17 +216,20 @@ const S = {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
   },
-  // Arrows sit just outside the frame's edges (negative left/right) so they
-  // never cover the photo itself - the frame is only as wide as the image,
-  // so this stays clear of the close button regardless of image aspect ratio.
+  // Prev/next buttons (outside the photo - see CSS above). padding 0 so the
+  // global button padding doesn't squeeze the icon.
   arrow: {
-    position: 'absolute', top: '50%', transform: 'translateY(-50%)',
-    width: 44, height: 44, borderRadius: '50%',
+    width: 44, height: 44, padding: 0, flexShrink: 0, borderRadius: '50%',
     background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)',
     border: '1px solid rgba(255,255,255,0.15)', color: '#f1f5f9',
-    fontSize: 26, fontWeight: 700, lineHeight: 1, paddingBottom: 3,
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.5)', zIndex: 2,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+  },
+  bottom: { alignItems: 'center', justifyContent: 'center', gap: 16 },
+  counterBottom: {
+    background: 'rgba(15,23,42,0.75)', color: '#fff', fontSize: 13, fontWeight: 700,
+    padding: '6px 14px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.15)',
+    minWidth: 56, textAlign: 'center',
   },
   counter: {
     position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)',

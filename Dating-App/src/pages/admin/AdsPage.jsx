@@ -5,6 +5,10 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuditLogger } from '../../hooks/useAuditLogger'
+import { XIcon, RocketIcon, IconText } from '../../components/Icons'
+import { FloppyDiskIcon } from '../../components/MoreIcons'
+import { StorefrontIcon, PlusIcon } from '../../components/admin/AdminIcons'
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons'
 
 // Keep these keys in sync with AD_VARIANT_STYLES in src/pages/Discover.jsx —
 // this is just the admin-facing label for each.
@@ -126,13 +130,13 @@ export default function AdsPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}>{toast.msg}</div>}
+        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}><IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
         <div style={S.hdr}>
           <div>
-            <h2 style={S.title}>📣 Advertisers</h2>
+            <h2 style={S.title}><StorefrontIcon size={24} color="#e91e63" />Advertisers</h2>
             <p style={S.sub}>Manage the ad slots that rotate in the Discover side rails ({leftAds.filter(a=>a.is_active).length} active left, {rightAds.filter(a=>a.is_active).length} active right — 6 slots visible per side, rotates automatically past 6)</p>
           </div>
-          <button onClick={() => (showForm ? setForm(false) : startCreate())} style={S.addBtn}>{showForm ? '✕ Cancel' : '+ New Ad'}</button>
+          <button onClick={() => (showForm ? setForm(false) : startCreate())} style={S.addBtn}>{showForm ? <><XIcon size={14} />Cancel</> : <><PlusIcon size={14} />New Ad</>}</button>
         </div>
 
         {showForm && (
@@ -173,7 +177,7 @@ export default function AdsPage() {
                 Active
               </label>
               <div style={{ flex: 1 }} />
-              <button onClick={save} disabled={saving} style={S.saveBtn}>{saving ? 'Saving…' : (editingId ? '💾 Save Changes' : '🚀 Create Ad')}</button>
+              <button onClick={save} disabled={saving} style={S.saveBtn}>{saving ? 'Saving…' : (editingId ? <><FloppyDiskIcon size={16} />Save Changes</> : <><RocketIcon size={16} />Create Ad</>)}</button>
             </div>
           </div>
         )}
@@ -206,14 +210,14 @@ export default function AdsPage() {
 
 const S = {
   page: { padding: 24 }, hdr: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, gap: 16 },
-  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' }, sub: { color: '#64748b', fontSize: 13, margin: 0 },
-  addBtn: { background: '#e91e63', border: 'none', borderRadius: 10, padding: '10px 18px', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, height: 'fit-content' },
+  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }, sub: { color: '#64748b', fontSize: 13, margin: 0 },
+  addBtn: { display: 'flex', alignItems: 'center', gap: 6, background: '#e91e63', border: 'none', borderRadius: 10, padding: '10px 18px', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, height: 'fit-content' },
   formCard: { background: '#1e293b', borderRadius: 14, border: '1px solid #334155', padding: 24, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 14 },
   field: { display: 'flex', flexDirection: 'column' }, lbl: { display: 'block', color: '#64748b', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 },
   input: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', boxSizing: 'border-box' },
   textarea: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', resize: 'vertical', boxSizing: 'border-box' },
   select: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', boxSizing: 'border-box' },
-  saveBtn: { background: '#e91e63', border: 'none', borderRadius: 8, padding: '10px 22px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
+  saveBtn: { display: 'flex', alignItems: 'center', gap: 6, background: '#e91e63', border: 'none', borderRadius: 8, padding: '10px 22px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
   card: { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
   row: { display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderBottom: '1px solid #0f172a' },
   dot: { width: 10, height: 10, borderRadius: '50%', flexShrink: 0 },

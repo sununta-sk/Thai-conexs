@@ -4,6 +4,8 @@ import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { CheckIcon, XIcon, ConfettiIcon } from '../../components/Icons';
+import { TicketIcon, TargetIcon, CircleFillIcon, CaretRightIcon, ShieldIcon, UserIcon, PaperPlaneRightIcon, WrenchIcon } from '../../components/admin/AdminIcons';
 
 const STATUS_TABS  = ['open', 'in_progress', 'waiting_user', 'resolved', 'closed'];
 const PRIORITIES   = ['all', 'urgent', 'high', 'medium', 'low'];
@@ -21,7 +23,10 @@ const PRIORITY_COLOR = {
   medium: '#3b82f6',
   low:    '#475569',
 };
-const PRIORITY_ICON = { urgent: '🔴', high: '🟠', medium: '🔵', low: '⚪' };
+// Priority marker: a dot in the priority's own colour (were 🔴 🟠 🔵 ⚪).
+function PriorityDot({ p }) {
+  return <CircleFillIcon size={8} color={PRIORITY_COLOR[p] || '#475569'} />;
+}
 
 export default function TicketsPage() {
   const { adminUser } = useAdminAuth();
@@ -131,7 +136,7 @@ export default function TicketsPage() {
         {/* ── Header ── */}
         <div style={S.pageHeader}>
           <div>
-            <h2 style={S.pageTitle}>🎫 Support Tickets</h2>
+            <h2 style={S.pageTitle}><TicketIcon size={24} color="#e91e63" />Support Tickets</h2>
             <p style={S.pageSubtitle}>Manage tickets and reply to users</p>
           </div>
         </div>
@@ -164,7 +169,7 @@ export default function TicketsPage() {
                 ...(priority === p ? { background: '#e91e63', color: '#fff', border: '1px solid #e91e63' } : {}),
               }}
             >
-              {p === 'all' ? '🎯 All Priority' : `${PRIORITY_ICON[p]} ${p.charAt(0).toUpperCase() + p.slice(1)}`}
+              {p === 'all' ? <><TargetIcon size={12} />All Priority</> : <><PriorityDot p={p} />{p.charAt(0).toUpperCase() + p.slice(1)}</>}
             </button>
           ))}
         </div>
@@ -178,7 +183,7 @@ export default function TicketsPage() {
               <div style={S.empty}>Loading...</div>
             ) : tickets.length === 0 ? (
               <div style={S.empty}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><ConfettiIcon size={44} /></div>
                 <div>No tickets {statusLabel(activeTab)}</div>
               </div>
             ) : isMobile ? (
@@ -200,17 +205,18 @@ export default function TicketsPage() {
                         <div style={S.cardName}>{t.user?.display_name}</div>
                         <span style={{
                           padding: '2px 8px', borderRadius: 20,
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
                           fontSize: 10, fontWeight: 700, flexShrink: 0,
                           background: `${PRIORITY_COLOR[t.priority]}22`,
                           color: PRIORITY_COLOR[t.priority],
                         }}>
-                          {PRIORITY_ICON[t.priority]} {t.priority}
+                          <PriorityDot p={t.priority} />{t.priority}
                         </span>
                       </div>
                       <div style={S.cardSubject}>{t.subject}</div>
                       <div style={S.cardDate}>{new Date(t.updated_at).toLocaleDateString('en-GB')}</div>
                     </div>
-                    <div style={{ color: '#334155', fontSize: 18, flexShrink: 0 }}>›</div>
+                    <div style={{ color: '#334155', display: 'flex', flexShrink: 0 }}><CaretRightIcon size={16} /></div>
                   </div>
                 ))}
               </div>
@@ -255,18 +261,19 @@ export default function TicketsPage() {
                       <td style={S.td}>
                         <span style={{
                           padding: '3px 10px', borderRadius: 20,
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
                           fontSize: 11, fontWeight: 700,
                           background: `${PRIORITY_COLOR[t.priority]}22`,
                           color: PRIORITY_COLOR[t.priority],
                         }}>
-                          {PRIORITY_ICON[t.priority]} {t.priority}
+                          <PriorityDot p={t.priority} />{t.priority}
                         </span>
                       </td>
                       {/* Updated */}
                       <td style={{ ...S.td, color: '#64748b', fontSize: 11, whiteSpace: 'nowrap' }}>
                         {new Date(t.updated_at).toLocaleDateString('en-GB')}
                       </td>
-                      <td style={{ ...S.td, color: '#334155' }}>›</td>
+                      <td style={{ ...S.td, color: '#334155' }}><CaretRightIcon size={14} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -285,12 +292,12 @@ export default function TicketsPage() {
                     <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: `${STATUS_COLOR[detail.status]}22`, color: STATUS_COLOR[detail.status], textTransform: 'capitalize' }}>
                       {statusLabel(detail.status)}
                     </span>
-                    <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: `${PRIORITY_COLOR[detail.priority]}22`, color: PRIORITY_COLOR[detail.priority] }}>
-                      {PRIORITY_ICON[detail.priority]} {detail.priority}
+                    <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4, background: `${PRIORITY_COLOR[detail.priority]}22`, color: PRIORITY_COLOR[detail.priority] }}>
+                      <PriorityDot p={detail.priority} />{detail.priority}
                     </span>
                   </div>
                 </div>
-                <button style={S.closePanelBtn} onClick={() => setDetail(null)}>✕</button>
+                <button style={S.closePanelBtn} onClick={() => setDetail(null)} aria-label="Close"><XIcon size={14} /></button>
               </div>
 
               {/* User info */}
@@ -317,7 +324,7 @@ export default function TicketsPage() {
                     <div key={m.id} style={{ ...S.msgBubble, ...(m.is_admin ? S.msgAdmin : S.msgUser) }}>
                       <div style={{ fontSize: 12, lineHeight: 1.5 }}>{m.content}</div>
                       <div style={{ fontSize: 10, marginTop: 4, opacity: 0.6 }}>
-                        {m.is_admin ? '🛡️ Admin' : `👤 ${m.sender?.display_name}`} · {new Date(m.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                        {m.is_admin ? <><ShieldIcon size={11} style={{ verticalAlign: '-1px' }} /> Admin</> : <><UserIcon size={11} style={{ verticalAlign: '-1px' }} /> {m.sender?.display_name}</>} · {new Date(m.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
                   ))
@@ -341,7 +348,7 @@ export default function TicketsPage() {
                       onClick={sendReply}
                       disabled={replyLoading || !reply.trim()}
                     >
-                      {replyLoading ? 'Sending...' : '↑ Send Message'}
+                      {replyLoading ? 'Sending...' : <><PaperPlaneRightIcon size={14} />Send Message</>}
                     </button>
                   </div>
                 </div>
@@ -353,19 +360,19 @@ export default function TicketsPage() {
                 {detail.status !== 'resolved' && (
                   <button style={{ ...S.actBtn, background: '#10b98122', color: '#10b981', border: '1px solid #10b98144' }}
                     onClick={() => updateStatus(detail.id, 'resolved')}>
-                    ✓ Mark Resolved
+                    <CheckIcon size={14} />Mark Resolved
                   </button>
                 )}
                 {detail.status !== 'in_progress' && !['resolved', 'closed'].includes(detail.status) && (
                   <button style={{ ...S.actBtn, background: '#3b82f622', color: '#3b82f6', border: '1px solid #3b82f644' }}
                     onClick={() => updateStatus(detail.id, 'in_progress')}>
-                    🔧 In Progress
+                    <WrenchIcon size={14} />In Progress
                   </button>
                 )}
                 {detail.status !== 'closed' && (
                   <button style={{ ...S.actBtn, background: '#47556922', color: '#64748b', border: '1px solid #47556944' }}
                     onClick={() => updateStatus(detail.id, 'closed')}>
-                    ✕ Close Ticket
+                    <XIcon size={14} />Close Ticket
                   </button>
                 )}
               </div>
@@ -381,7 +388,7 @@ export default function TicketsPage() {
 const S = {
   page:        { padding: 24 },
   pageHeader:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
-  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
 
   tabs: { display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
@@ -397,6 +404,7 @@ const S = {
 
   catRow: { display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' },
   catBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 5,
     padding: '5px 12px', borderRadius: 20,
     border: '1px solid #1e293b', background: '#0a0f1e',
     color: '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer',
@@ -443,7 +451,7 @@ const S = {
     background: '#0f172a', border: '1px solid #334155',
     borderRadius: 8, color: '#64748b',
     width: 28, height: 28, cursor: 'pointer', fontSize: 13,
-    flexShrink: 0,
+    flexShrink: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
   msgThread: {
     flex: 1, overflowY: 'auto',
@@ -465,6 +473,7 @@ const S = {
     fontFamily: "'Segoe UI', sans-serif",
   },
   actBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
     width: '100%', padding: '8px 0',
     borderRadius: 10, fontSize: 12,
     fontWeight: 700, cursor: 'pointer',

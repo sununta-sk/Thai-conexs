@@ -146,7 +146,7 @@ function NavbarDesktop() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifySelf: 'start' }}>
         <img
           src={logoImg}
-          alt="Thai Conexns"
+          alt="Lotus ConneXs"
           style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', boxShadow: '0 2px 6px rgba(233,30,99,0.3)' }}
           onClick={() => goTo('/discover')}
         />

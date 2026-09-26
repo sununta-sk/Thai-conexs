@@ -3,20 +3,24 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
+import { WarningIcon, ProhibitIcon, VerifiedIcon, ShieldStarIcon, PencilSimpleIcon, ArrowLeftIcon, ArrowRightIcon, XIcon, IconText } from '../../components/Icons';
+import { CheckCircleIcon, XCircleIcon, NotePencilIcon } from '../../components/MoreIcons';
+import { PauseCircleIcon, IdentificationCardIcon, CircleFillIcon, TrashIcon } from '../../components/admin/AdminIcons';
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons';
 
 const TABS = ['Profile', 'Subscription', 'Moderation History'];
 
 const ACTION_CONFIG = {
-  warn:    { label: 'Warn',    icon: '⚠️', color: '#f59e0b', desc: 'Send a warning to the user (account remains active)' },
-  suspend: { label: 'Suspend', icon: '⏸️', color: '#f97316', desc: 'Temporarily suspend the account (set duration)' },
-  ban:     { label: 'Ban',     icon: '🚫', color: '#ef4444', desc: 'Permanently ban the account (user cannot log in)' },
-  restore: { label: 'Restore', icon: '✅', color: '#10b981', desc: 'Restore account to active status' },
-  note:    { label: 'Note',    icon: '📝', color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
-  verify:  { label: 'Verify',  icon: '✓',  color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
-  markFounder:   { label: 'Mark as Founder',  icon: '🌟', color: '#a855f7', desc: 'Grant this user the Founder Member badge' },
-  unmarkFounder: { label: 'Remove Founder',   icon: '🌟', color: '#a855f7', desc: 'Remove the Founder Member badge from this user' },
-  editUsername: { label: 'Edit Username', icon: 'EDIT', color: '#0891b2', desc: 'Change the username (user will be notified)' },
-  deleteAccount: { label: 'Delete Account', icon: 'DEL', color: '#dc2626', desc: 'Permanently delete this account and all associated data. This cannot be undone.' },
+  warn:    { label: 'Warn',    icon: WarningIcon, color: '#f59e0b', desc: 'Send a warning to the user (account remains active)' },
+  suspend: { label: 'Suspend', icon: PauseCircleIcon, color: '#f97316', desc: 'Temporarily suspend the account (set duration)' },
+  ban:     { label: 'Ban',     icon: ProhibitIcon, color: '#ef4444', desc: 'Permanently ban the account (user cannot log in)' },
+  restore: { label: 'Restore', icon: CheckCircleIcon, color: '#10b981', desc: 'Restore account to active status' },
+  note:    { label: 'Note',    icon: NotePencilIcon, color: '#3b82f6', desc: 'Add internal note (user is not notified)' },
+  verify:  { label: 'Verify',  icon: VerifiedIcon, color: '#4fc3f7', desc: 'Verify the user identity (adds verified badge)' },
+  markFounder:   { label: 'Mark as Founder',  icon: ShieldStarIcon, color: '#a855f7', desc: 'Grant this user the Founder Member badge' },
+  unmarkFounder: { label: 'Remove Founder',   icon: ShieldStarIcon, color: '#a855f7', desc: 'Remove the Founder Member badge from this user' },
+  editUsername: { label: 'Edit Username', icon: PencilSimpleIcon, color: '#0891b2', desc: 'Change the username (user will be notified)' },
+  deleteAccount: { label: 'Delete Account', icon: TrashIcon, color: '#dc2626', desc: 'Permanently delete this account and all associated data. This cannot be undone.' },
 };
 
 export default function UserDetailPage() {
@@ -275,20 +279,20 @@ export default function UserDetailPage() {
 
         {toast && (
           <div style={{ ...S.toast, background: toast.type === 'success' ? '#10b98122' : '#ef444422', borderColor: toast.type === 'success' ? '#10b981' : '#ef4444', color: toast.type === 'success' ? '#10b981' : '#ef4444' }}>
-            {toast.msg}
+            <IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" />
           </div>
         )}
 
-        <button onClick={() => navigate('/admin/users')} style={S.backBtn}>← Back to Users</button>
+        <button onClick={() => navigate('/admin/users')} style={S.backBtn}><ArrowLeftIcon size={14} />Back to Users</button>
 
         <div style={S.userHeader}>
           <img src={profile.avatar_url || 'https://via.placeholder.com/72'} style={S.avatar} alt="avatar" />
           <div style={{ flex: 1 }}>
             <h2 style={S.username}>{profile.username || 'Anonymous'}</h2>
             <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-              <span style={S.infoBadge}>🆔 {profile.id.slice(0,8)}...</span>
-              {profile.is_verified && <span style={{ ...S.infoBadge, color: '#10b981' }}>✅ Verified</span>}
-              {profile.is_founder_member && <span style={{ ...S.infoBadge, color: '#a855f7' }}>🌟 Founder</span>}
+              <span style={S.infoBadge}><IdentificationCardIcon size={13} />{profile.id.slice(0,8)}...</span>
+              {profile.is_verified && <span style={{ ...S.infoBadge, color: '#10b981' }}><VerifiedIcon size={13} />Verified</span>}
+              {profile.is_founder_member && <span style={{ ...S.infoBadge, color: '#a855f7' }}><ShieldStarIcon size={13} />Founder</span>}
               <span style={S.infoBadge}>{profile.subscription_plan?.toUpperCase() || 'FREE'}</span>
               <span style={S.infoBadge}>Joined {new Date(profile.created_at).toLocaleDateString('en-GB')}</span>
               <AccountStatusBadge status={accountStatus} />
@@ -343,8 +347,8 @@ export default function UserDetailPage() {
               <Row label="Weight"    value={profile.weight ? `${profile.weight} kg` : null} />
               <Row label="Education" value={profile.education} />
               <Row label="Language"  value={profile.preferred_lang} />
-              <Row label="Verified"  value={profile.is_verified ? 'Yes ✅' : 'No ❌'} />
-              <Row label="Founder Member" value={profile.is_founder_member ? 'Yes 🌟' : 'No'} />
+              <Row label="Verified"  value={profile.is_verified ? <YesNo yes /> : <YesNo />} />
+              <Row label="Founder Member" value={profile.is_founder_member ? <span style={S.inlineIcon}>Yes<ShieldStarIcon size={15} color="#a855f7" /></span> : 'No'} />
               <Row label="Status"    value={accountStatus.toUpperCase()} />
               {(() => {
                 function extractPhotoUrl(p) {
@@ -396,7 +400,7 @@ export default function UserDetailPage() {
                     </span>
                   </div>
                   <div style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>
-                    {new Date(s.current_period_start).toLocaleDateString('en-GB')} → {new Date(s.current_period_end).toLocaleDateString('en-GB')}
+                    {new Date(s.current_period_start).toLocaleDateString('en-GB')} <ArrowRightIcon size={11} style={{ verticalAlign: '-1px' }} /> {new Date(s.current_period_end).toLocaleDateString('en-GB')}
                     {s.amount_paid && <span style={{ marginLeft: 8, color: '#10b981' }}>${s.amount_paid}</span>}
                   </div>
                 </div>
@@ -412,7 +416,7 @@ export default function UserDetailPage() {
                 <div key={m.id} style={S.modRow}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ ...S.statusBadge, background: `${actionColor[m.action_type]}22`, color: actionColor[m.action_type] || '#94a3b8' }}>
-                      {ACTION_CONFIG[m.action_type]?.icon} {m.action_type}
+                      <ActionIcon action={m.action_type} size={12} />{m.action_type}
                     </span>
                     {m.expires_at && <span style={{ color: '#64748b', fontSize: 11 }}>Expires {new Date(m.expires_at).toLocaleDateString('en-GB')}</span>}
                   </div>
@@ -430,7 +434,7 @@ export default function UserDetailPage() {
         <div style={S.overlay} onClick={closeModal}>
           <div style={S.modalBox} onClick={e => e.stopPropagation()}>
             <div style={{ ...S.modalHeader, borderBottom: `2px solid ${ACTION_CONFIG[modal.action].color}22` }}>
-              <span style={{ fontSize: 22 }}>{ACTION_CONFIG[modal.action].icon}</span>
+              <ActionIcon action={modal.action} size={24} color={ACTION_CONFIG[modal.action].color} />
               <div>
                 <div style={{ color: '#f1f5f9', fontWeight: 800, fontSize: 16 }}>
                   {ACTION_CONFIG[modal.action].label} User
@@ -439,7 +443,7 @@ export default function UserDetailPage() {
                   {ACTION_CONFIG[modal.action].desc}
                 </div>
               </div>
-              <button onClick={closeModal} style={S.closeBtn}>✕</button>
+              <button onClick={closeModal} style={S.closeBtn} aria-label="Close"><XIcon size={18} /></button>
             </div>
 
             <div style={S.modalTarget}>
@@ -469,15 +473,15 @@ export default function UserDetailPage() {
 
             {modal.action === 'verify' && (
               <div style={{ background: '#4fc3f711', border: '1px solid #4fc3f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#4fc3f7', margin: '0 20px 16px' }}>
-                Verify <strong>{profile.username}</strong> — they will receive a ✓ badge next to their name
+                Verify <strong>{profile.username}</strong> — they will receive a <VerifiedIcon size={14} style={{ verticalAlign: '-2px' }} /> badge next to their name
               </div>
             )}
 
             {(modal.action === 'markFounder' || modal.action === 'unmarkFounder') && (
               <div style={{ background: '#a855f711', border: '1px solid #a855f733', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#a855f7', margin: '0 20px 16px' }}>
                 {modal.action === 'markFounder'
-                  ? <>Grant <strong>{profile.username}</strong> the 🌟 Founder Member badge</>
-                  : <>Remove the 🌟 Founder Member badge from <strong>{profile.username}</strong></>}
+                  ? <>Grant <strong>{profile.username}</strong> the <ShieldStarIcon size={14} style={{ verticalAlign: '-2px' }} /> Founder Member badge</>
+                  : <>Remove the <ShieldStarIcon size={14} style={{ verticalAlign: '-2px' }} /> Founder Member badge from <strong>{profile.username}</strong></>}
               </div>
             )}
 
@@ -519,7 +523,7 @@ export default function UserDetailPage() {
 
             {modal.action === 'ban' && (
               <div style={{ background: '#ef444411', border: '1px solid #ef444433', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#ef4444', marginBottom: 16 }}>
-                ⚠️ Banning is permanent — the user cannot log in until restored
+                <WarningIcon size={14} style={{ verticalAlign: '-2px', marginRight: 6 }} />Banning is permanent — the user cannot log in until restored
               </div>
             )}
 
@@ -573,17 +577,35 @@ function AccountStatusBadge({ status }) {
   };
   const cfg = map[status] || map.active;
   return (
-    <span style={{ padding: '3px 10px', borderRadius: 20, background: `${cfg.color}22`, color: cfg.color, fontSize: 11, fontWeight: 700 }}>
-      ● {cfg.label}
+    <span style={{ padding: '3px 10px', borderRadius: 20, background: `${cfg.color}22`, color: cfg.color, fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      <CircleFillIcon size={7} />{cfg.label}
     </span>
   );
 }
 
+// Icon for a moderation action type (see ACTION_CONFIG); nothing for types
+// that aren't listed there.
+function ActionIcon({ action, ...rest }) {
+  const Icon = ACTION_CONFIG[action]?.icon;
+  return Icon ? <Icon {...rest} /> : null;
+}
+
 function ActionBtn({ cfg, onClick }) {
+  const BtnIcon = cfg.icon;
   return (
     <button onClick={onClick} style={{ ...S.actionBtn, borderColor: `${cfg.color}44`, color: cfg.color }}>
-      {cfg.icon} {cfg.label}
+      <BtnIcon size={14} />{cfg.label}
     </button>
+  );
+}
+
+// "Yes" / "No" with a green tick / red cross (were "Yes ✅" / "No ❌").
+function YesNo({ yes = false }) {
+  return (
+    <span style={S.inlineIcon}>
+      {yes ? 'Yes' : 'No'}
+      {yes ? <CheckCircleIcon size={15} color="#10b981" /> : <XCircleIcon size={15} color="#ef4444" />}
+    </span>
   );
 }
 
@@ -600,13 +622,14 @@ function Row({ label, value }) {
 const S = {
   page:        { padding: 24 },
   loading:     { padding: 60, textAlign: 'center', color: '#475569' },
-  backBtn:     { background: 'none', border: 'none', color: '#64748b', fontSize: 13, cursor: 'pointer', marginBottom: 20, fontWeight: 600 },
+  backBtn:     { background: 'none', border: 'none', color: '#64748b', fontSize: 13, cursor: 'pointer', marginBottom: 20, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 },
+  inlineIcon:  { display: 'inline-flex', alignItems: 'center', gap: 6 },
   userHeader:  { display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 24, background: '#1e293b', padding: 20, borderRadius: 16, border: '1px solid #334155', flexWrap: 'wrap' },
   avatar:      { width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid #334155', flexShrink: 0 },
   username:    { color: '#f1f5f9', fontSize: 20, fontWeight: 800, margin: 0 },
-  infoBadge:   { padding: '3px 10px', borderRadius: 20, background: '#0f172a', color: '#64748b', fontSize: 11, fontWeight: 600 },
+  infoBadge:   { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 20, background: '#0f172a', color: '#64748b', fontSize: 11, fontWeight: 600 },
   actionGroup: { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginLeft: 'auto' },
-  actionBtn:   { padding: '7px 14px', borderRadius: 8, border: '1px solid', background: 'transparent', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' },
+  actionBtn:   { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, border: '1px solid', background: 'transparent', fontSize: 12, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' },
   tabBar:      { display: 'flex', gap: 4, marginBottom: 16 },
   tabBtn:      { padding: '8px 16px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#64748b', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 },
   tabBtnActive:{ background: '#e91e6322', color: '#e91e63', borderColor: '#e91e6344' },
@@ -616,12 +639,12 @@ const S = {
   rowLabel:    { color: '#475569', fontSize: 13, fontWeight: 600, width: 140, flexShrink: 0 },
   subRow:      { padding: '12px 0', borderBottom: '1px solid #0f172a' },
   modRow:      { padding: '12px 0', borderBottom: '1px solid #0f172a' },
-  statusBadge: { padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
+  statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700 },
   empty:       { padding: 40, textAlign: 'center', color: '#475569', fontSize: 14 },
   overlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 },
   modalBox:    { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', alignItems: 'flex-start', gap: 12, padding: '20px 20px 16px' },
-  closeBtn:    { background: 'none', border: 'none', color: '#475569', fontSize: 18, cursor: 'pointer', marginLeft: 'auto', lineHeight: 1 },
+  closeBtn:    { background: 'none', border: 'none', color: '#475569', fontSize: 18, cursor: 'pointer', marginLeft: 'auto', lineHeight: 1, padding: 4, display: 'flex' },
   modalTarget: { display: 'flex', alignItems: 'center', gap: 10, background: '#0f172a', margin: '0 20px 16px', padding: '10px 14px', borderRadius: 10 },
   formGroup:   { padding: '0 20px 16px' },
   label:       { display: 'block', color: '#94a3b8', fontSize: 12, fontWeight: 600, marginBottom: 6 },

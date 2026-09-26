@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
+import logoImg from '../../lib/LotusConnexs.jpeg'
+import { EnvelopeIcon, DiamondIcon, RocketIcon, LightningIcon, IconText } from '../../components/Icons'
+import { DeviceMobileIcon, HandWavingIcon, AlarmIcon, EyeIcon, ClipboardTextIcon } from '../../components/MoreIcons'
+import { BellIcon, PlusIcon, PencilLineIcon } from '../../components/admin/AdminIcons'
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons'
 
 const CHANNEL_OPTIONS = [
-  { id: 'push',   label: 'Push Notification', icon: '🔔' },
-  { id: 'email',  label: 'Email',             icon: '✉️' },
-  { id: 'in_app', label: 'In-App Banner',     icon: '📱' },
+  { id: 'push',   label: 'Push Notification', icon: BellIcon },
+  { id: 'email',  label: 'Email',             icon: EnvelopeIcon },
+  { id: 'in_app', label: 'In-App Banner',     icon: DeviceMobileIcon },
 ]
 const AUDIENCE_OPTIONS = [
   { id: 'all',      label: 'All Users' },
@@ -14,9 +19,9 @@ const AUDIENCE_OPTIONS = [
   { id: 'inactive', label: 'Inactive 30+ Days' },
 ]
 const TEMPLATES = [
-  { label: 'Welcome back 👋', title: 'We miss you!', body: "It's been a while — new matches are waiting for you. Come back and explore!" },
-  { label: 'Upgrade promo 💎', title: 'Go Premium for 50% OFF!', body: 'This weekend only: upgrade to Premium and unlock unlimited likes, boosts, and more.' },
-  { label: 'New feature 🚀',   title: 'Exciting new feature!', body: 'We just launched a brand new feature. Open the app to check it out.' },
+  { label: 'Welcome back', icon: HandWavingIcon, title: 'We miss you!', body: "It's been a while — new matches are waiting for you. Come back and explore!" },
+  { label: 'Upgrade promo', icon: DiamondIcon, title: 'Go Premium for 50% OFF!', body: 'This weekend only: upgrade to Premium and unlock unlimited likes, boosts, and more.' },
+  { label: 'New feature', icon: RocketIcon, title: 'Exciting new feature!', body: 'We just launched a brand new feature. Open the app to check it out.' },
 ]
 const MOCK_HISTORY = [
   { id: 1, title: 'Weekend promo 🎉', body: 'Get 50% off Premium this weekend only!', audience: 'free', channels: ['push','email'], status: 'sent', created_at: new Date(Date.now() - 86400000 * 2).toISOString() },
@@ -76,20 +81,20 @@ export default function NotificationBroadcastPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}>{toast.msg}</div>}
+        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}><IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
 
         <div style={S.header}>
           <div>
             <h1 style={S.title}>Notification Center</h1>
             <p style={S.subtitle}>Broadcast messages to your users</p>
           </div>
-          <button style={S.btnPrimary} onClick={() => { setTab('compose'); setPreview(false) }}>+ New Broadcast</button>
+          <button style={S.btnPrimary} onClick={() => { setTab('compose'); setPreview(false) }}><PlusIcon size={15} />New Broadcast</button>
         </div>
 
         <div style={S.tabs}>
           {['compose','history'].map(t => (
             <button key={t} style={tab === t ? S.tabActive : S.tab} onClick={() => setTab(t)}>
-              {t === 'compose' ? '✍️ Compose' : '📋 History'}
+              {t === 'compose' ? <><PencilLineIcon size={16} />Compose</> : <><ClipboardTextIcon size={16} />History</>}
             </button>
           ))}
         </div>
@@ -101,7 +106,7 @@ export default function NotificationBroadcastPage() {
                 <div style={S.sectionLabel}>Quick Templates</div>
                 <div style={S.templateRow}>
                   {TEMPLATES.map((t, i) => (
-                    <button key={i} style={S.templateBtn} onClick={() => setForm(p => ({ ...p, title: t.title, body: t.body }))}>{t.label}</button>
+                    <button key={i} style={S.templateBtn} onClick={() => setForm(p => ({ ...p, title: t.title, body: t.body }))}>{t.label}<t.icon size={14} /></button>
                   ))}
                 </div>
               </div>
@@ -112,7 +117,7 @@ export default function NotificationBroadcastPage() {
                   {CHANNEL_OPTIONS.map(c => (
                     <label key={c.id} style={{ ...S.channelChip, ...(form.channels.includes(c.id) ? S.channelChipActive : {}) }}>
                       <input type="checkbox" checked={form.channels.includes(c.id)} onChange={() => toggleChannel(c.id)} style={{ display: 'none' }}/>
-                      {c.icon} {c.label}
+                      <c.icon size={15} />{c.label}
                     </label>
                   ))}
                 </div>
@@ -149,11 +154,11 @@ export default function NotificationBroadcastPage() {
               <div style={S.section}>
                 <div style={S.sectionLabel}>Delivery</div>
                 <div style={S.scheduleRow}>
-                  {[{ v: 'now', l: '⚡ Send Now' }, { v: 'later', l: '⏰ Schedule' }].map(o => (
+                  {[{ v: 'now', l: 'Send Now', icon: LightningIcon }, { v: 'later', l: 'Schedule', icon: AlarmIcon }].map(o => (
                     <label key={o.v} style={{ ...S.scheduleChip, ...(form.schedule === o.v ? S.scheduleChipActive : {}) }}>
                       <input type="radio" name="schedule" value={o.v} checked={form.schedule === o.v}
                         onChange={() => setForm(p => ({ ...p, schedule: o.v }))} style={{ display: 'none' }}/>
-                      {o.l}
+                      <o.icon size={15} />{o.l}
                     </label>
                   ))}
                 </div>
@@ -166,10 +171,10 @@ export default function NotificationBroadcastPage() {
 
               <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
                 <button style={S.btnPrimary} onClick={sendBroadcast} disabled={sending}>
-                  {sending ? 'Sending…' : form.schedule === 'later' ? '⏰ Schedule' : '🚀 Send Broadcast'}
+                  {sending ? 'Sending…' : form.schedule === 'later' ? <><AlarmIcon size={16} />Schedule</> : <><RocketIcon size={16} />Send Broadcast</>}
                 </button>
                 <button style={S.btnGhost} onClick={() => setPreview(p => !p)}>
-                  {preview ? 'Hide Preview' : '👁 Preview'}
+                  {preview ? 'Hide Preview' : <><EyeIcon size={16} />Preview</>}
                 </button>
               </div>
             </div>
@@ -179,7 +184,7 @@ export default function NotificationBroadcastPage() {
                 <div style={S.sectionLabel}>Push Preview</div>
                 <div style={S.phoneFrame}>
                   <div style={S.phoneNotif}>
-                    <div style={S.phoneApp}>💕 Thai Conexns</div>
+                    <div style={S.phoneApp}><img src={logoImg} alt="" style={S.phoneAppIcon} />Lotus ConneXs</div>
                     <div style={S.phoneTitle}>{form.title || 'Your title here'}</div>
                     <div style={S.phoneBody}>{form.body || 'Your message body will appear here…'}</div>
                   </div>
@@ -240,15 +245,15 @@ const S = {
   title:             { margin: 0, fontSize: 26, fontWeight: 700 },
   subtitle:          { margin: '4px 0 0', fontSize: 14, color: '#64748b' },
   tabs:              { display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid #1e293b' },
-  tab:               { padding: '8px 20px', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 14, borderBottom: '2px solid transparent' },
-  tabActive:         { padding: '8px 20px', background: 'none', border: 'none', color: '#e91e63', cursor: 'pointer', fontSize: 14, borderBottom: '2px solid #e91e63', fontWeight: 600 },
+  tab:               { display: 'flex', alignItems: 'center', gap: 6, padding: '8px 20px', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: 14, borderBottom: '2px solid transparent' },
+  tabActive:         { display: 'flex', alignItems: 'center', gap: 6, padding: '8px 20px', background: 'none', border: 'none', color: '#e91e63', cursor: 'pointer', fontSize: 14, borderBottom: '2px solid #e91e63', fontWeight: 600 },
   composeGrid:       { display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'start' },
   formBox:           { background: '#1e293b', borderRadius: 14, padding: 28 },
   previewBox:        { background: '#1e293b', borderRadius: 14, padding: 24, width: 280 },
   section:           { marginBottom: 20 },
   sectionLabel:      { fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 },
   templateRow:       { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  templateBtn:       { background: '#0f172a', border: '1px solid #334155', borderRadius: 20, padding: '6px 14px', color: '#94a3b8', cursor: 'pointer', fontSize: 13 },
+  templateBtn:       { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#0f172a', border: '1px solid #334155', borderRadius: 20, padding: '6px 14px', color: '#94a3b8', cursor: 'pointer', fontSize: 13 },
   channelRow:        { display: 'flex', gap: 10 },
   channelChip:       { display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid #334155', cursor: 'pointer', fontSize: 13, color: '#94a3b8' },
   channelChipActive: { borderColor: '#e91e63', color: '#e91e63', background: '#e91e6315' },
@@ -260,13 +265,14 @@ const S = {
   textarea:          { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', resize: 'vertical', boxSizing: 'border-box' },
   charCount:         { textAlign: 'right', fontSize: 11, color: '#475569', marginTop: 4 },
   scheduleRow:       { display: 'flex', gap: 10 },
-  scheduleChip:      { padding: '8px 18px', borderRadius: 8, border: '1px solid #334155', cursor: 'pointer', fontSize: 13, color: '#94a3b8' },
+  scheduleChip:      { display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 8, border: '1px solid #334155', cursor: 'pointer', fontSize: 13, color: '#94a3b8' },
   scheduleChipActive:{ borderColor: '#3b82f6', color: '#3b82f6', background: '#3b82f615' },
-  btnPrimary:        { background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer', fontSize: 14, fontWeight: 600 },
-  btnGhost:          { background: 'transparent', color: '#64748b', border: '1px solid #334155', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontSize: 14 },
+  btnPrimary:        { display: 'flex', alignItems: 'center', gap: 6, background: '#e91e63', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 22px', cursor: 'pointer', fontSize: 14, fontWeight: 600 },
+  btnGhost:          { display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', color: '#64748b', border: '1px solid #334155', borderRadius: 8, padding: '10px 18px', cursor: 'pointer', fontSize: 14 },
   phoneFrame:        { background: '#0f172a', borderRadius: 16, padding: 16, border: '1px solid #334155' },
   phoneNotif:        { background: '#1e293b', borderRadius: 12, padding: '14px 16px' },
-  phoneApp:          { fontSize: 11, color: '#64748b', marginBottom: 6 },
+  phoneApp:          { display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#64748b', marginBottom: 6 },
+  phoneAppIcon:      { width: 14, height: 14, borderRadius: 4, objectFit: 'cover' },
   phoneTitle:        { fontSize: 14, fontWeight: 700, color: '#f1f5f9', marginBottom: 4 },
   phoneBody:         { fontSize: 13, color: '#94a3b8', lineHeight: 1.5 },
   summaryBox:        { background: '#0f172a', borderRadius: 10, padding: '4px 14px' },

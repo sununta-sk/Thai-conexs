@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { CheckIcon, LightningIcon, ArrowRightIcon } from '../../components/Icons'
+import { HandCoinsIcon, NotePencilIcon, CheckCircleIcon, ClipboardTextIcon } from '../../components/MoreIcons'
+import { GearIcon, MedalIcon, LinkIcon, ChartBarIcon } from '../../components/admin/AdminIcons'
 
 const TIER_DEFAULTS = [
   { tier: 'standard', label: 'Standard', description: 'Default for all new affiliates', color: '#64748b' },
@@ -74,7 +77,7 @@ export default function CommissionSettingsPage() {
             <p style={S.subtitle}>Configure affiliate program rules, commission rates, and payout policies</p>
           </div>
           <div style={S.headerRight}>
-            {savedMsg && <span style={S.savedMsg}>✓ {savedMsg}</span>}
+            {savedMsg && <span style={S.savedMsg}><CheckIcon size={15} />{savedMsg}</span>}
             <button onClick={handleSave} disabled={saving} style={{ ...S.btnSave, opacity: saving ? 0.6 : 1 }}>
               {saving ? 'Saving…' : 'Save Settings'}
             </button>
@@ -84,14 +87,14 @@ export default function CommissionSettingsPage() {
         {/* Tabs */}
         <div style={S.tabs}>
           {[
-            { key: 'general', label: '⚙️ General' },
-            { key: 'tiers', label: '🏅 Commission Tiers' },
-            { key: 'payouts', label: '💸 Payout Rules' },
-            { key: 'tracking', label: '🔗 Tracking' },
+            { key: 'general', label: 'General', icon: GearIcon },
+            { key: 'tiers', label: 'Commission Tiers', icon: MedalIcon },
+            { key: 'payouts', label: 'Payout Rules', icon: HandCoinsIcon },
+            { key: 'tracking', label: 'Tracking', icon: LinkIcon },
           ].map(t => (
             <button key={t.key} onClick={() => setActiveTab(t.key)}
               style={{ ...S.tab, ...(activeTab === t.key ? S.tabActive : {}) }}>
-              {t.label}
+              <t.icon size={15} />{t.label}
             </button>
           ))}
         </div>
@@ -146,7 +149,7 @@ export default function CommissionSettingsPage() {
 
             {/* Preview */}
             <div style={S.previewBox}>
-              <div style={S.previewTitle}>📊 Commission Preview</div>
+              <div style={S.previewTitle}><ChartBarIcon size={15} />Commission Preview</div>
               <p style={S.previewText}>
                 If a user pays <strong>$30/month</strong> after clicking an affiliate link,
                 that affiliate earns <strong style={{ color: '#e91e63' }}>
@@ -248,21 +251,21 @@ export default function CommissionSettingsPage() {
 
             {/* Flow Diagram */}
             <div style={S.flowDiagram}>
-              <div style={S.flowTitle}>📋 Payout Flow</div>
+              <div style={S.flowTitle}><ClipboardTextIcon size={15} />Payout Flow</div>
               <div style={S.flowSteps}>
                 {[
-                  { icon: '📝', label: 'Request Submitted', sub: 'Affiliate submits payout' },
-                  { icon: '⚡', label: `≤ €${settings.auto_approve_threshold || 100}?`, sub: 'Auto-approve check' },
-                  { icon: '✓', label: 'Approved', sub: 'Manual or automatic' },
-                  { icon: '💸', label: 'Paid', sub: `Every ${settings.payout_day || 'Monday'}` },
+                  { icon: NotePencilIcon, label: 'Request Submitted', sub: 'Affiliate submits payout' },
+                  { icon: LightningIcon, label: `≤ €${settings.auto_approve_threshold || 100}?`, sub: 'Auto-approve check' },
+                  { icon: CheckCircleIcon, label: 'Approved', sub: 'Manual or automatic' },
+                  { icon: HandCoinsIcon, label: 'Paid', sub: `Every ${settings.payout_day || 'Monday'}` },
                 ].map((step, i) => (
                   <div key={i} style={S.flowStepWrap}>
                     <div style={S.flowStep}>
-                      <span style={S.flowIcon}>{step.icon}</span>
+                      <span style={S.flowIcon}><step.icon size={22} /></span>
                       <div style={S.flowLabel}>{step.label}</div>
                       <div style={S.flowSub}>{step.sub}</div>
                     </div>
-                    {i < 3 && <div style={S.flowArrow}>→</div>}
+                    {i < 3 && <div style={S.flowArrow}><ArrowRightIcon size={20} /></div>}
                   </div>
                 ))}
               </div>
@@ -350,10 +353,10 @@ const S = {
   title: { margin: '0 0 4px', fontSize: '24px', fontWeight: 700 },
   subtitle: { margin: 0, color: '#64748b', fontSize: '14px' },
   headerRight: { display: 'flex', alignItems: 'center', gap: '12px' },
-  savedMsg: { color: '#4ade80', fontSize: '14px', fontWeight: 500 },
+  savedMsg: { display: 'flex', alignItems: 'center', gap: 6, color: '#4ade80', fontSize: '14px', fontWeight: 500 },
   btnSave: { background: '#e91e63', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 24px', cursor: 'pointer', fontSize: '14px', fontWeight: 700 },
   tabs: { display: 'flex', flexWrap: 'wrap', gap: '4px', borderBottom: '1px solid #1e293b', marginBottom: '24px' },
-  tab: { background: 'none', border: 'none', borderBottom: '2px solid transparent', color: '#64748b', cursor: 'pointer', padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' },
+  tab: { display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', borderBottom: '2px solid transparent', color: '#64748b', cursor: 'pointer', padding: '8px 12px', fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' },
   tabActive: { color: '#e91e63', borderBottomColor: '#e91e63', fontWeight: 600 },
   card: { background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '28px' },
   cardHeader: { marginBottom: '24px' },
@@ -364,7 +367,7 @@ const S = {
   select: { background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '10px 14px', color: '#f1f5f9', fontSize: '14px', outline: 'none', width: '100%' },
   toggleSection: { borderTop: '1px solid #0f172a', paddingTop: '4px' },
   previewBox: { background: '#0f172a', border: '1px solid #e91e6333', borderRadius: '8px', padding: '16px', marginTop: '24px' },
-  previewTitle: { color: '#e91e63', fontSize: '13px', fontWeight: 600, marginBottom: '8px' },
+  previewTitle: { display: 'flex', alignItems: 'center', gap: 6, color: '#e91e63', fontSize: '13px', fontWeight: 600, marginBottom: '8px' },
   previewText: { margin: 0, color: '#94a3b8', fontSize: '14px', lineHeight: '1.6' },
   tiersGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' },
   tierCard: { background: '#0f172a', borderRadius: '10px', padding: '18px', border: '1px solid #334155' },
@@ -380,12 +383,12 @@ const S = {
   rateBar: { background: '#334155', borderRadius: '4px', height: '6px', marginTop: '12px', overflow: 'hidden' },
   rateBarFill: { height: '100%', borderRadius: '4px', transition: 'width 0.3s' },
   flowDiagram: { background: '#0f172a', borderRadius: '10px', padding: '20px', marginTop: '24px', border: '1px solid #334155' },
-  flowTitle: { color: '#94a3b8', fontSize: '13px', fontWeight: 600, marginBottom: '16px' },
+  flowTitle: { display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: '13px', fontWeight: 600, marginBottom: '16px' },
   flowSteps: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' },
   flowStepWrap: { display: 'flex', alignItems: 'center', gap: '8px' },
   flowStep: { background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '12px 16px', textAlign: 'center', minWidth: '120px' },
-  flowIcon: { fontSize: '20px', display: 'block', marginBottom: '6px' },
+  flowIcon: { display: 'flex', justifyContent: 'center', color: '#e91e63', marginBottom: '6px' },
   flowLabel: { color: '#e2e8f0', fontSize: '12px', fontWeight: 600, marginBottom: '2px' },
   flowSub: { color: '#475569', fontSize: '11px' },
-  flowArrow: { color: '#e91e63', fontSize: '20px', fontWeight: 700 },
+  flowArrow: { color: '#e91e63', display: 'flex' },
 }

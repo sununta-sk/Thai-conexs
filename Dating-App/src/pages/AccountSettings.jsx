@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useIsDesktop } from '../hooks/useIsMobile';
+import { PersonIcon } from '../components/Icons';
 
 export default function AccountSettings() {
   const navigate = useNavigate();
@@ -348,7 +349,7 @@ function PassedBlockedList({ loading, profiles, emptyText, undoingId, onUndo }) 
         <div key={p.id} style={S.listRow}>
           {p.avatar_url
             ? <img src={p.avatar_url} alt="" style={S.listAvatar} />
-            : <div style={{ ...S.listAvatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#64748b' }}>👤</div>}
+            : <div style={{ ...S.listAvatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#64748b' }}><PersonIcon size={18} color="#64748b" /></div>}
           <span style={S.listUsername}>{p.username || 'Unknown user'}</span>
           <button
             onClick={() => onUndo(p.id)}

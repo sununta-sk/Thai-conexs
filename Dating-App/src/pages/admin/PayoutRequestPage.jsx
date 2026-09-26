@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import AdminLayout from '../../components/AdminLayout';
 import { supabase } from '../../lib/supabaseClient';
+import { CheckIcon, ArrowLeftIcon, LightningIcon, WarningIcon } from '../../components/Icons';
+import { BankIcon, DeviceMobileIcon, PaypalLogoIcon, ClipboardTextIcon, XCircleIcon, CheckCircleIcon, TimerIcon } from '../../components/MoreIcons';
+import { CoinsIcon, CalendarIcon } from '../../components/admin/AdminIcons';
 
 const PAYMENT_METHODS = [
-  { value: 'bank_transfer', label: 'Bank Transfer', icon: '🏦' },
-  { value: 'promptpay',     label: 'PromptPay',     icon: '📱' },
-  { value: 'paypal',        label: 'PayPal',         icon: '🅿️' },
+  { value: 'bank_transfer', label: 'Bank Transfer', icon: BankIcon },
+  { value: 'promptpay',     label: 'PromptPay',     icon: DeviceMobileIcon },
+  { value: 'paypal',        label: 'PayPal',         icon: PaypalLogoIcon },
 ]
 
 // ── รายชื่อธนาคารไทยทั้งหมด ──
@@ -179,7 +182,7 @@ export default function PayoutRequestPage() {
     return (
       <AdminLayout>
         <div style={S.successScreen}>
-          <div style={S.successIcon}>✓</div>
+          <div style={S.successIcon}><CheckIcon size={36} /></div>
           <h2 style={S.successTitle}>Payout Request Submitted</h2>
           <p style={S.successSub}>
             {willAutoApprove ? 'Auto-approved! Will be processed shortly.' : 'Pending admin review.'}
@@ -195,7 +198,7 @@ export default function PayoutRequestPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        <button onClick={() => navigate(-1)} style={S.back}>← Back</button>
+        <button onClick={() => navigate(-1)} style={S.back}><ArrowLeftIcon size={14} />Back</button>
         <div style={S.layout}>
           <div style={S.formCard}>
             <h1 style={S.formTitle}>Create Payout Request</h1>
@@ -220,14 +223,14 @@ export default function PayoutRequestPage() {
               </div>
               <div style={{ marginBottom: 10 }}>
                 <input value={payee.phone} onChange={e => { setPayee(p => ({ ...p, phone: e.target.value })); setErrors(ev => ({ ...ev, phone: null })) }}
-                  placeholder="📱 Phone Number * (required)"
+                  placeholder="Phone Number * (required)"
                   style={{ ...S.input, ...(errors.phone ? S.inputError : {}), borderColor: errors.phone ? '#ef4444' : payee.phone ? '#10b981' : '#334155' }} />
                 {errors.phone && <span style={S.errorMsg}>{errors.phone}</span>}
                 <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>Used for contact and transfer verification</span>
               </div>
               <div>
                 <input value={payee.email} onChange={e => { setPayee(p => ({ ...p, email: e.target.value })); setErrors(ev => ({ ...ev, email: null })) }}
-                  placeholder="✉️ Email * (for sending slip)" type="email"
+                  placeholder="Email * (for sending slip)" type="email"
                   style={{ ...S.input, ...(errors.email ? S.inputError : {}) }} />
                 {errors.email && <span style={S.errorMsg}>{errors.email}</span>}
                 <span style={{ fontSize: 11, color: '#475569', marginTop: 4, display: 'block' }}>Transfer slip will be sent to this email</span>
@@ -245,8 +248,8 @@ export default function PayoutRequestPage() {
                   style={{ ...S.amountInput, ...(errors.amount ? S.inputError : {}) }} />
               </div>
               {errors.amount && <span style={S.errorMsg}>{errors.amount}</span>}
-              {willAutoApprove && <div style={S.autoApproveHint}>⚡ Will be <strong>auto-approved</strong> immediately</div>}
-              {enteredAmt > 0 && autoThreshold && enteredAmt > autoThreshold && <div style={S.manualHint}>📋 Requires <strong>manual review</strong></div>}
+              {willAutoApprove && <div style={S.autoApproveHint}><LightningIcon size={14} style={S.inlineIcon} />Will be <strong>auto-approved</strong> immediately</div>}
+              {enteredAmt > 0 && autoThreshold && enteredAmt > autoThreshold && <div style={S.manualHint}><ClipboardTextIcon size={14} style={S.inlineIcon} />Requires <strong>manual review</strong></div>}
             </div>
 
             {/* ── Step 3: Payment Method ── */}
@@ -256,7 +259,7 @@ export default function PayoutRequestPage() {
                 {PAYMENT_METHODS.map(m => (
                   <button key={m.value} onClick={() => { setForm(f => ({ ...f, payment_method: m.value })); setBankInfo({ bankCode: '', accountNumber: '', extra: '' }) }}
                     style={{ ...S.methodBtn, ...(form.payment_method === m.value ? S.methodBtnActive : {}) }}>
-                    <span style={{ fontSize: '20px' }}>{m.icon}</span>
+                    <m.icon size={22} />
                     <span style={{ fontSize: '13px' }}>{m.label}</span>
                   </button>
                 ))}
@@ -277,7 +280,7 @@ export default function PayoutRequestPage() {
                       value={bankInfo.bankCode}
                       onChange={e => { setBankInfo(b => ({ ...b, bankCode: e.target.value })); setErrors(ev => ({ ...ev, bankCode: null })) }}
                       style={{ ...S.input, ...(errors.bankCode ? S.inputError : {}), color: bankInfo.bankCode ? '#f1f5f9' : '#475569' }}>
-                      <option value="">🏦 Select Bank *</option>
+                      <option value="">Select Bank *</option>
                       {THAI_BANKS.map(b => (
                         <option key={b.code} value={b.code}>{b.name}</option>
                       ))}
@@ -290,7 +293,7 @@ export default function PayoutRequestPage() {
     placeholder="Other (optional)"
     style={S.input} />
     <span style={{ display: 'block', marginTop: 4, fontSize: 11, color: '#ef4444', fontWeight: 600 }}>
-      ⚠️ Payee name must match account holder name
+      <WarningIcon size={13} style={S.inlineIcon} />Payee name must match account holder name
     </span>
 </div>
                   )}
@@ -322,7 +325,7 @@ export default function PayoutRequestPage() {
               {/* Preview */}
               {(bankInfo.bankCode || bankInfo.accountNumber) && (
                 <div style={{ marginTop: 8, background: '#0f172a', borderRadius: 8, padding: '8px 12px', color: '#94a3b8', fontSize: 12 }}>
-                  📋 {buildPaymentDetail()}
+                  <ClipboardTextIcon size={13} style={S.inlineIcon} />{buildPaymentDetail()}
                 </div>
               )}
             </div>
@@ -336,7 +339,7 @@ export default function PayoutRequestPage() {
 
             {errors.submit && (
               <div style={{ background: '#ef444422', border: '1px solid #ef444444', borderRadius: 8, padding: '10px 14px', color: '#f87171', fontSize: 13, marginBottom: 12 }}>
-                ❌ {errors.submit}
+                <XCircleIcon size={15} style={S.inlineIcon} />{errors.submit}
               </div>
             )}
 
@@ -349,20 +352,20 @@ export default function PayoutRequestPage() {
           <div style={S.sidebar}>
             <div style={S.sideCard}>
               <h3 style={S.sideTitle}>Payout Rules</h3>
-              <div style={S.ruleItem}><span style={S.ruleIcon}>💰</span><div><div style={S.ruleLabel}>Minimum Amount</div><div style={S.ruleVal}>€{minThreshold}</div></div></div>
-              <div style={S.ruleItem}><span style={S.ruleIcon}>⚡</span><div><div style={S.ruleLabel}>Auto-Approve</div><div style={S.ruleVal}>€{autoThreshold || '—'} or less</div></div></div>
-              <div style={S.ruleItem}><span style={S.ruleIcon}>⏱️</span><div><div style={S.ruleLabel}>Manual Review</div><div style={S.ruleVal}>1–3 business days</div></div></div>
-              <div style={S.ruleItem}><span style={S.ruleIcon}>📅</span><div><div style={S.ruleLabel}>Processing Day</div><div style={S.ruleVal}>{settings?.payout_day || 'Every Monday'}</div></div></div>
+              <div style={S.ruleItem}><span style={S.ruleIcon}><CoinsIcon size={18} /></span><div><div style={S.ruleLabel}>Minimum Amount</div><div style={S.ruleVal}>€{minThreshold}</div></div></div>
+              <div style={S.ruleItem}><span style={S.ruleIcon}><LightningIcon size={18} /></span><div><div style={S.ruleLabel}>Auto-Approve</div><div style={S.ruleVal}>€{autoThreshold || '—'} or less</div></div></div>
+              <div style={S.ruleItem}><span style={S.ruleIcon}><TimerIcon size={18} /></span><div><div style={S.ruleLabel}>Manual Review</div><div style={S.ruleVal}>1–3 business days</div></div></div>
+              <div style={S.ruleItem}><span style={S.ruleIcon}><CalendarIcon size={18} /></span><div><div style={S.ruleLabel}>Processing Day</div><div style={S.ruleVal}>{settings?.payout_day || 'Every Monday'}</div></div></div>
             </div>
             <div style={{ ...S.sideCard, marginTop: 16, background: '#6366f111', border: '1px solid #6366f133' }}>
-              <h3 style={{ ...S.sideTitle, color: '#818cf8' }}>📋 Required Info</h3>
+              <h3 style={{ ...S.sideTitle, color: '#818cf8', display: 'flex', alignItems: 'center', gap: 6 }}><ClipboardTextIcon size={17} />Required Info</h3>
               <p style={{ color: '#94a3b8', fontSize: 13, lineHeight: 1.7, margin: 0 }}>
-  ✅ Full Name<br />
-  ✅ Phone Number (required)<br />
-  ✅ Email (to receive slip)<br />
-  ✅ Bank + Account Number<br />
+  <CheckCircleIcon size={14} color="#4ade80" style={S.inlineIcon} />Full Name<br />
+  <CheckCircleIcon size={14} color="#4ade80" style={S.inlineIcon} />Phone Number (required)<br />
+  <CheckCircleIcon size={14} color="#4ade80" style={S.inlineIcon} />Email (to receive slip)<br />
+  <CheckCircleIcon size={14} color="#4ade80" style={S.inlineIcon} />Bank + Account Number<br />
   <span style={{ color: '#ef4444', fontWeight: 700, fontSize: 12 }}>
-    ⚠️ Payee name must match account holder name
+    <WarningIcon size={13} style={S.inlineIcon} />Payee name must match account holder name
   </span>
 </p>
             </div>
@@ -375,7 +378,7 @@ export default function PayoutRequestPage() {
 
 const S = {
   page: { padding: '24px', maxWidth: '1000px', margin: '0 auto', color: '#f1f5f9' },
-  back: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px', padding: 0, marginBottom: '24px', display: 'block' },
+  back: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '14px', padding: 0, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: 6 },
   layout: { display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', alignItems: 'flex-start' },
   formCard: { background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '32px' },
   formTitle: { margin: '0 0 4px', fontSize: '22px', fontWeight: 700 },
@@ -398,7 +401,9 @@ const S = {
   sideCard: { background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', padding: '20px' },
   sideTitle: { margin: '0 0 16px', fontSize: '15px', fontWeight: 700, color: '#f1f5f9' },
   ruleItem: { display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid #0f172a' },
-  ruleIcon: { fontSize: '18px', flexShrink: 0, marginTop: '2px' },
+  ruleIcon: { display: 'flex', flexShrink: 0, marginTop: '2px', color: '#e91e63' },
+  // Icon sitting inline at the start of a line of text.
+  inlineIcon: { verticalAlign: '-2px', marginRight: 6 },
   ruleLabel: { color: '#64748b', fontSize: '12px', marginBottom: '2px' },
   ruleVal: { color: '#e2e8f0', fontSize: '14px', fontWeight: 600 },
   successScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '12px' },

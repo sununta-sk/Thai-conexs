@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useSubscription } from "../hooks/useSubscription";
 import { supabase } from "../lib/supabaseClient";
+import { ConfettiIcon } from "../components/Icons";
+import { XCircleIcon } from "../components/MoreIcons";
 
 export default function PaymentPage() {
   const navigate = useNavigate();
@@ -87,7 +89,7 @@ export default function PaymentPage() {
           </div>
         ) : status === "success" ? (
           <div style={styles.center}>
-            <div style={styles.successIcon}>🎉</div>
+            <div style={styles.successIcon}><ConfettiIcon size={64} color="#e91e63" /></div>
             <h2 style={styles.successTitle}>Payment Successful!</h2>
             <p style={styles.successText}>
               Welcome to your new plan. Redirecting you to Discover...
@@ -98,7 +100,7 @@ export default function PaymentPage() {
           </div>
         ) : (
           <div style={styles.center}>
-            <div style={styles.failIcon}>❌</div>
+            <div style={styles.failIcon}><XCircleIcon size={60} color="#ef4444" /></div>
             <h2 style={styles.failTitle}>Payment Failed</h2>
             <p style={styles.failText}>{error || "Something went wrong."}</p>
             <div style={styles.btnRow}>
@@ -132,7 +134,7 @@ const styles = {
     animation: "spin 1s linear infinite",
   },
   loadingText: { color: "#94a3b8", fontSize: 16 },
-  successIcon: { fontSize: 64 },
+  successIcon: { display: 'flex', justifyContent: 'center' },
   successTitle: { color: "#fff", fontSize: 28, fontWeight: 800, margin: 0 },
   successText: { color: "#94a3b8", fontSize: 15, margin: 0 },
   progressBar: {
@@ -144,7 +146,7 @@ const styles = {
     borderRadius: 50, animation: "progress 3s linear forwards",
     "@keyframes progress": { from: { width: "0%" }, to: { width: "100%" } },
   },
-  failIcon: { fontSize: 56 },
+  failIcon: { display: 'flex', justifyContent: 'center' },
   failTitle: { color: "#fff", fontSize: 24, fontWeight: 800, margin: 0 },
   failText: { color: "#94a3b8", fontSize: 15, margin: 0 },
   btnRow: { display: "flex", gap: 12, marginTop: 8 },

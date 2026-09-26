@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from '../../components/AdminLayout';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { MagnifyingGlassIcon, ArrowLeftIcon, ArrowRightIcon } from '../../components/Icons';
+import { CheckCircleIcon, XCircleIcon } from '../../components/MoreIcons';
+import { UsersIcon, CaretRightIcon } from '../../components/admin/AdminIcons';
 
 const PLAN_COLORS = {
   free:    { bg: '#1e293b', color: '#64748b' },
@@ -51,19 +54,22 @@ export default function UserListPage() {
         {/* Header */}
         <div style={S.pageHeader}>
           <div>
-            <h2 style={S.pageTitle}>👥 User Management</h2>
+            <h2 style={S.pageTitle}><UsersIcon size={24} color="#e91e63" />User Management</h2>
             <p style={S.pageSubtitle}>Manage all users in the system</p>
           </div>
         </div>
 
         {/* Filters */}
         <div style={S.filterBar}>
-          <input
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(0); }}
-            placeholder="🔍  Search username or email..."
-            style={S.searchInput}
-          />
+          <div style={S.searchWrap}>
+            <MagnifyingGlassIcon size={16} color="#64748b" style={S.searchIcon} />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(0); }}
+              placeholder="Search username or email..."
+              style={S.searchInput}
+            />
+          </div>
           <div style={S.filterBtns}>
             {['all', 'free', 'premium', 'gold'].map(p => (
               <button
@@ -91,7 +97,7 @@ export default function UserListPage() {
                 return (
                   <div key={u.id} style={S.userCard} onClick={() => navigate(`/admin/users/${u.id}`)}>
                     <img
-                      src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>')}
+                      src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><g transform="translate(15 15) scale(5)" fill="#64748b"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></g></svg>')}
                       style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1e293b', flexShrink: 0 }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -100,8 +106,8 @@ export default function UserListPage() {
                         {plan}
                       </span>
                     </div>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>{u.is_verified ? '✅' : '❌'}</span>
-                    <div style={{ color: '#334155', fontSize: 18, flexShrink: 0 }}>›</div>
+                    <span style={{ display: 'flex', flexShrink: 0 }}>{u.is_verified ? <CheckCircleIcon size={18} color="#10b981" /> : <XCircleIcon size={18} color="#ef4444" />}</span>
+                    <div style={{ color: '#334155', display: 'flex', flexShrink: 0 }}><CaretRightIcon size={16} /></div>
                   </div>
                 );
               })}
@@ -126,7 +132,7 @@ export default function UserListPage() {
                         <td style={S.td}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <img
-                              src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>')}
+                              src={u.avatar_url || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><g transform="translate(15 15) scale(5)" fill="#64748b"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></g></svg>')}
                               style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1e293b' }}
                             />
                             <div>
@@ -150,7 +156,7 @@ export default function UserListPage() {
 
                         {/* Verified */}
                         <td style={S.td}>
-                          <span style={{ fontSize: 16 }}>{u.is_verified ? '✅' : '❌'}</span>
+                          <span style={{ display: 'flex' }}>{u.is_verified ? <CheckCircleIcon size={18} color="#10b981" /> : <XCircleIcon size={18} color="#ef4444" />}</span>
                         </td>
 
                         {/* Joined */}
@@ -191,7 +197,7 @@ export default function UserListPage() {
               disabled={page === 0}
               style={{ ...S.pageBtn, opacity: page === 0 ? 0.4 : 1 }}
             >
-              ← Prev
+              <ArrowLeftIcon size={13} />Prev
             </button>
             <span style={{ color: '#64748b', fontSize: 13 }}>Page {page + 1}</span>
             <button
@@ -199,7 +205,7 @@ export default function UserListPage() {
               disabled={users.length < PAGE_SIZE}
               style={{ ...S.pageBtn, opacity: users.length < PAGE_SIZE ? 0.4 : 1 }}
             >
-              Next →
+              Next<ArrowRightIcon size={13} />
             </button>
           </div>
         </div>
@@ -211,10 +217,12 @@ export default function UserListPage() {
 const S = {
   page:        { padding: 24 },
   pageHeader:  { marginBottom: 20 },
-  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' },
+  pageTitle:   { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 },
   pageSubtitle:{ color: '#64748b', fontSize: 13, margin: 0 },
   filterBar:   { display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' },
-  searchInput: { flex: 1, minWidth: 200, padding: '10px 16px', borderRadius: 10, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontSize: 14, outline: 'none' },
+  searchWrap:  { position: 'relative', flex: 1, minWidth: 200, display: 'flex' },
+  searchIcon:  { position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' },
+  searchInput: { flex: 1, minWidth: 200, padding: '10px 16px 10px 36px', boxSizing: 'border-box', borderRadius: 10, border: '1px solid #334155', background: '#1e293b', color: '#f1f5f9', fontSize: 14, outline: 'none' },
   filterBtns:  { display: 'flex', gap: 6 },
   filterBtn:   { padding: '8px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#64748b', fontSize: 12, fontWeight: 600, cursor: 'pointer' },
   filterBtnActive: { background: '#e91e6322', color: '#e91e63', borderColor: '#e91e6344' },
@@ -227,6 +235,6 @@ const S = {
   td:          { padding: '12px 16px', color: '#94a3b8', fontSize: 13 },
   actionBtn:   { padding: '5px 12px', borderRadius: 6, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' },
   pagination:  { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '14px 0', borderTop: '1px solid #334155' },
-  pageBtn:     { padding: '6px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  pageBtn:     { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px', borderRadius: 8, border: '1px solid #334155', background: 'none', color: '#94a3b8', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   empty:       { padding: 50, textAlign: 'center', color: '#475569', fontSize: 14 },
 };

@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon } from '../components/Icons';
 
 const CONTENT = {
   en: {
@@ -204,7 +205,7 @@ export default function RulesPage() {
     <div style={S.page}>
       <div style={S.topBar}>
         <button style={S.backBtn} onClick={() => navigate(-1)}>
-          \u2190 {c.back}
+          <ArrowLeftIcon size={16} />{c.back}
         </button>
         <div style={S.langToggle}>
           <button
@@ -292,6 +293,9 @@ const S = {
     fontWeight: 600,
     cursor: 'pointer',
     padding: '6px 10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
   },
   langToggle: {
     display: 'flex',

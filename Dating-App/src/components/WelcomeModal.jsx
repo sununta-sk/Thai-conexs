@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import logoFull from '../lib/LotusConnexs-full.jpeg';
+import { VerifiedIcon, TranslateIcon, LightningIcon, XIcon } from './Icons';
+
+// Feature-row icons, in the same order as COPY[lang].features (were ✓ ✨ ⚡).
+const FEATURE_ICONS = [VerifiedIcon, TranslateIcon, LightningIcon];
 
 const DAY_KEY = 'welcomeModalDismissedDate';
 
@@ -10,9 +14,9 @@ const COPY = {
     welcome: 'Welcome to Lotus ConneXs',
     tagline: 'Real connections with Thai singles — start chatting instantly, no matching required.',
     features: [
-      { icon: '\u2713', title: 'Verified Profiles', desc: 'Face verification and photo moderation keep the community real.' },
-      { icon: '\u2728', title: 'Auto-Translation', desc: 'Chat naturally in Thai or English — messages translate in real time.' },
-      { icon: '\u26A1', title: 'Instant Chat', desc: 'Send messages, GIFs, and voice notes to anyone, anytime.' },
+      { title: 'Verified Profiles', desc: 'Face verification and photo moderation keep the community real.' },
+      { title: 'Auto-Translation', desc: 'Chat naturally in Thai or English — messages translate in real time.' },
+      { title: 'Instant Chat', desc: 'Send messages, GIFs, and voice notes to anyone, anytime.' },
     ],
     cta: 'Start Exploring',
     dontShow: "Don't show this again today",
@@ -22,9 +26,9 @@ const COPY = {
     welcome: 'ยินดีต้อนรับสู่ Lotus ConneXs',
     tagline: 'พบคนไทยจริงๆ เริ่มแชทได้ทันที ไม่ต้องรอจับคู่',
     features: [
-      { icon: '\u2713', title: 'โปรไฟล์ยืนยันตัวตน', desc: 'ระบบยืนยันใบหน้าและตรวจรูปภาพ ทำให้ชุมชนของเรามีแต่คนจริงๆ' },
-      { icon: '\u2728', title: 'แปลภาษาอัตโนมัติ', desc: 'แชทเป็นไทยหรืออังกฤษ ระบบแปลให้แบบเรียลไทม์' },
-      { icon: '\u26A1', title: 'แชทได้ทันที', desc: 'ส่งข้อความ GIF เสียง ได้ทันทีถึงทุกคน' },
+      { title: 'โปรไฟล์ยืนยันตัวตน', desc: 'ระบบยืนยันใบหน้าและตรวจรูปภาพ ทำให้ชุมชนของเรามีแต่คนจริงๆ' },
+      { title: 'แปลภาษาอัตโนมัติ', desc: 'แชทเป็นไทยหรืออังกฤษ ระบบแปลให้แบบเรียลไทม์' },
+      { title: 'แชทได้ทันที', desc: 'ส่งข้อความ GIF เสียง ได้ทันทีถึงทุกคน' },
     ],
     cta: 'เริ่มสำรวจ',
     dontShow: 'ไม่ต้องแสดงอีกในวันนี้',
@@ -84,7 +88,7 @@ export default function WelcomeModal() {
     <div style={S.backdrop} onClick={handleClose}>
       <div style={S.modal} onClick={(e) => e.stopPropagation()}>
         <button style={S.closeBtn} onClick={handleClose} aria-label="Close">
-          {'\u2715'}
+          <XIcon size={16} />
         </button>
 
         <div style={S.scroll}>
@@ -95,15 +99,18 @@ export default function WelcomeModal() {
           </div>
 
           <div style={S.features}>
-            {t.features.map((f, i) => (
+            {t.features.map((f, i) => {
+              const Icon = FEATURE_ICONS[i];
+              return (
               <div key={i} style={S.feature}>
-                <div style={S.featureIcon}>{f.icon}</div>
+                <div style={S.featureIcon}><Icon size={20} /></div>
                 <div style={S.featureBody}>
                   <h3 style={S.featureTitle}>{f.title}</h3>
                   <p style={S.featureDesc}>{f.desc}</p>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <button style={S.cta} onClick={handleClose}>
@@ -172,6 +179,7 @@ const S = {
     border: `1px solid ${BORDER}`,
     color: TEXT_SOFT,
     fontSize: 16,
+    padding: 0,
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',

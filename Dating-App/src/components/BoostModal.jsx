@@ -5,7 +5,8 @@
 import { useState, useEffect } from 'react'
 import { formatCountdown } from '../hooks/useBoost'
 import { useTranslation } from '../hooks/useTranslation'
-import { RocketIcon, XIcon } from './Icons'
+import { RocketIcon, XIcon, CheckIcon, LockIcon } from './Icons'
+import { StarIcon, SparkleIcon, RankingIcon, TimerIcon } from './MoreIcons'
 
 // Structural data only (hours + which one is highlighted) - display strings
 // (label/desc) are derived from tx at render time so they respond to the
@@ -28,7 +29,7 @@ export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive,
 
   const durationMeta = {
     1:  { label: tx.hours1 || '1 ชั่วโมง',   desc: tx.descTry || 'ลองใช้งาน' },
-    6:  { label: tx.hours6 || '6 ชั่วโมง',   desc: tx.descRecommended || 'แนะนำ ⭐' },
+    6:  { label: tx.hours6 || '6 ชั่วโมง',   desc: <>{tx.descRecommended || 'แนะนำ'}<StarIcon size={11} color="#f59e0b" style={{ marginLeft: 3, verticalAlign: '-1px' }} /></> },
     24: { label: tx.hours24 || '24 ชั่วโมง',  desc: tx.descMax || 'สูงสุด' },
   }
 
@@ -75,16 +76,16 @@ export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive,
                   {d.highlight && <span style={S.popularBadge}>{tx.popular || 'ยอดนิยม'}</span>}
                   <span style={S.durationHours}>{durationMeta[d.hours].label}</span>
                   <span style={S.durationDesc}>{durationMeta[d.hours].desc}</span>
-                  {selected === d.hours && <span style={S.checkmark}>✓</span>}
+                  {selected === d.hours && <span style={S.checkmark}><CheckIcon size={13} /></span>}
                 </button>
               ))}
             </div>
 
             {/* ── How it works ── */}
             <div style={S.infoBox}>
-              <InfoRow icon="📍" text={tx.infoRank || 'โปรไฟล์ของคุณจะปรากฏอันดับต้นๆ ของทุกคน'} />
-              <InfoRow icon="🔒" text={tx.infoSubscription || 'ต้องมี Subscription plan เพื่อใช้ฟีเจอร์นี้'} />
-              <InfoRow icon="⏱" text={tx.infoExpiry || 'Boost จะหมดอายุอัตโนมัติตาม duration ที่เลือก'} />
+              <InfoRow icon={<RankingIcon size={15} />} text={tx.infoRank || 'โปรไฟล์ของคุณจะปรากฏอันดับต้นๆ ของทุกคน'} />
+              <InfoRow icon={<LockIcon size={15} />} text={tx.infoSubscription || 'ต้องมี Subscription plan เพื่อใช้ฟีเจอร์นี้'} />
+              <InfoRow icon={<TimerIcon size={15} />} text={tx.infoExpiry || 'Boost จะหมดอายุอัตโนมัติตาม duration ที่เลือก'} />
             </div>
 
             {/* ── Error ── */}
@@ -129,7 +130,7 @@ function ActiveBoostView({ timeLeft, boost }) {
         <div style={{ ...S.progressFill, width: `${pct}%` }} />
       </div>
       <p style={S.activeHint}>
-        {tx.activeHint || 'โปรไฟล์ของคุณอยู่อันดับต้นของ Discover แล้ว ✨'}
+        {tx.activeHint || 'โปรไฟล์ของคุณอยู่อันดับต้นของ Discover แล้ว'}<SparkleIcon size={14} color="#f59e0b" style={{ marginLeft: 4, verticalAlign: '-2px' }} />
       </p>
     </div>
   )
@@ -249,7 +250,7 @@ const S = {
   },
   checkmark: {
     position: 'absolute', top: '8px', right: '10px',
-    color: '#e91e63', fontSize: '12px', fontWeight: 800,
+    color: '#e91e63', fontSize: '12px', fontWeight: 800, display: 'flex',
   },
 
   // Info box
@@ -264,7 +265,7 @@ const S = {
   infoRow: {
     display: 'flex', alignItems: 'flex-start', gap: '10px',
   },
-  infoIcon: { fontSize: '14px', flexShrink: 0, marginTop: '1px' },
+  infoIcon: { fontSize: '14px', flexShrink: 0, marginTop: '2px', display: 'flex', color: '#e91e63' },
   infoText: { fontSize: '12.5px', color: '#94a3b8', lineHeight: 1.5 },
 
   // Error

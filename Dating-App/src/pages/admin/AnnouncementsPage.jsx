@@ -4,6 +4,10 @@ import AdminLayout from '../../components/AdminLayout'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuditLogger } from '../../hooks/useAuditLogger'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { XIcon, RocketIcon, IconText } from '../../components/Icons'
+import { MegaphoneIcon } from '../../components/MoreIcons'
+import { PlusIcon } from '../../components/admin/AdminIcons'
+import { ADMIN_TEXT_ICONS } from '../../lib/adminTextIcons'
 
 export default function AnnouncementsPage() {
   const isMobile = useIsMobile()
@@ -141,10 +145,10 @@ export default function AnnouncementsPage() {
   return (
     <AdminLayout>
       <div style={S.page}>
-        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}>{toast.msg}</div>}
+        {toast && <div style={{ ...S.toast, background: toast.type === 'error' ? '#ef4444' : '#10b981' }}><IconText text={toast.msg} icons={ADMIN_TEXT_ICONS} size="1.1em" /></div>}
         <div style={S.hdr}>
-          <div><h2 style={S.title}>📢 Announcements</h2><p style={S.sub}>Announcements and banners in the app</p></div>
-          <button onClick={() => setForm(v => !v)} style={S.addBtn}>{showForm ? '✕ Cancel' : '+ New'}</button>
+          <div><h2 style={S.title}><MegaphoneIcon size={24} color="#e91e63" />Announcements</h2><p style={S.sub}>Announcements and banners in the app</p></div>
+          <button onClick={() => setForm(v => !v)} style={S.addBtn}>{showForm ? <><XIcon size={14} />Cancel</> : <><PlusIcon size={14} />New</>}</button>
         </div>
 
         {showForm && (
@@ -196,7 +200,7 @@ export default function AnnouncementsPage() {
                   {['info', 'warning', 'success', 'error'].map(t => <option key={t}>{t}</option>)}
                 </select>
               </div>
-              <button onClick={save} disabled={saving} style={{ ...S.saveBtn, width: isMobile ? '100%' : undefined, boxSizing: 'border-box' }}>{saving ? 'Saving…' : '🚀 Publish'}</button>
+              <button onClick={save} disabled={saving} style={{ ...S.saveBtn, width: isMobile ? '100%' : undefined, boxSizing: 'border-box' }}>{saving ? 'Saving…' : <><RocketIcon size={16} />Publish</>}</button>
             </div>
           </div>
         )}
@@ -226,14 +230,14 @@ export default function AnnouncementsPage() {
 
 const S = {
   page: { padding: 24 }, hdr: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px' }, sub: { color: '#64748b', fontSize: 13, margin: 0 },
-  addBtn: { background: '#e91e63', border: 'none', borderRadius: 10, padding: '10px 18px', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
+  title: { color: '#f1f5f9', fontSize: 22, fontWeight: 800, margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }, sub: { color: '#64748b', fontSize: 13, margin: 0 },
+  addBtn: { display: 'flex', alignItems: 'center', gap: 6, background: '#e91e63', border: 'none', borderRadius: 10, padding: '10px 18px', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
   formCard: { background: '#1e293b', borderRadius: 14, border: '1px solid #334155', padding: 24, marginBottom: 20 },
   field: { marginBottom: 14 }, lbl: { display: 'block', color: '#64748b', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 },
   input: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', boxSizing: 'border-box' },
   textarea: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14, width: '100%', resize: 'vertical', boxSizing: 'border-box' },
   select: { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, padding: '10px 14px', color: '#f1f5f9', fontSize: 14 },
-  saveBtn: { background: '#e91e63', border: 'none', borderRadius: 8, padding: '10px 22px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
+  saveBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#e91e63', border: 'none', borderRadius: 8, padding: '10px 22px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 14 },
   card: { background: '#1e293b', borderRadius: 16, border: '1px solid #334155', overflow: 'hidden' },
   row: { display: 'flex', alignItems: 'center', gap: 14, padding: '16px 20px', borderBottom: '1px solid #0f172a' },
   dot: { width: 10, height: 10, borderRadius: '50%', flexShrink: 0 },

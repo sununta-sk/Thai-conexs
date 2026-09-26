@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "../../hooks/useSubscription";
 import { useIsMobile } from "../../hooks/useIsMobile";
+import { ArrowLeftIcon, CheckIcon, XIcon, DiamondIcon, LockIcon } from "../../components/Icons";
+import { PlantIcon, SparkleIcon, ArrowCounterClockwiseIcon, CreditCardIcon } from "../../components/MoreIcons";
 
 // price: { yearly, sixMonth? } in EUR. billingOptions lists which of those
 // keys this plan actually offers (Gold has both; Free/Platinum have one).
@@ -18,7 +20,8 @@ const PLANS = [
     billingOptions: ["yearly"],
     color: "#6b7280",
     gradient: "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
-    icon: "🌱",
+    icon: PlantIcon,
+    iconColor: "#4ade80", // the sprout was green; the plan's own grey is too faint here
     features: [
       { label: "5 likes per day", included: true },
       { label: "Basic matching", included: true },
@@ -38,7 +41,7 @@ const PLANS = [
     billingOptions: ["yearly", "sixMonth"],
     color: "#f59e0b",
     gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-    icon: "✨",
+    icon: SparkleIcon,
     badge: "Popular",
     features: [
       { label: "Unlimited likes", included: true },
@@ -59,7 +62,7 @@ const PLANS = [
     billingOptions: ["yearly"],
     color: "#8b5cf6",
     gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
-    icon: "💎",
+    icon: DiamondIcon, // same diamond as the navbar's Upgrade button
     badge: "Best Value",
     features: [
       { label: "Everything in Gold", included: true },
@@ -100,7 +103,7 @@ export default function SubscriptionPage() {
 
       <div style={styles.container}>
         <div style={styles.header}>
-          <button onClick={() => navigate(-1)} style={styles.backBtn}>←</button>
+          <button onClick={() => navigate(-1)} style={styles.backBtn} aria-label="Back"><ArrowLeftIcon size={20} /></button>
           <div style={styles.headerText}>
             <p style={styles.eyebrow}>UPGRADE YOUR EXPERIENCE</p>
             <h1 style={styles.title}>Choose Your Plan</h1>
@@ -115,6 +118,7 @@ export default function SubscriptionPage() {
             const hasMultipleBilling = plan.billingOptions.length > 1;
             const selectedBilling = billingByPlan[plan.id] || plan.billingOptions[0];
             const price = plan.price[selectedBilling];
+            const PlanIcon = plan.icon;
 
             return (
               <div
@@ -132,7 +136,7 @@ export default function SubscriptionPage() {
                 <div style={styles.planHeader}>
                   <div style={styles.planIconWrapper}>
                     <div style={{ ...styles.planIconBg, background: plan.gradient }} />
-                    <span style={styles.planIcon}>{plan.icon}</span>
+                    <span style={{ ...styles.planIcon, color: plan.iconColor || plan.color }}><PlanIcon size={26} /></span>
                   </div>
                   <h2 style={{ ...styles.planName, color: plan.color }}>{plan.name}</h2>
                 </div>
@@ -167,7 +171,7 @@ export default function SubscriptionPage() {
                   {plan.features.map((f, i) => (
                     <li key={i} style={{ ...styles.featureItem, opacity: f.included ? 1 : 0.35 }}>
                       <span style={{ ...styles.featureIcon, color: f.included ? plan.color : "#6b7280" }}>
-                        {f.included ? "✓" : "✗"}
+                        {f.included ? <CheckIcon size={16} /> : <XIcon size={14} />}
                       </span>
                       <span style={styles.featureLabel}>{f.label}</span>
                     </li>
@@ -192,8 +196,8 @@ export default function SubscriptionPage() {
         </div>
 
         <div style={styles.trustRow}>
-          {["🔒 Secure Payment", "↩️ Cancel Anytime", "💳 No Hidden Fees"].map((t, i) => (
-            <div key={i} style={styles.trustBadge}>{t}</div>
+          {[{ icon: LockIcon, t: "Secure Payment" }, { icon: ArrowCounterClockwiseIcon, t: "Cancel Anytime" }, { icon: CreditCardIcon, t: "No Hidden Fees" }].map((b, i) => (
+            <div key={i} style={styles.trustBadge}><b.icon size={16} />{b.t}</div>
           ))}
         </div>
       </div>
@@ -207,7 +211,7 @@ const styles = {
   orb: { position: "absolute", borderRadius: "50%", filter: "blur(60px)" },
   container: { position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "40px 20px 80px" },
   header: { display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 40 },
-  backBtn: { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: 12, width: 44, height: 44, fontSize: 18, cursor: "pointer", flexShrink: 0, marginTop: 4 },
+  backBtn: { background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: 12, width: 44, height: 44, padding: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, marginTop: 4 },
   headerText: { flex: 1 },
   eyebrow: { fontSize: 11, letterSpacing: 3, color: "#f59e0b", fontWeight: 700, margin: "0 0 8px" },
   title: { fontSize: 36, fontWeight: 800, margin: "0 0 8px", background: "linear-gradient(135deg, #fff 0%, #9ca3af 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
@@ -237,7 +241,7 @@ const styles = {
   billedText: { fontSize: 12, color: "#6b7280", marginTop: 2 },
   featureList: { listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10 },
   featureItem: { display: "flex", alignItems: "center", gap: 10 },
-  featureIcon: { fontWeight: 800, fontSize: 14, width: 18, flexShrink: 0 },
+  featureIcon: { width: 18, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" },
   featureLabel: { fontSize: 14, color: "#d1d5db" },
   ctaBtn: { width: "100%", padding: "14px 0", borderRadius: 14, border: "none", color: "#fff", fontWeight: 700, fontSize: 16, cursor: "pointer", letterSpacing: 0.5 },
   trustRow: { display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" },

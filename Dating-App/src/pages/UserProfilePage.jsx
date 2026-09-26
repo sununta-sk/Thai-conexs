@@ -14,7 +14,8 @@ import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
 import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
 import { toLookingForList, genderKind, formatHeight } from '../lib/profileFields';
-import { ProhibitIcon, XIcon, LockOpenIcon, ShieldStarIcon, HeightIcon } from '../components/Icons';
+import { ProhibitIcon, XIcon, LockOpenIcon, ShieldStarIcon, HeightIcon, CaretLineLeftIcon, CaretLineRightIcon, ArrowLeftIcon, ChatCircleIcon, HeartFillIcon, CheckIcon, WarningIcon } from '../components/Icons';
+import { MegaphoneIcon } from '../components/MoreIcons';
 import { LifestyleLabel, SparkleIcon } from '../components/LifestyleIcons';
 import PhotoZoomButton from '../components/PhotoZoomButton';
 import { ZOOM_CURSOR } from '../lib/zoomCursor';
@@ -136,8 +137,8 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
 
         {photos.length > 1 && (
           <>
-            <button style={C.arrowLeft}  onClick={prev}>‹</button>
-            <button style={C.arrowRight} onClick={next}>›</button>
+            <button style={C.arrowLeft}  onClick={prev} aria-label="Previous photo"><CaretLineLeftIcon size={18} /></button>
+            <button style={C.arrowRight} onClick={next} aria-label="Next photo"><CaretLineRightIcon size={18} /></button>
           </>
         )}
 
@@ -171,8 +172,8 @@ const C = {
   slider: { position: 'relative', width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', background: '#1e293b', touchAction: 'pan-y' },
   img: { width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none', WebkitUserDrag: 'none', transition: 'filter 0.3s, transform 0.3s' },
   gradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '45%', background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%)', pointerEvents: 'none' },
-  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
-  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  arrowLeft: { position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  arrowRight: { position: 'absolute', top: '50%', right: 10, transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.85)', border: '1px solid #334155', borderRadius: '50%', color: '#f1f5f9', fontSize: 22, width: 36, height: 36, padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 5, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
   dots: { position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, zIndex: 3 },
   dot: { height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s ease' },
   counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3, border: '1px solid #334155' },
@@ -359,7 +360,7 @@ export default function UserProfilePage() {
   return (
     <div style={S.page}>
 
-      <button style={S.backBtn} onClick={() => navigate(-1)}>← Back</button>
+      <button style={S.backBtn} onClick={() => navigate(-1)}><ArrowLeftIcon size={14} />Back</button>
 
       <PhotoCarousel
         photos={allPhotos}
@@ -388,24 +389,24 @@ export default function UserProfilePage() {
         </div>
 
         <button style={S.msgBtn} onClick={handleSendMessage}>
-          💬 Send Message
+          <ChatCircleIcon size={18} />Send Message
         </button>
 
         <div style={S.actionRow}>
           <button style={liked ? S.likedBtn : S.likeBtn} onClick={handleLike}>
-            {liked ? '❤ Liked' : '♡ Like'}
+            {liked ? <><HeartFillIcon size={15} />Liked</> : <><HeartIcon size={15} />Like</>}
           </button>
           <button style={passed ? S.passedBtn : S.passBtn} onClick={handlePass}>
-            {passed ? '✓ Passed' : <><XIcon size={15} />Pass</>}
+            {passed ? <><CheckIcon size={15} />Passed</> : <><XIcon size={15} />Pass</>}
           </button>
         </div>
         <div style={S.actionRow2}>
-          <button style={S.reportBtn} onClick={() => setReportOpen(true)}>⚠ Report</button>
+          <button style={S.reportBtn} onClick={() => setReportOpen(true)}><WarningIcon size={15} />Report</button>
           <button style={S.blockBtn} onClick={handleBlock}><ProhibitIcon size={15} />Block</button>
         </div>
 
         {isAdmin && !otherIsAdmin && (
-          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}>📢 Send Official Message</button>
+          <button style={S.officialMsgBtn} onClick={() => setShowOfficialMsg(true)}><MegaphoneIcon size={15} />Send Official Message</button>
         )}
 
         {profile.bio && (
@@ -456,7 +457,7 @@ export default function UserProfilePage() {
       {showOfficialMsg && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowOfficialMsg(false)}>
           <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 16, padding: 24, width: '100%', maxWidth: 340 }} onClick={e => e.stopPropagation()}>
-            <div style={{ fontWeight: 700, marginBottom: 4, color: '#f1f5f9' }}>📢 Send Official Message</div>
+            <div style={{ fontWeight: 700, marginBottom: 4, color: '#f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}><MegaphoneIcon size={18} color="#f59e0b" />Send Official Message</div>
             <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>To {profile.username ?? 'this user'}, via Official Account</div>
             <input
               value={officialTitle}
@@ -498,7 +499,7 @@ const S = {
   page: { minHeight: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif", paddingBottom: 100 },
   loadWrap: { minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   spinner: { width: 32, height: 32, border: '3px solid rgba(233,30,99,0.2)', borderTopColor: '#e91e63', borderRadius: '50%', animation: 'spin 0.7s linear infinite' },
-  backBtn: { position: 'fixed', top: 'calc(env(safe-area-inset-top) + 14px)', left: 14, zIndex: 50, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.3)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
+  backBtn: { position: 'fixed', top: 'calc(env(safe-area-inset-top) + 14px)', left: 14, zIndex: 50, display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(8px)', border: '1px solid rgba(233,30,99,0.3)', color: '#e91e63', borderRadius: 999, padding: '7px 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
   card: { maxWidth: 480, margin: '0 auto', background: '#1e293b', borderRadius: 24, padding: '20px 20px 28px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', border: '1px solid #334155', marginTop: 12 },
   nameRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   name: { fontSize: 24, fontWeight: 800, color: '#f1f5f9' },
@@ -510,16 +511,16 @@ const S = {
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   recentlyActiveDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, boxShadow: '0 0 6px #fbbf24' },
   offlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#475569', flexShrink: 0 },
-  msgBtn: { display: 'block', width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
+  msgBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 16, padding: '14px 0', background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 30, color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3, boxShadow: '0 4px 12px rgba(233,30,99,0.4)' },
   actionRow: { display: 'flex', gap: 8, marginTop: 10 },
-  likeBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 30, color: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  likedBtn: { flex: 1, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
+  likeBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 30, color: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  likedBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   passBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: 'transparent', border: '1px solid #64748b66', borderRadius: 30, color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  passedBtn: { flex: 1, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
+  passedBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   actionRow2: { display: 'flex', gap: 8, marginTop: 10 },
-  reportBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  reportBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   blockBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  officialMsgBtn: { display: 'block', width: '100%', marginTop: 10, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  officialMsgBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', marginTop: 10, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },
   bioText: { margin: 0, fontSize: 14, color: '#cbd5e1', lineHeight: 1.8 },

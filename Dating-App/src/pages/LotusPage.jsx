@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTranslation } from '../hooks/useTranslation'
-import { LotusIcon, IconText } from '../components/Icons'
+import { LotusIcon, IconText, ArrowLeftIcon } from '../components/Icons'
 
 export default function LotusPage() {
   const navigate = useNavigate()
@@ -157,7 +157,7 @@ export default function LotusPage() {
     <div style={{ ...S.page, paddingTop: isMobile ? 0 : 90 }}>
       <div style={S.container}>
 
-        <button style={S.backBtn} onClick={() => navigate('/profile')}>{tx.back || '← Back'}</button>
+        <button style={S.backBtn} onClick={() => navigate('/profile')}><ArrowLeftIcon size={15} />{tx.back || 'Back'}</button>
 
         {/* ── Balance ── */}
         <div style={S.balanceCard}>
@@ -304,6 +304,9 @@ const S = {
     cursor: 'pointer',
     padding: '4px 0',
     marginBottom: 8,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
   },
 
   // Balance card
