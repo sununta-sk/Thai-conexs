@@ -8,8 +8,11 @@ export function optimizeImage(url, opts = {}) {
   if (!url.includes('/storage/v1/object/')) return url;
   if (url.includes('/storage/v1/render/image/')) return url;
 
-  const { width = 800, quality = 75 } = opts;
+  const { width = 800, height, resize, quality = 75 } = opts;
   const transformed = url.replace('/storage/v1/object/', '/storage/v1/render/image/');
   const sep = transformed.includes('?') ? '&' : '?';
-  return transformed + sep + 'width=' + width + '&quality=' + quality;
+  let out = transformed + sep + 'width=' + width;
+  if (height) out += '&height=' + height;
+  if (resize) out += '&resize=' + resize;
+  return out + '&quality=' + quality;
 }
