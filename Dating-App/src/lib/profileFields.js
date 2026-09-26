@@ -29,3 +29,19 @@ export function toLookingForList(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   return value ? [value] : [];
 }
+
+// Height is stored in centimetres. Many foreign members think in feet and
+// inches, so displays show both: "162 cm (5'4")". Non-numeric legacy values
+// are shown unchanged.
+export function cmToFeetInches(value) {
+  const cm = parseFloat(value);
+  if (!Number.isFinite(cm) || cm <= 0) return '';
+  const totalInches = Math.round(cm / 2.54);
+  return `${Math.floor(totalInches / 12)}'${totalInches % 12}"`;
+}
+
+export function formatHeight(value) {
+  const imperial = cmToFeetInches(value);
+  if (!imperial) return value ? String(value) : '';
+  return `${Math.round(parseFloat(value))} cm (${imperial})`;
+}

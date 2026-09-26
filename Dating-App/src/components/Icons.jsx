@@ -18,6 +18,7 @@ import { useId } from 'react';
 import { ChevronFirst, ChevronLast } from 'lucide-react';
 import { genderKind } from '../lib/profileFields';
 import { MAGNIFY_PLUS_PATH } from '../lib/zoomCursor';
+import { phosphorIcon } from '../lib/phosphor';
 
 // Emoji-picker toggle (chat input bar).
 export function SmileyIcon({ size = 26, color = '#e91e63', ...rest }) {
@@ -83,20 +84,8 @@ export const CaretLineLeftIcon = ChevronFirst;
 export const CaretLineRightIcon = ChevronLast;
 
 // ── Icons supplied by SK (Phosphor "regular" weight, MIT) ──────────────────
-// Path data is copied verbatim from the downloaded SVGs. All are fill-based
-// on a 256 viewBox and default to currentColor, so they pick up the text
-// colour of whatever badge/button they sit in; pass `color` to override.
-function phosphor(d, displayName) {
-  function Icon({ size = 16, color = 'currentColor', style, ...rest }) {
-    return (
-      <svg width={size} height={size} viewBox="0 0 256 256" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }} {...rest}>
-        <path d={d} />
-      </svg>
-    );
-  }
-  Icon.displayName = displayName;
-  return Icon;
-}
+// Path data is copied verbatim from the downloaded SVGs; see lib/phosphor.js.
+const phosphor = phosphorIcon;
 
 // Notifications bell (was 🔔).
 export const BellRingingIcon = phosphor('M224,71.1a8,8,0,0,1-10.78-3.42,94.13,94.13,0,0,0-33.46-36.91,8,8,0,1,1,8.54-13.54,111.46,111.46,0,0,1,39.12,43.09A8,8,0,0,1,224,71.1ZM35.71,72a8,8,0,0,0,7.1-4.32A94.13,94.13,0,0,1,76.27,30.77a8,8,0,1,0-8.54-13.54A111.46,111.46,0,0,0,28.61,60.32,8,8,0,0,0,35.71,72Zm186.1,103.94A16,16,0,0,1,208,200H167.2a40,40,0,0,1-78.4,0H48a16,16,0,0,1-13.79-24.06C43.22,160.39,48,138.28,48,112a80,80,0,0,1,160,0C208,138.27,212.78,160.38,221.81,175.94ZM150.62,200H105.38a24,24,0,0,0,45.24,0ZM208,184c-10.64-18.27-16-42.49-16-72a64,64,0,0,0-128,0c0,29.52-5.38,53.74-16,72Z', 'BellRingingIcon');
@@ -150,18 +139,24 @@ export const ProhibitIcon = phosphor('M128,24A104,104,0,1,0,232,128,104.11,104.1
 // matching mouse cursor).
 export const MagnifyingGlassPlusIcon = phosphor(MAGNIFY_PLUS_PATH, 'MagnifyingGlassPlusIcon');
 
-// Height (was 📏). Supplied as a tall 427x800 Inkscape drawing, so the
-// viewBox is widened to a centred 800x800 square - it then lines up in the
-// same square slot as every other icon instead of rendering narrow.
-export function HeightIcon({ size = 16, color = 'currentColor', style, ...rest }) {
-  return (
-    <svg width={size} height={size} viewBox="-186.338 0 800 800" fill={color} aria-hidden="true" style={{ flexShrink: 0, ...style }} {...rest}>
-      <g transform="translate(-325,174.03197)">
-        <path d="m 399.28168,-174.03197 0,25.52746 -10.94632,0 0,1.12814 c -1.91484,8.55374 -6.87265,19.88209 -24.64974,26.11247 0,0 -0.0726,-4.3e-4 -0.0812,0 -3.58994,0.0427 -6.47523,2.95879 -6.47523,6.55942 0,3.62883 2.93016,6.55942 6.55899,6.55942 l 24.64974,0 0,17.129696 10.94633,0 0,652.684424 -74.28425,0 0,64.29897 427.32372,0 0,-64.29897 -117.81871,0 a 30.084471,30.084471 0 0 0 15.41656,-26.69748 l 0,-434.1344 15.75116,0 0,181.53352 a 23.399032,23.399032 0 1 0 46.79322,0 l 0,-186.379376 0,-30.457498 c 0,-28.0397 -22.5973,-50.637433 -50.637,-50.637433 l -162.35609,0 c -28.04013,0 -50.59556,22.597733 -50.59556,50.637433 l 0,28.828113 a 23.399032,23.399032 0 0 0 0,1.629385 l 0,4.845856 0,181.53352 a 23.399032,23.399032 0 1 0 46.79323,0 l 0,-181.53352 15.79303,0 0,434.1344 a 30.084471,30.084471 0 0 0 15.45844,26.69748 l -86.06642,0 0,-652.684424 10.94632,0 0,-17.129696 125.46438,0 c -29.00502,1.75416 -51.9741,25.784284 -51.9741,55.23287 0,30.589969 24.76854,55.3999567 55.35808,55.3999567 30.59082,0 55.40038,-24.8099877 55.40038,-55.3999567 0,-29.448586 -22.96651,-53.47871 -51.97452,-55.23287 l 63.58918,0 c 3.62926,0 6.55942,-2.93059 6.55942,-6.55942 0,-3.62883 -2.93016,-6.55942 -6.55942,-6.55942 l -24.39933,0 c -51.00279,-1.54307 -99.15705,-1.19565 -136.4107,-7.14443 -15.08752,-2.40925 -27.29787,-13.08978 -35.05337,-19.51117 l 0,-0.58501 -10.94632,0 0,-25.52746 -41.57133,0 z m 172.34222,456.31934 18.13177,0 0,252.68421 a 30.084471,30.084471 0 0 0 15.45844,26.69748 l -49.00719,0 a 30.084471,30.084471 0 0 0 15.41698,-26.69748 l 0,-252.68421 z" />
-      </g>
-    </svg>
-  );
-}
+
+// Close / dismiss / Pass (was ✕), everywhere on mobile and desktop.
+export const XIcon = phosphor('M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z', 'XIcon');
+
+// Free-photo counter on profile carousels (was 🔓).
+export const LockOpenIcon = phosphor('M208,80H96V56a32,32,0,0,1,32-32c15.37,0,29.2,11,32.16,25.59a8,8,0,0,0,15.68-3.18C171.32,24.15,151.2,8,128,8A48.05,48.05,0,0,0,80,56V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm0,128H48V96H208V208Zm-68-56a12,12,0,1,1-12-12A12,12,0,0,1,140,152Z', 'LockOpenIcon');
+
+// "No notifications" empty state (was 🔕).
+export const BellSlashIcon = phosphor('M53.92,34.62A8,8,0,1,0,42.08,45.38L58.82,63.8A79.59,79.59,0,0,0,48,104c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.8a40,40,0,0,0,78.4,0h15.44l19.44,21.38a8,8,0,1,0,11.84-10.76ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a63.65,63.65,0,0,1,6.26-27.62L168.09,184Zm166-4.73a8.13,8.13,0,0,1-2.93.55,8,8,0,0,1-7.44-5.08C196.35,156.19,192,129.75,192,104A64,64,0,0,0,96.43,48.31a8,8,0,0,1-7.9-13.91A80,80,0,0,1,208,104c0,35.35,8.05,58.59,10.52,64.88A8,8,0,0,1,214,179.25Z', 'BellSlashIcon');
+
+// Founder Member badge (was 🌟) - SK's pick.
+export const ShieldStarIcon = phosphor('M80.57,117A8,8,0,0,1,91,112.57l29,11.61V96a8,8,0,0,1,16,0v28.18l29-11.61A8,8,0,1,1,171,127.43l-30.31,12.12L158.4,163.2a8,8,0,1,1-12.8,9.6L128,149.33,110.4,172.8a8,8,0,1,1-12.8-9.6l17.74-23.65L85,127.43A8,8,0,0,1,80.57,117ZM224,56v56c0,52.72-25.52,84.67-46.93,102.19-23.06,18.86-46,25.27-47,25.53a8,8,0,0,1-4.2,0c-1-.26-23.91-6.67-47-25.53C57.52,196.67,32,164.72,32,112V56A16,16,0,0,1,48,40H208A16,16,0,0,1,224,56Zm-16,0L48,56l0,56c0,37.3,13.82,67.51,41.07,89.81A128.25,128.25,0,0,0,128,223.62a129.3,129.3,0,0,0,39.41-22.2C194.34,179.16,208,149.07,208,112Z', 'ShieldStarIcon');
+
+// Copy-to-clipboard buttons (was 📋).
+export const CopyIcon = phosphor('M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z', 'CopyIcon');
+
+// "Copied!" confirmation.
+export const CheckIcon = phosphor('M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z', 'CheckIcon');
 
 // Gender -> icon, via the shared male/female/transgender classification in
 // lib/profileFields.js. Renders nothing for 'other' (Non-binary, Gay,
@@ -200,4 +195,17 @@ export function AgeIcon({ size = 16, color = 'currentColor', style, ...rest }) {
       <path d="M148,204a44,44,0,0,1,88,0Z" />
     </svg>
   );
+}
+
+// Plain-text messages (toasts, whose wording lives in lib/I18.js as strings)
+// that contain the lotus/rocket emoji: renders the text with those two emoji
+// swapped for the app's LotusIcon/RocketIcon, so the translations don't need
+// to change shape.
+const INLINE_ICONS = { '🪷': LotusIcon, '🚀': RocketIcon };
+export function IconText({ text, size = '1.15em' }) {
+  if (typeof text !== 'string') return text ?? null;
+  return text.split(/(🪷|🚀)/u).map((part, i) => {
+    const Icon = INLINE_ICONS[part];
+    return Icon ? <Icon key={i} size={size} style={{ verticalAlign: '-0.2em' }} /> : part;
+  });
 }

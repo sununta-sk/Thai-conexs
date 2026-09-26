@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { COUNTRY_LIST } from '../data/countryList';
 import { OPEN_DISCOVER_FILTERS_EVENT } from './MobileNavbar';
+import { XIcon } from './Icons';
 
 const AGE_RANGES = [
   { value: '18-24', label: '18-24' },
@@ -106,8 +107,8 @@ export default function MobileDiscoverFilters({ filters, updateFilter, updateCou
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: 20, cursor: 'pointer', padding: 4, lineHeight: 1 }}>
-                ✕
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                <XIcon size={20} />
               </button>
             </div>
 

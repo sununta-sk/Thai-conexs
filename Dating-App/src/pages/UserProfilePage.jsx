@@ -12,9 +12,10 @@ import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import { useAuditLogger } from '../hooks/useAuditLogger';
 import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
-import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
-import { toLookingForList, genderKind } from '../lib/profileFields';
-import { ProhibitIcon } from '../components/Icons';
+import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
+import { toLookingForList, genderKind, formatHeight } from '../lib/profileFields';
+import { ProhibitIcon, XIcon, LockOpenIcon, ShieldStarIcon } from '../components/Icons';
+import { LifestyleLabel, SparkleIcon } from '../components/LifestyleIcons';
 import PhotoZoomButton from '../components/PhotoZoomButton';
 import { ZOOM_CURSOR } from '../lib/zoomCursor';
 function getChatId(uid1, uid2) {
@@ -158,7 +159,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         )}
 
         <div style={C.freeBadge}>
-          🔓 {current + 1}/{photos.length}
+          <LockOpenIcon size={12} />{current + 1}/{photos.length}
         </div>
       </div>
     </div>
@@ -175,7 +176,7 @@ const C = {
   dots: { position: 'absolute', bottom: 14, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5, zIndex: 3 },
   dot: { height: 6, borderRadius: 999, cursor: 'pointer', transition: 'all 0.2s ease' },
   counter: { position: 'absolute', top: 12, right: 12, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', borderRadius: 999, padding: '3px 10px', fontSize: 12, color: '#fff', fontWeight: 600, zIndex: 3, border: '1px solid #334155' },
-  freeBadge: { position: 'absolute', top: 56, right: 20, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  freeBadge: { position: 'absolute', top: 56, right: 20, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20, pointerEvents: 'none' },
   lockBoxWrap: { pointerEvents: 'auto' },
   lockBox: { textAlign: 'center', padding: '24px 20px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(8px)', borderRadius: 20, boxShadow: '0 8px 32px rgba(233,30,99,0.3)', maxWidth: 280, border: '1px solid #334155' },
@@ -372,7 +373,7 @@ export default function UserProfilePage() {
           {age && <span style={S.ageBadge}>{age}</span>}
           {profile.is_verified && <span style={S.verifiedBadge}><VerifiedIcon size={13} />Verified</span>}
           {(profile.subscription_plan === 'gold' || profile.subscription_plan === 'platinum') && <span style={S.vipBadge}><CrownIcon size={13} />VIP</span>}
-          {profile.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
+          {profile.is_founder_member && <span style={S.founderBadge}><ShieldStarIcon size={13} />Founder</span>}
         </div>
 
         <div style={S.subRow}>
@@ -395,7 +396,7 @@ export default function UserProfilePage() {
             {liked ? '❤ Liked' : '♡ Like'}
           </button>
           <button style={passed ? S.passedBtn : S.passBtn} onClick={handlePass}>
-            {passed ? '✓ Passed' : '✕ Pass'}
+            {passed ? '✓ Passed' : <><XIcon size={15} />Pass</>}
           </button>
         </div>
         <div style={S.actionRow2}>
@@ -416,16 +417,16 @@ export default function UserProfilePage() {
 
         {profile.lifestyle && Object.values(profile.lifestyle).some(v => v && (Array.isArray(v) ? v.length > 0 : true)) && (
           <div style={{ padding: '16px 0', borderTop: '1px solid #334155', marginTop: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#e91e63', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1.2 }}>✨ Lifestyle</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#e91e63', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1.2, display: 'flex', alignItems: 'center', gap: 6 }}><SparkleIcon size={14} />Lifestyle</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {Array.isArray(profile.lifestyle.hobbies) && profile.lifestyle.hobbies.map(h => (
-                <span key={h} style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(233, 30, 99, 0.15)', color: '#f9a8d4', fontSize: 12, fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.3)' }}>{h}</span>
+                <span key={h} style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(233, 30, 99, 0.15)', color: '#f9a8d4', fontSize: 12, fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.3)' }}><LifestyleLabel field="hobbies" value={h} size={13} /></span>
               ))}
-              {profile.lifestyle.sleepSchedule && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(124, 58, 237, 0.15)', color: '#c4b5fd', fontSize: 12, fontWeight: 600, border: '1px solid rgba(124, 58, 237, 0.3)' }}>{profile.lifestyle.sleepSchedule}</span>}
-              {profile.lifestyle.drinking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(3, 105, 161, 0.15)', color: '#7dd3fc', fontSize: 12, fontWeight: 600, border: '1px solid rgba(3, 105, 161, 0.3)' }}>{profile.lifestyle.drinking}</span>}
-              {profile.lifestyle.smoking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(133, 77, 14, 0.2)', color: '#fde68a', fontSize: 12, fontWeight: 600, border: '1px solid rgba(133, 77, 14, 0.4)' }}>{profile.lifestyle.smoking}</span>}
-              {profile.lifestyle.exercise && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(22, 101, 52, 0.2)', color: '#86efac', fontSize: 12, fontWeight: 600, border: '1px solid rgba(22, 101, 52, 0.4)' }}>{profile.lifestyle.exercise}</span>}
-              {profile.lifestyle.personality && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#0f172a', color: '#cbd5e1', fontSize: 12, fontWeight: 600, border: '1px solid #334155' }}>{profile.lifestyle.personality}</span>}
+              {profile.lifestyle.sleepSchedule && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(124, 58, 237, 0.15)', color: '#c4b5fd', fontSize: 12, fontWeight: 600, border: '1px solid rgba(124, 58, 237, 0.3)' }}><LifestyleLabel field="sleepSchedule" value={profile.lifestyle.sleepSchedule} size={13} /></span>}
+              {profile.lifestyle.drinking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(3, 105, 161, 0.15)', color: '#7dd3fc', fontSize: 12, fontWeight: 600, border: '1px solid rgba(3, 105, 161, 0.3)' }}><LifestyleLabel field="drinking" value={profile.lifestyle.drinking} size={13} /></span>}
+              {profile.lifestyle.smoking && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(133, 77, 14, 0.2)', color: '#fde68a', fontSize: 12, fontWeight: 600, border: '1px solid rgba(133, 77, 14, 0.4)' }}><LifestyleLabel field="smoking" value={profile.lifestyle.smoking} size={13} /></span>}
+              {profile.lifestyle.exercise && <span style={{ padding: '6px 14px', borderRadius: 999, background: 'rgba(22, 101, 52, 0.2)', color: '#86efac', fontSize: 12, fontWeight: 600, border: '1px solid rgba(22, 101, 52, 0.4)' }}><LifestyleLabel field="exercise" value={profile.lifestyle.exercise} size={13} /></span>}
+              {profile.lifestyle.personality && <span style={{ padding: '6px 14px', borderRadius: 999, background: '#0f172a', color: '#cbd5e1', fontSize: 12, fontWeight: 600, border: '1px solid #334155' }}><LifestyleLabel field="personality" value={profile.lifestyle.personality} size={13} /></span>}
             </div>
           </div>
         )}
@@ -435,7 +436,7 @@ export default function UserProfilePage() {
             <div style={S.sectionLabel}>General Info</div>
             <div style={S.chipRow}>
               {gender     && <Chip icon={genderKind(gender) !== 'other' && <GenderIcon gender={gender} size={16} />} label={gender} />}
-              {height     && <Chip icon={<HeightIcon size={16} />}    label={`${height} cm`} />}
+              {height     && <Chip label={formatHeight(height)} />}
               {weight     && <Chip icon={<WeightIcon size={16} />}    label={`${weight} kg`} />}
               {education  && <Chip icon={<EducationIcon size={16} />} label={education} />}
               {lookingFor && <Chip icon={<HeartIcon size={16} />}     label={lookingFor} />}
@@ -504,7 +505,7 @@ const S = {
   ageBadge: { background: 'rgba(233, 30, 99, 0.2)', borderRadius: 999, padding: '2px 10px', fontSize: 14, fontWeight: 600, color: '#f9a8d4', border: '1px solid rgba(233, 30, 99, 0.4)' },
   verifiedBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'linear-gradient(135deg, #e91e63, #c2185b)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 700, color: '#fff', letterSpacing: 0.3 },
   vipBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.5 },
-  founderBadge: { background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.3 },
+  founderBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 999, padding: '2px 10px', fontSize: 11, fontWeight: 800, color: '#fff', letterSpacing: 0.3 },
   subRow: { display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, flexWrap: 'wrap' },
   onlineDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#4ade80', flexShrink: 0, boxShadow: '0 0 6px #4ade80' },
   recentlyActiveDot: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#fbbf24', flexShrink: 0, boxShadow: '0 0 6px #fbbf24' },
@@ -513,7 +514,7 @@ const S = {
   actionRow: { display: 'flex', gap: 8, marginTop: 10 },
   likeBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 30, color: '#e91e63', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   likedBtn: { flex: 1, padding: '11px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
-  passBtn: { flex: 1, padding: '11px 0', background: 'transparent', border: '1px solid #64748b66', borderRadius: 30, color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  passBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '11px 0', background: 'transparent', border: '1px solid #64748b66', borderRadius: 30, color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   passedBtn: { flex: 1, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   actionRow2: { display: 'flex', gap: 8, marginTop: 10 },
   reportBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },

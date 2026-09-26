@@ -10,10 +10,10 @@ import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon } from "../components/Icons";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon, ShieldStarIcon, LockOpenIcon } from "../components/Icons";
 import PhotoZoomButton from "../components/PhotoZoomButton";
 import { ZOOM_CURSOR, CAN_HOVER } from "../lib/zoomCursor";
-import { toLookingForList } from "../lib/profileFields";
+import { toLookingForList, formatHeight } from "../lib/profileFields";
 
 // ── Sound notifications ──
 let _audioCtx = null;
@@ -200,7 +200,7 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
       )}
 
       {!isSubscriber && validPhotos.length > FREE_LIMIT && (
-        <div style={SC.freeBadge}>🔓 {Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free</div>
+        <div style={SC.freeBadge}><LockOpenIcon size={12} />{Math.min(current + 1, FREE_LIMIT)}/{FREE_LIMIT} free</div>
       )}
     </div>
     {validPhotos.length > 1 && (
@@ -243,7 +243,7 @@ const SC = {
   noPhoto: { width: '100%', height: 400, borderRadius: 16, background: '#0f172a', border: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13, marginBottom: 8 },
   arrow: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(30, 41, 59, 0.9)', border: '1px solid #334155', borderRadius: '50%', width: 32, height: 32, padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', color: '#f1f5f9', zIndex: 5 },
   counter: { position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 12, zIndex: 3 },
-  freeBadge: { position: 'absolute', top: 10, left: 10, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
+  freeBadge: { position: 'absolute', top: 10, left: 10, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(233,30,99,0.9)', borderRadius: 999, padding: '3px 10px', fontSize: 11, color: '#fff', fontWeight: 700, zIndex: 3 },
   dots: { position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5, zIndex: 3 },
   dot: { width: 6, height: 6, borderRadius: '50%', cursor: 'pointer' },
   lockOverlay: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 4, padding: 20 },
@@ -286,7 +286,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
           <span style={DS.name}>{profile?.username ?? 'User'}</span>
           {profile?.is_verified && <span style={DS.verified}><VerifiedIcon size={13} />Verified</span>}
           {(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum') && <span style={DS.vip}><CrownIcon size={13} />VIP</span>}
-          {profile?.is_founder_member && <span style={DS.founder}>🌟 Founder</span>}
+          {profile?.is_founder_member && <span style={DS.founder}><ShieldStarIcon size={13} />Founder</span>}
         </div>
 
         <div style={DS.statusRow}>
@@ -312,7 +312,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
         <div style={DS.chipRow}>
           {gender && <span style={DS.chip}><GenderIcon gender={gender} size={14} />{gender}</span>}
           {age && <span style={DS.chip}><AgeIcon size={14} />{age}</span>}
-          {height && <span style={DS.chip}><HeightIcon size={14} />{height} cm</span>}
+          {height && <span style={DS.chip}>{formatHeight(height)}</span>}
           {weight && <span style={DS.chip}><WeightIcon size={14} />{weight} kg</span>}
           {education && <span style={DS.chip}><EducationIcon size={14} />{education}</span>}
           {lookingFor && <span style={DS.chip}><HeartIcon size={14} />{lookingFor}</span>}
@@ -339,12 +339,12 @@ const DS = {
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
   // flexWrap + nowrap badges: with icon badges the row can outgrow the 260px
   // column, so the badges drop to a second line whole instead of splitting
-  // mid-badge ("🌟" above "Founder").
+  // mid-badge (icon above "Founder").
   nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8, rowGap: 6, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
   verified: { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
   vip: { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
-  founder: { whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
+  founder: { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
@@ -760,7 +760,7 @@ function RoomChatDesktop() {
             <span style={S.headerName}>{otherProfile?.username ?? "User"}</span>
             {profileGender && <span style={S.genderBadge}><GenderIcon gender={profileGender} size={12} />{profileGender}</span>}
             {(otherProfile?.subscription_plan === 'gold' || otherProfile?.subscription_plan === 'platinum') && <span style={S.vipBadge}><CrownIcon size={12} />VIP</span>}
-            {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
+            {otherProfile?.is_founder_member && <span style={S.founderBadge}><ShieldStarIcon size={12} />Founder</span>}
           </div>
           <div style={S.headerMeta}>{[profileAge, profileCity].filter(Boolean).join(" · ")}</div>
           <div style={S.onlineRow}>
@@ -959,7 +959,7 @@ const S = {
   headerName: { fontSize: 16, fontWeight: 800, color: "#f1f5f9", whiteSpace: "nowrap" },
   genderBadge: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#e91e63", background: "rgba(233, 30, 99, 0.15)", border: '1px solid rgba(233, 30, 99, 0.3)', borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap" },
   vipBadge: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
-  founderBadge: { fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
+  founderBadge: { display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 8px", whiteSpace: "nowrap", letterSpacing: 0.3 },
   headerMeta: { fontSize: 12, color: "#94a3b8", fontWeight: 600 },
   onlineRow: { display: "flex", alignItems: "center", gap: 4, marginTop: 1 },
   onlineDot: { width: 7, height: 7, borderRadius: "50%" },

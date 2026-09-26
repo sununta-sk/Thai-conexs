@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
+import { XIcon } from './Icons';
 
 const HINT_SEEN_KEY = 'invisibleModeHintSeen';
 
@@ -62,7 +63,7 @@ export default function InvisibleModeToggle({ userId, isInvisible, onChange }) {
       {showHint && (
         <div style={S.hint} onClick={(e) => e.stopPropagation()}>
           <div style={S.hintArrow} />
-          <button style={S.hintClose} onClick={dismissHint} aria-label="Close">✕</button>
+          <button style={S.hintClose} onClick={dismissHint} aria-label="Close"><XIcon size={13} /></button>
           <div style={S.hintTitle}>{tx.hintTitle || 'Hide your VIP badge'}</div>
           <div style={S.hintBody}>
             {tx.hintBody || 'Turn this on to hide the VIP badge and shimmer frame on your profile, Discover card, and chat — your profile stays fully visible to everyone, only the badge is hidden.'}
@@ -96,7 +97,7 @@ const S = {
   },
   hintClose: {
     position: 'absolute', top: 8, right: 8, background: 'none', border: 'none',
-    color: '#64748b', cursor: 'pointer', fontSize: 12, padding: 4,
+    color: '#64748b', cursor: 'pointer', fontSize: 12, padding: 4, display: 'flex',
   },
   hintTitle: { fontSize: 13, fontWeight: 800, color: '#f1f5f9', marginBottom: 4, paddingRight: 16 },
   hintBody: { fontSize: 12, color: '#94a3b8', lineHeight: 1.5, marginBottom: 10 },

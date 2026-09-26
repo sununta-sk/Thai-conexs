@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTranslation } from '../hooks/useTranslation'
-import { LotusIcon } from '../components/Icons'
+import { LotusIcon, IconText } from '../components/Icons'
 
 export default function LotusPage() {
   const navigate = useNavigate()
@@ -249,7 +249,7 @@ export default function LotusPage() {
           border: `1px solid ${toast.status === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(74,222,128,0.4)'}`,
           color: toast.status === 'error' ? '#f87171' : '#4ade80',
         }}>
-          {toast.text}
+          <IconText text={toast.text} />
         </div>
       )}
     </div>

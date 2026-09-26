@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useVideoProfile } from '../hooks/useVideoProfile'
 import VideoUploader from './VideoUploader'
+import { XIcon } from './Icons'
 
 export default function VideoProfileCard({ userId, isOwner = false }) {
   const { video, allVideos, loading, setPrimary, deleteVideo, refetch } = useVideoProfile(userId)
@@ -29,7 +30,7 @@ export default function VideoProfileCard({ userId, isOwner = false }) {
               </button>
             )}
             <button style={S.addBtn} onClick={() => setShowUploader(!showUploader)}>
-              {showUploader ? '✕' : '+ อัปโหลด'}
+              {showUploader ? <XIcon size={14} style={{ verticalAlign: '-0.15em' }} /> : '+ อัปโหลด'}
             </button>
           </div>
         )}

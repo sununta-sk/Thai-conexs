@@ -10,7 +10,7 @@ import officialLogo from "../lib/LotusConnexs-full.jpeg";
 import { useOnline } from "../context/OnlineContext";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, MicIcon, BackIcon, CrownIcon, LocationIcon, PaperPlaneIcon } from "./Icons";
+import { SmileyIcon, MicIcon, BackIcon, CrownIcon, LocationIcon, PaperPlaneIcon, ShieldStarIcon } from "./Icons";
 import PhotoEnlargeModal from "./PhotoEnlargeModal";
 import PhotoZoomButton from "./PhotoZoomButton";
 import { ZOOM_CURSOR } from "../lib/zoomCursor";
@@ -515,7 +515,7 @@ export default function MobileRoomChat() {
             <span style={S.headerNameText}>{otherProfile?.username ?? "User"}</span>
             <div style={S.headerBadges}>
               {otherIsVip && <span style={S.vipBadge}><CrownIcon size={11} />VIP</span>}
-              {otherProfile?.is_founder_member && <span style={S.founderBadge}>🌟 Founder</span>}
+              {otherProfile?.is_founder_member && <span style={S.founderBadge}><ShieldStarIcon size={11} />Founder</span>}
             </div>
           </div>
           <div style={S.headerSub}>
@@ -776,7 +776,7 @@ const S = {
   // above absorbs all the shrinking via its own ellipsis instead.
   headerBadges: { display: "flex", alignItems: "center", flexShrink: 0 },
   vipBadge: { display: "inline-flex", alignItems: "center", gap: 3, marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #f59e0b, #d97706)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
-  founderBadge: { marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
+  founderBadge: { display: "inline-flex", alignItems: "center", gap: 3, marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg, #a855f7, #7c3aed)", borderRadius: 99, padding: "1px 7px", letterSpacing: 0.3 },
   headerSub: { fontSize: 11, color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   menuBtn: { background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: "4px 6px", flexShrink: 0, display: "flex", alignItems: "center" },
   // Icon-only counterpart to RoomChat.jsx's (desktop) officialMsgBtn pill -

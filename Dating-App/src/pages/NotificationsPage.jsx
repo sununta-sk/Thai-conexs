@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { BellRingingIcon, RocketIcon } from "../components/Icons";
+import { BellRingingIcon, RocketIcon, XIcon, BellSlashIcon } from "../components/Icons";
 
 const TYPE_ICON = {
   new_match: "🎉",
@@ -111,7 +111,7 @@ export default function NotificationsPage() {
 
           {displayed.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 20px", color: "#64748b" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🔕</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><BellSlashIcon size={48} color="#64748b" /></div>
               <p style={{ margin: 0, fontSize: 15 }}>No notifications</p>
             </div>
           ) : (
@@ -128,7 +128,7 @@ export default function NotificationsPage() {
                   <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8", lineHeight: 1.4 }}>{notif.body}</p>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
                     <span style={{ fontSize: 11, color: "#64748b" }}>{timeAgo(notif.created_at)}</span>
-                    <button onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", fontSize: 16, padding: 0 }}>✕</button>
+                    <button onClick={(e) => { e.stopPropagation(); deleteNotification(notif.id); }} style={{ background: "none", border: "none", color: "#475569", cursor: "pointer", padding: 0, display: "flex" }} aria-label="Delete notification"><XIcon size={16} /></button>
                   </div>
                 </div>
               </div>

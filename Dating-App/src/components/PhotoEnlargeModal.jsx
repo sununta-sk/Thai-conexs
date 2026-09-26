@@ -12,7 +12,7 @@
 // a second copy of the rule that could drift from it.
 
 import { useEffect, useRef, useState } from 'react';
-import { LockIcon, DiamondIcon } from './Icons';
+import { LockIcon, DiamondIcon, XIcon } from './Icons';
 
 export default function PhotoEnlargeModal({
   photos,
@@ -122,7 +122,7 @@ export default function PhotoEnlargeModal({
           </>
         )}
 
-        <button type="button" style={S.closeBtn} onClick={onClose} aria-label="Close">✕</button>
+        <button type="button" style={S.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={18} /></button>
       </div>
     </div>
   );
@@ -164,7 +164,7 @@ const S = {
   },
   closeBtn: {
     position: 'absolute', top: 14, right: 14,
-    width: 36, height: 36,
+    width: 36, height: 36, padding: 0,
     borderRadius: '50%',
     background: 'rgba(15,23,42,0.75)',
     backdropFilter: 'blur(6px)',

@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { formatCountdown } from '../hooks/useBoost'
 import { useTranslation } from '../hooks/useTranslation'
-import { RocketIcon } from './Icons'
+import { RocketIcon, XIcon } from './Icons'
 
 // Structural data only (hours + which one is highlighted) - display strings
 // (label/desc) are derived from tx at render time so they respond to the
@@ -46,7 +46,7 @@ export default function BoostModal({ isOpen, onClose, boost, timeLeft, isActive,
             <span style={S.rocket}><RocketIcon size={52} color="#e91e63" /></span>
             <div style={S.glow} />
           </div>
-          <button style={S.closeBtn} onClick={onClose}>✕</button>
+          <button style={S.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={16} /></button>
         </div>
 
         <h2 style={S.title}>{tx.boostProfile || 'Boost โปรไฟล์'}</h2>
@@ -188,7 +188,7 @@ const S = {
     position: 'absolute', right: 0, top: 0,
     background: 'rgba(255,255,255,0.08)',
     border: 'none', color: '#94a3b8',
-    borderRadius: '50%', width: '32px', height: '32px',
+    borderRadius: '50%', width: '32px', height: '32px', padding: 0,
     cursor: 'pointer', fontSize: '14px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   },

@@ -11,8 +11,8 @@ import { BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
 import { useTranslation } from '../hooks/useTranslation';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
 import ThumbImg from '../components/ThumbImg';
-import { VerifiedIcon, CrownIcon, LotusIcon, GenderIcon } from '../components/Icons';
-import { genderKind } from '../lib/profileFields';
+import { VerifiedIcon, CrownIcon, LotusIcon, GenderIcon, XIcon, ShieldStarIcon, IconText } from '../components/Icons';
+import { genderKind, cmToFeetInches } from '../lib/profileFields';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -99,7 +99,7 @@ function AdBox({ content, onDismiss, sideStyle }) {
   const variantStyle = AD_VARIANT_STYLES[variantKey] || AD_VARIANT_STYLES['gradient-pink'];
   return (
     <div className="tcn-promo-box" style={{ ...S.adBox, ...sideStyle, ...variantStyle }}>
-      <button type="button" style={S.adBoxClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
+      <button type="button" style={S.adBoxClose} onClick={onDismiss} aria-label="Dismiss"><XIcon size={12} /></button>
       {content.type === 'ad' ? (
         <a href={content.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.adBoxLink}>
           {content.ad.image_url && <img src={content.ad.image_url} alt="" style={S.adBoxImg} />}
@@ -138,7 +138,7 @@ function MobileAdBanner({ content, onDismiss, edgeStyle }) {
   const variantStyle = AD_VARIANT_STYLES[variantKey] || AD_VARIANT_STYLES['gradient-pink'];
   return (
     <div style={{ ...S.mobileAdBanner, ...edgeStyle, ...variantStyle }}>
-      <button type="button" style={S.mobileAdBannerClose} onClick={onDismiss} aria-label="Dismiss">✕</button>
+      <button type="button" style={S.mobileAdBannerClose} onClick={onDismiss} aria-label="Dismiss"><XIcon size={12} /></button>
       {content.type === 'ad' ? (
         <a href={content.ad.destination_url} target="_blank" rel="noopener noreferrer" style={S.mobileAdBannerLink}>
           {content.ad.image_url && <img src={content.ad.image_url} alt="" style={S.mobileAdBannerImg} />}
@@ -625,7 +625,16 @@ export default function Discover() {
       '171-180': tx.height171_180,
       '181+': tx.height181Plus,
     };
-    return HEIGHT_VALUES.map((v) => ({ value: v, label: m[v] || v }));
+    // Feet/inches alongside each cm range, for members who don't use cm.
+    const ft = (cm) => cmToFeetInches(cm);
+    const imperial = {
+      '<150': `< ${ft(150)}`,
+      '150-160': `${ft(150)}–${ft(160)}`,
+      '161-170': `${ft(161)}–${ft(170)}`,
+      '171-180': `${ft(171)}–${ft(180)}`,
+      '181+': `${ft(181)}+`,
+    };
+    return HEIGHT_VALUES.map((v) => ({ value: v, label: imperial[v] ? `${m[v] || v} (${imperial[v]})` : (m[v] || v) }));
   }, [tx]);
 
   const weightRanges = useMemo(() => {
@@ -929,7 +938,7 @@ export default function Discover() {
                       <ThumbImg src={photoUrl} width={400} height={500} resize="cover" quality={75} alt={profile.username} style={S.photo} loading="lazy" />
                       {profile.is_verified && <div style={verifiedBadgeStyle} title="Verified"><VerifiedIcon size={14} /></div>}
                       {isVipProfile(profile) && <div style={vipBadgeStyle}><CrownIcon size="1.2em" />VIP</div>}
-                      {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
+                      {profile.is_founder_member && <div style={founderBadgeStyle} title="Founder Member"><ShieldStarIcon size={12} /></div>}
                       <div
                         style={{ ...S.onlineBadge, background: isOnline ? '#4cd964' : isRecentlyActive ? '#fbbf24' : '#64748b' }}
                         title={isOnline ? (tx.online || 'Online') : isRecentlyActive ? 'Recently Active' : undefined}
@@ -951,7 +960,7 @@ export default function Discover() {
                     {metaParts.length > 0 && <div style={metaStyle}>{metaParts.map((part, i) => <Fragment key={i}>{i > 0 && ', '}{part}</Fragment>)}</div>}
                   </div>
                   <div style={S.actions}>
-                    <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || '✕'}</button>
+                    <button type="button" style={S.btnX} title={tx.passHide || 'Pass'} onClick={e => { e.stopPropagation(); handlePass(profile.id); }}>{tx.hideBtn || <XIcon size={14} />}</button>
                     <button type="button" style={likedIds.has(profile.id) ? S.btnLiked : S.btnLike} onClick={e => { e.stopPropagation(); handleToggleLike(profile.id); }}>{likedIds.has(profile.id) ? '❤' : '♡'}</button>
                   </div>
                 </div>
@@ -963,7 +972,7 @@ export default function Discover() {
                   <div style={S.giftPopover} onClick={e => e.stopPropagation()}>
                     <div style={S.giftPopoverHeader}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><LotusIcon size={15} color="#e91e63" />{tx.giftLotus || 'Gift lotus'}</span>
-                      <button type="button" style={S.giftCloseBtn} onClick={() => setGiftOpenForId(null)}>✕</button>
+                      <button type="button" style={S.giftCloseBtn} onClick={() => setGiftOpenForId(null)} aria-label="Close"><XIcon size={10} /></button>
                     </div>
                     <div style={S.giftAmountRow}>
                       <button
@@ -1009,7 +1018,7 @@ export default function Discover() {
           border: `1px solid ${giftToast.status === 'error' ? 'rgba(239,68,68,0.4)' : 'rgba(74,222,128,0.4)'}`,
           color: giftToast.status === 'error' ? '#f87171' : '#4ade80',
         }}>
-          {giftToast.text}
+          <IconText text={giftToast.text} />
         </div>
       )}
     </div>
@@ -1140,6 +1149,7 @@ const S = {
     fontSize: 12, fontWeight: 700, color: '#f1f5f9', marginBottom: 10,
   },
   giftCloseBtn: {
+    padding: 0,
     background: 'rgba(255,255,255,0.08)', border: 'none', color: '#94a3b8',
     borderRadius: '50%', width: 18, height: 18, fontSize: 10,
     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -1229,6 +1239,7 @@ const S = {
     zIndex: 30,
   },
   adBoxClose: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
     position: 'absolute',
     top: 10,
     right: 10,
@@ -1272,6 +1283,7 @@ const S = {
     boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
   },
   mobileAdBannerClose: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
     position: 'absolute',
     top: '50%',
     right: 8,

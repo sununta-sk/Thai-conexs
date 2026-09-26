@@ -6,8 +6,9 @@ import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
 import { useNavGuard } from '../context/NavGuardContext';
-import { GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
-import { toLookingForList } from '../lib/profileFields';
+import { XIcon, CopyIcon, CheckIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
+import { toLookingForList, formatHeight, cmToFeetInches } from '../lib/profileFields';
+import { LifestyleLabel, LifestyleHeading, SparkleIcon, TargetIcon, MoonIcon, BeerSteinIcon, CigaretteIcon, PersonRunIcon, BrainIcon } from '../components/LifestyleIcons';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -43,7 +44,7 @@ const T = {
     navGuardConfirmBtn:'บันทึกโปรไฟล์ ยืนยัน', navGuardConfirmingBtn:'กำลังบันทึก...', navGuardDismissBtn:'เข้าใจแล้ว', navGuardCancelBtn:'ยกเลิก',
     eduOptions:['มัธยมศึกษา','ปริญญาตรี','ปริญญาโท','ปริญญาเอก'],
     genderOptions:['ชาย','หญิง','ทรานส์เจนเดอร์','อื่นๆ'], lookingOptions:['ผู้ชาย','ผู้หญิง','ทุกเพศ'],
-    copyBtn:'📋 คัดลอกโค้ด', copiedBtn:'✅ คัดลอกแล้ว!',
+    copyBtn:'คัดลอกโค้ด', copiedBtn:'คัดลอกแล้ว!',
     sidebarAbout:'เกี่ยวกับฉัน', sidebarInfo:'ข้อมูลส่วนตัว', sidebarLifestyle:'ไลฟ์สไตล์',
   },
   en: {
@@ -63,7 +64,7 @@ const T = {
     navGuardConfirmBtn:'Save Profile, confirm', navGuardConfirmingBtn:'Saving...', navGuardDismissBtn:'Got it', navGuardCancelBtn:'Cancel',
     eduOptions:['High School','Bachelor Degree','Master Degree','PhD'],
     genderOptions:['Male','Female','Transgender','Non-binary','Gay','Bisexual','Other'], lookingOptions:['Men','Women','Everyone'],
-    copyBtn:'📋 Copy Code', copiedBtn:'✅ Copied!',
+    copyBtn:'Copy Code', copiedBtn:'Copied!',
     sidebarAbout:'About Me', sidebarInfo:'Personal Info', sidebarLifestyle:'Lifestyle',
   },
 };
@@ -76,7 +77,9 @@ function dataURLtoBlob(dataURL) {
   return new Blob([byteArray], { type: 'image/jpeg' });
 }
 
-function ChipSelect({ label, options, value, onChange, multi = false }) {
+// renderOption: optional (opt) => node for the chip's content; the stored
+// value is still `opt` itself.
+function ChipSelect({ label, options, value, onChange, multi = false, renderOption }) {
   const toggle = (opt) => {
     if (multi) {
       const arr = Array.isArray(value) ? value : [];
@@ -100,7 +103,7 @@ function ChipSelect({ label, options, value, onChange, multi = false }) {
                 boxShadow: active ? '0 2px 8px rgba(233,30,99,0.3)' : 'none',
                 transition: 'all 0.15s',
               }}>
-              {opt}
+              {renderOption ? renderOption(opt) : opt}
             </button>
           );
         })}
@@ -663,7 +666,7 @@ export default function ProfileSetup() {
           <tbody>
             {details.gender     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><GenderIcon gender={details.gender} size={13} />{tx.gender}</span></td><td style={S.infoVal}>{details.gender}</td></tr>}
             {details.age        && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><AgeIcon size={13} />{tx.age}</span></td><td style={S.infoVal}>{details.age}</td></tr>}
-            {details.height     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeightIcon size={13} />{tx.height}</span></td><td style={S.infoVal}>{details.height} cm</td></tr>}
+            {details.height     && <tr><td style={S.infoKey}>{tx.height}</td><td style={S.infoVal}>{formatHeight(details.height)}</td></tr>}
             {details.weight     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><WeightIcon size={13} />{tx.weight}</span></td><td style={S.infoVal}>{details.weight} kg</td></tr>}
             {details.education  && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><EducationIcon size={13} />{tx.education}</span></td><td style={S.infoVal}>{details.education}</td></tr>}
             {toLookingForList(details.lookingFor).length > 0 && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeartIcon size={13} />{tx.lookingFor}</span></td><td style={S.infoVal}>{toLookingForList(details.lookingFor).join(', ')}</td></tr>}
@@ -795,12 +798,12 @@ export default function ProfileSetup() {
         <div style={S.sidebarCard}>
           <div style={S.sidebarSection}>{tx.sidebarLifestyle}</div>
           <div style={S.sidebarChipRow}>
-            {lifestyle.hobbies?.map(h => <span key={h} style={S.sidebarChip}>{h}</span>)}
-            {lifestyle.sleepSchedule && <span style={S.sidebarChip}>{lifestyle.sleepSchedule}</span>}
-            {lifestyle.drinking && <span style={S.sidebarChip}>{lifestyle.drinking}</span>}
-            {lifestyle.smoking && <span style={S.sidebarChip}>{lifestyle.smoking}</span>}
-            {lifestyle.exercise && <span style={S.sidebarChip}>{lifestyle.exercise}</span>}
-            {lifestyle.personality && <span style={S.sidebarChip}>{lifestyle.personality}</span>}
+            {lifestyle.hobbies?.map(h => <span key={h} style={S.sidebarChip}><LifestyleLabel field="hobbies" value={h} size={12} /></span>)}
+            {lifestyle.sleepSchedule && <span style={S.sidebarChip}><LifestyleLabel field="sleepSchedule" value={lifestyle.sleepSchedule} size={12} /></span>}
+            {lifestyle.drinking && <span style={S.sidebarChip}><LifestyleLabel field="drinking" value={lifestyle.drinking} size={12} /></span>}
+            {lifestyle.smoking && <span style={S.sidebarChip}><LifestyleLabel field="smoking" value={lifestyle.smoking} size={12} /></span>}
+            {lifestyle.exercise && <span style={S.sidebarChip}><LifestyleLabel field="exercise" value={lifestyle.exercise} size={12} /></span>}
+            {lifestyle.personality && <span style={S.sidebarChip}><LifestyleLabel field="personality" value={lifestyle.personality} size={12} /></span>}
           </div>
         </div>
       )}
@@ -828,7 +831,7 @@ export default function ProfileSetup() {
         {photos.map((p, i) => (
           <div key={i} style={{ aspectRatio: '4/5', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
             <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
-            <button onClick={() => handleDeletePhoto(i)} style={S.delBtn}>✕</button>
+            <button onClick={() => handleDeletePhoto(i)} style={S.delBtn} aria-label="Delete photo"><XIcon size={13} /></button>
             <button onClick={() => handleRecrop(i)} style={S.recropBtn} title="Re-crop">✂</button>
             {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>
@@ -913,6 +916,8 @@ export default function ProfileSetup() {
         </Field>
         <Field label={tx.height}>
           <input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} />
+          {/* Live feet/inches for members who don't think in cm. */}
+          {cmToFeetInches(details.height) && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>≈ {cmToFeetInches(details.height)}</div>}
         </Field>
         <Field label={tx.weight}>
           <input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} />
@@ -1069,29 +1074,35 @@ export default function ProfileSetup() {
       )}
 
       {/* Lifestyle */}
-      <SectionTitle>✨ Lifestyle</SectionTitle>
+      <SectionTitle><LifestyleHeading icon={SparkleIcon} size={16}>Lifestyle</LifestyleHeading></SectionTitle>
 
-      <ChipSelect label="🎯 Hobbies" multi={true} value={lifestyle.hobbies}
+      <ChipSelect label={<LifestyleHeading icon={TargetIcon}>Hobbies</LifestyleHeading>} multi={true} value={lifestyle.hobbies}
+        renderOption={o => <LifestyleLabel field="hobbies" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, hobbies: v }))}
         options={['📚 Reading', '🎮 Gaming', '🏋️ Fitness', '🍳 Cooking', '✈️ Travel', '🎵 Music', '🎨 Art', '📸 Photography', '🌿 Nature', '🐾 Pets', '🧘 Yoga', '🏄 Sports']} />
 
-      <ChipSelect label="🌙 Sleep Schedule" value={lifestyle.sleepSchedule}
+      <ChipSelect label={<LifestyleHeading icon={MoonIcon}>Sleep Schedule</LifestyleHeading>} value={lifestyle.sleepSchedule}
+        renderOption={o => <LifestyleLabel field="sleepSchedule" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, sleepSchedule: v }))}
         options={['🌅 Early Bird', '🦉 Night Owl', '😴 Flexible']} />
 
-      <ChipSelect label="🍺 Drinking" value={lifestyle.drinking}
+      <ChipSelect label={<LifestyleHeading icon={BeerSteinIcon}>Drinking</LifestyleHeading>} value={lifestyle.drinking}
+        renderOption={o => <LifestyleLabel field="drinking" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, drinking: v }))}
         options={['🚫 Never', '🥂 Social', '🍻 Regular']} />
 
-      <ChipSelect label="🚬 Smoking" value={lifestyle.smoking}
+      <ChipSelect label={<LifestyleHeading icon={CigaretteIcon}>Smoking</LifestyleHeading>} value={lifestyle.smoking}
+        renderOption={o => <LifestyleLabel field="smoking" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, smoking: v }))}
         options={['🚭 No', '🚬 Sometimes', '💨 Yes']} />
 
-      <ChipSelect label="💪 Exercise" value={lifestyle.exercise}
+      <ChipSelect label={<LifestyleHeading icon={PersonRunIcon}>Exercise</LifestyleHeading>} value={lifestyle.exercise}
+        renderOption={o => <LifestyleLabel field="exercise" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, exercise: v }))}
         options={['🛋️ Never', '🚶 Sometimes', '🏃 Often', '🏆 Daily']} />
 
-      <ChipSelect label="🧠 Personality" value={lifestyle.personality}
+      <ChipSelect label={<LifestyleHeading icon={BrainIcon}>Personality</LifestyleHeading>} value={lifestyle.personality}
+        renderOption={o => <LifestyleLabel field="personality" value={o} />}
         onChange={v => setLifestyle(l => ({ ...l, personality: v }))}
         options={['🪄 Introvert', '🎉 Extrovert', '⚖️ Ambivert']} />
 
@@ -1106,7 +1117,7 @@ export default function ProfileSetup() {
           <button
             onClick={() => { navigator.clipboard.writeText(myReferralCode); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
             style={{ background: copied ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.4)', color: '#fff', borderRadius: '20px', padding: '6px 18px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
-            {copied ? tx.copiedBtn : tx.copyBtn}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{copied ? <CheckIcon size={16} /> : <CopyIcon size={16} />}{copied ? tx.copiedBtn : tx.copyBtn}</span>
           </button>
         </div>
       </div>
