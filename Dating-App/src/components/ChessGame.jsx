@@ -21,9 +21,9 @@ const PIECE_GLYPH = {
 // Standard outline trophy — no existing icon in this codebase to reuse
 // (checked), so this is a plain, generic trophy silhouette rather than a
 // literal transcription of the mockup's icon.
-function TrophyIcon({ stroke }) {
+function TrophyIcon({ stroke, size = 30 }) {
   return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 21h8" />
       <path d="M12 17v4" />
       <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" />
@@ -35,6 +35,26 @@ function TrophyIcon({ stroke }) {
 
 const RULE_KEYS = ["Pawn", "Knight", "Bishop", "Rook", "Queen", "King"];
 
+// Goal line + rule rows + tip box, with no card/overlay chrome of its own
+// - shared between the modal (RulesCard, live/game-over/declined states)
+// and the always-visible inline version (pre-start state, see item 3b).
+function RulesContent({ tx }) {
+  return (
+    <>
+      <div style={CS.rulesGoalLine}>{tx.rulesGoal}</div>
+      <div style={CS.rulesList}>
+        {RULE_KEYS.map((k) => (
+          <div key={k} style={CS.rulesRow}>
+            <div style={CS.rulesRowName}>{tx[`ruleName${k}`]}</div>
+            <div style={CS.rulesRowDesc}>{tx[`ruleDesc${k}`]}</div>
+          </div>
+        ))}
+      </div>
+      <div style={CS.rulesTipBox}>{tx.rulesTip}</div>
+    </>
+  );
+}
+
 function RulesCard({ tx, onClose }) {
   return (
     <div style={CS.rulesOverlay} onClick={onClose}>
@@ -43,16 +63,7 @@ function RulesCard({ tx, onClose }) {
           <span style={CS.rulesHeaderTitle}>{tx.rulesTitle}</span>
           <button style={CS.rulesCloseBtn} onClick={onClose}>✕</button>
         </div>
-        <div style={CS.rulesGoalLine}>{tx.rulesGoal}</div>
-        <div style={CS.rulesList}>
-          {RULE_KEYS.map((k) => (
-            <div key={k} style={CS.rulesRow}>
-              <div style={CS.rulesRowName}>{tx[`ruleName${k}`]}</div>
-              <div style={CS.rulesRowDesc}>{tx[`ruleDesc${k}`]}</div>
-            </div>
-          ))}
-        </div>
-        <div style={CS.rulesTipBox}>{tx.rulesTip}</div>
+        <RulesContent tx={tx} />
       </div>
     </div>
   );
@@ -379,21 +390,28 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
       .tcn-chess-rules-btn:hover .tcn-chess-rules-tooltip { opacity: 1; visibility: visible; }
     `}</style>
   );
-  // Shared across every state that has a close button (pre-start, live,
-  // game-over, declined) so "?" is consistently available - a player may
-  // want to check the rules before starting or after a game ends, not
-  // only mid-game. Not in the loading flash (sub-second, nothing to add
-  // chrome to). Defined once here, before the early returns, since
-  // showRules/setShowRules and rulesTooltipStyle already are too.
-  const rulesButton = (
+  // Different rules-disclosure treatment per state (item 3, 2026-09-25):
+  // - Pre-start: no button at all - the actual rules render inline,
+  //   permanently, below the Start Game button (see the !game branch
+  //   below). Someone deciding whether to start benefits from seeing them
+  //   immediately, zero interaction required.
+  // - Live game: an always-visible "How to Play →" text link - the small
+  //   hover-only "?" meant many players never discovered it. A reminder
+  //   for anyone who already saw the pre-start rules and forgot.
+  // - Game-over / declined: unchanged, the original compact "?" +
+  //   hover tooltip (not called out in item 3, no reason to disturb it).
+  const rulesModal = showRules && <RulesCard tx={tx} onClose={() => setShowRules(false)} />;
+  const rulesButtonCompact = (
     <>
       {rulesTooltipStyle}
       <button className="tcn-chess-rules-btn" style={CS.rulesBtn} onClick={() => setShowRules(true)}>
         ?
         <span className="tcn-chess-rules-tooltip" style={CS.rulesTooltipLabel}>{tx.rulesTooltip}</span>
       </button>
-      {showRules && <RulesCard tx={tx} onClose={() => setShowRules(false)} />}
     </>
+  );
+  const rulesButtonVisible = (
+    <button style={CS.rulesLinkBtn} onClick={() => setShowRules(true)}>{tx.rulesTooltip} →</button>
   );
 
   if (loading) {
@@ -409,13 +427,16 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     return (
       <div style={CS.panel}>
         {fontLink}
-        {rulesButton}
         <button style={CS.closeBtn} onClick={onClose}>✕</button>
         <div style={CS.startWrap}>
           <div style={CS.startIcon}>♟</div>
           <p style={CS.startText}>{tx.challengePrompt(otherUsername || tx.opponent)}</p>
           {error && <div style={CS.errorBanner}>{error}</div>}
           <button style={CS.startBtn} onClick={startGame}>{tx.startGame}</button>
+        </div>
+        <div style={CS.rulesInlineWrap}>
+          <div style={CS.rulesInlineTitle}>{tx.rulesTitle}</div>
+          <RulesContent tx={tx} />
         </div>
       </div>
     );
@@ -430,7 +451,7 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     return (
       <div style={CS.panel}>
         {fontLink}
-        {rulesButton}
+        {rulesButtonCompact}
         <button style={CS.closeBtn} onClick={onClose}>✕</button>
         <div style={CS.startWrap}>
           <div style={CS.startIcon}>♟</div>
@@ -439,6 +460,7 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
           <button style={CS.closeGameBtn} onClick={onClose}>{tx.closeGame}</button>
         </div>
         <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>
+        {rulesModal}
       </div>
     );
   }
@@ -501,13 +523,13 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   return (
     <div style={CS.panel}>
       {fontLink}
-      {rulesButton}
+      {finished && rulesButtonCompact}
       <button style={CS.closeBtn} onClick={onClose}>✕</button>
 
       {finished ? (
         <div style={CS.gameOverHeader}>
           <div style={{ ...CS.gameOverIconWrap, ...(isWinner ? CS.gameOverIconWin : CS.gameOverIconLose) }}>
-            <TrophyIcon stroke={isWinner ? "#fbbf24" : "#c7bfe0"} />
+            <TrophyIcon stroke={isWinner ? "#fbbf24" : "#c7bfe0"} size={24} />
           </div>
           <h3 style={{ ...CS.gameOverTitle, color: isWinner ? "#fbbf24" : "#c7bfe0" }}>{gameOver.title}</h3>
           <p style={CS.gameOverSubtitle}>{gameOver.subtitle}</p>
@@ -522,6 +544,7 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
             {isMyTurn ? tx.yourMove : tx.waitingFor(otherUsername || tx.opponent)}
             {inCheck && tx.check}
           </div>
+          {rulesButtonVisible}
         </div>
       )}
 
@@ -592,6 +615,7 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
           </div>
         </div>
       )}
+      {rulesModal}
     </div>
   );
 }
@@ -636,11 +660,21 @@ const CS = {
 
   // Game-over header — trophy circle + title + subtitle, replaces the
   // small live-badge pill entirely once finished (see getGameOverText).
-  gameOverHeader: { textAlign: "center", marginBottom: 16 },
-  gameOverIconWrap: { width: 64, height: 64, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" },
+  // Sizing/margins trimmed from the mockup's original values (icon 64,
+  // title 24px, header margin 16) - the full game-over stack (this header
+  // + both player rows + board + button + auto-close note) was taller
+  // than a normal viewport, cropping the trophy at the top since it sits
+  // inside a justify-content:center column (RoomChat.jsx's chessColumn) -
+  // overflow on a centered flex column pushes the START of the content
+  // off-screen, not the end, so it read as "missing" rather than
+  // "scrollable." Trimmed here plus boardFinished's own size below
+  // (confirmed live, 2026-09-24) rather than touching anything shared
+  // with the live/pre-start states, which already fit fine.
+  gameOverHeader: { textAlign: "center", marginBottom: 10 },
+  gameOverIconWrap: { width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" },
   gameOverIconWin: { background: "#3a2f0f", border: "2px solid #fbbf24", boxShadow: "0 0 26px #fbbf2455" },
   gameOverIconLose: { background: "#1c1734", border: "2px solid #2c2547" },
-  gameOverTitle: { fontFamily: "'Sora', sans-serif", fontSize: 24, fontWeight: 800, margin: "0 0 6px" },
+  gameOverTitle: { fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: "0 0 4px" },
   gameOverSubtitle: { fontFamily: "'Work Sans', sans-serif", fontSize: 14, color: "#9c93b5", margin: 0 },
   autoCloseNote: { textAlign: "center", fontFamily: "'Work Sans', sans-serif", fontSize: 11, color: "#655a82", marginTop: 10 },
 
@@ -669,9 +703,13 @@ const CS = {
   // aspect-ratio keeps it square without a hardcoded height.
   board: { position: "relative", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", width: "min(520px, 100%)", aspectRatio: "1", margin: "0 auto", borderRadius: 10, border: "1px solid #2c2547", boxShadow: "0 20px 50px -12px rgba(0,0,0,.6)", overflow: "hidden", transition: "opacity .2s, filter .2s" },
   // Not your turn: subtle dim, pieces stay legible. Finished: fully inert
-  // (grayscale(1)), takes precedence over the not-your-turn dim.
+  // (grayscale(1)), takes precedence over the not-your-turn dim. Also
+  // slightly smaller (440 vs the live board's 520 cap) - part of the
+  // game-over-overflow trim above; the board is already de-emphasized
+  // here, so a smaller cap costs nothing visually while buying back ~80px
+  // of vertical room.
   boardDim: { opacity: 0.55, filter: "grayscale(.3)" },
-  boardFinished: { opacity: 0.45, filter: "grayscale(1)" },
+  boardFinished: { opacity: 0.45, filter: "grayscale(1)", width: "min(440px, 100%)" },
   square: { position: "relative", display: "flex", alignItems: "center", justifyContent: "center" },
   selectedOverlay: { position: "absolute", inset: 6, borderRadius: 6, background: "#ec489933", border: "2px solid #ec4899" },
   piece: { lineHeight: 1, userSelect: "none" },
@@ -689,16 +727,33 @@ const CS = {
   promoRow: { display: "flex", gap: 8 },
   promoBtn: { width: 44, height: 44, fontSize: 26, background: "#191428", border: "1px solid #2c2547", borderRadius: 10, cursor: "pointer", color: "#f0abfc" },
 
-  // "?" rules button — placed left of the existing ✕ close button. Its own
-  // position:absolute already establishes a containing block for the
-  // tooltip span below, so no separate position:relative is needed.
+  // "?" rules button (game-over/declined only now) — placed left of the
+  // existing ✕ close button. Its own position:absolute already
+  // establishes a containing block for the tooltip span below, so no
+  // separate position:relative is needed.
   rulesBtn: { position: "absolute", top: 12, right: 52, width: 30, height: 30, borderRadius: "50%", border: "1px solid #2c2547", background: "#1c1734", color: "#c7bfe0", fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" },
   rulesTooltipLabel: { position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", background: "#1c1734", border: "1px solid #2c2547", color: "#f2eefb", fontFamily: "'Sora', sans-serif", fontWeight: 600, fontSize: 11.5, padding: "6px 10px", borderRadius: 7, whiteSpace: "nowrap", pointerEvents: "none" },
+  // Always-visible "How to Play →" link (live-game state only, item 3a) -
+  // sits in normal flow right under the turn hint, not absolutely
+  // positioned near the corner buttons like rulesBtn above (that corner
+  // is cramped and this is text, not an icon).
+  rulesLinkBtn: { display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#f0abfc", fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12.5, cursor: "pointer", padding: "4px 8px" },
+  // Pre-start inline rules (item 3b) - permanent, no card/overlay chrome,
+  // just a heading above the same RulesContent the modal uses.
+  rulesInlineWrap: { width: "100%", maxWidth: 480, margin: "8px auto 0", textAlign: "left" },
+  rulesInlineTitle: { fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700, color: "#c7bfe0", textAlign: "center", marginBottom: 10 },
 
   // Rules card overlay — scoped to the panel (inset:0 within panel's own
-  // position:relative), not a full-viewport fixed overlay like promoOverlay.
-  rulesOverlay: { position: "absolute", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", borderRadius: 20 },
-  rulesCardBox: { width: 520, maxWidth: "calc(100% - 32px)", maxHeight: "calc(100% - 32px)", overflowY: "auto", boxSizing: "border-box", background: "#151027", border: "1px solid #2c2547", borderRadius: 16, padding: "24px 24px 20px", boxShadow: "0 20px 50px -14px rgba(0,0,0,.6)" },
+  // position:relative), not a full-viewport fixed overlay like
+  // promoOverlay. Sized/styled to exactly match CS.panel's own box
+  // (negative-offset by panel's own padding so it reaches panel's true
+  // outer edge, same gradient/border/radius/padding) rather than floating
+  // a visually distinct smaller card on a dimmed backdrop inside it - that
+  // read as "a box floating inside another box" with a visible gap/seam
+  // around it (item 4, 2026-09-25). This way opening rules reads as the
+  // panel's own content switching, not a separate overlay on top of it.
+  rulesOverlay: { position: "absolute", top: -20, right: -24, bottom: -24, left: -24, zIndex: 60, display: "flex", flexDirection: "column", background: "radial-gradient(ellipse at top, #181230 0%, #0d0a18 65%)", border: "1px solid #2c2547", borderRadius: 20, boxSizing: "border-box", padding: "20px 24px 24px", overflowY: "auto" },
+  rulesCardBox: { width: "100%", maxWidth: 480, margin: "0 auto" },
   rulesHeaderRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   rulesHeaderTitle: { fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" },
   rulesCloseBtn: { width: 26, height: 26, borderRadius: "50%", border: "1px solid #2c2547", background: "#1c1734", color: "#7d7196", fontSize: 13, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" },
