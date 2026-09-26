@@ -10,7 +10,9 @@ import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon } from "../components/Icons";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon } from "../components/Icons";
+import PhotoZoomButton from "../components/PhotoZoomButton";
+import { ZOOM_CURSOR, CAN_HOVER } from "../lib/zoomCursor";
 import { toLookingForList } from "../lib/profileFields";
 
 // ── Sound notifications ──
@@ -153,12 +155,13 @@ function SidebarPhotoCarousel({ photos, isSubscriber, onUpgrade, isVip }) {
           // that were already working before Task C.
           src={src}
           alt=""
-          style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
+          style={{ ...SC.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : ZOOM_CURSOR }}
           onClick={() => { if (!isLocked) setEnlarged(true); }}
           onError={(e) => {
             e.target.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><rect width="150" height="150" fill="#1e293b"/><text x="50%" y="50%" font-size="80" text-anchor="middle" dominant-baseline="central">👤</text></svg>');
           }}
         />
+        {!isLocked && !CAN_HOVER && <PhotoZoomButton onClick={() => setEnlarged(true)} />}
       </div>
 
       {enlarged && !isLocked && (
@@ -308,7 +311,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
         <div style={DS.sectionTitle}>GENERAL INFO</div>
         <div style={DS.chipRow}>
           {gender && <span style={DS.chip}><GenderIcon gender={gender} size={14} />{gender}</span>}
-          {age && <span style={DS.chip}>🎂 {age}</span>}
+          {age && <span style={DS.chip}><AgeIcon size={14} />{age}</span>}
           {height && <span style={DS.chip}><HeightIcon size={14} />{height} cm</span>}
           {weight && <span style={DS.chip}><WeightIcon size={14} />{weight} kg</span>}
           {education && <span style={DS.chip}><EducationIcon size={14} />{education}</span>}
@@ -316,7 +319,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
         </div>
 
         <button style={liked ? DS.likedBtn : DS.likeBtn} onClick={onLike}>{liked ? '❤ Liked' : '♡ Like'}</button>
-        <button style={DS.blockBtn} onClick={onBlock}>🚫 Block User</button>
+        <button style={DS.blockBtn} onClick={onBlock}><ProhibitIcon size={16} />Block User</button>
       </div>
     </div>
   );
@@ -334,11 +337,14 @@ const DS = {
   // headless render at a 600px viewport (13"-laptop-short) before/after.
   wrap: { width: 360, flexShrink: 0, background: '#1e293b', borderRight: '1px solid #334155', overflowY: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' },
   inner: { width: '100%', maxWidth: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '80px 20px 28px', gap: 10 },
-  nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 4 },
+  // flexWrap + nowrap badges: with icon badges the row can outgrow the 260px
+  // column, so the badges drop to a second line whole instead of splitting
+  // mid-badge ("🌟" above "Founder").
+  nameRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8, rowGap: 6, marginTop: 4 },
   name: { fontSize: 22, fontWeight: 800, color: '#f1f5f9' },
-  verified: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
-  vip: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
-  founder: { fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
+  verified: { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontSize: 11, fontWeight: 700, color: '#fff', background: '#e91e63', borderRadius: 99, padding: '3px 9px' },
+  vip: { display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #f59e0b, #d97706)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
+  founder: { whiteSpace: 'nowrap', fontSize: 11, fontWeight: 800, color: '#fff', background: 'linear-gradient(135deg, #a855f7, #7c3aed)', borderRadius: 99, padding: '3px 9px', letterSpacing: 0.3 },
   statusRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
   statusDot: { width: 8, height: 8, borderRadius: '50%' },
   statusText: { fontSize: 13, fontWeight: 700 },
@@ -351,7 +357,7 @@ const DS = {
   chip: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600, background: 'rgba(233, 30, 99, 0.15)', border: '1px solid rgba(233, 30, 99, 0.3)', color: '#e91e63', padding: '5px 10px', borderRadius: 99 },
   likeBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #e91e6366', borderRadius: 24, color: '#e91e63', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
   likedBtn: { marginTop: 16, width: '100%', padding: '10px 0', background: '#e91e63', border: '1px solid #e91e63', borderRadius: 24, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' },
-  blockBtn: { marginTop: 10, width: '100%', padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  blockBtn: { marginTop: 10, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 24, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer' },
 };
 
 function GifPicker({ onSelect }) {
@@ -423,6 +429,8 @@ function RoomChatDesktop() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
+  // Photo sent in the chat, opened full-size (null = closed).
+  const [enlargedImage, setEnlargedImage] = useState(null);
   const [isSubscriber, setIsSubscriber] = useState(false);
 
   useEffect(() => {
@@ -784,6 +792,9 @@ function RoomChatDesktop() {
             </div>
           )}
         </div>
+        {enlargedImage && (
+          <PhotoEnlargeModal photos={[enlargedImage]} isSubscriber={true} onClose={() => setEnlargedImage(null)} />
+        )}
         {showReport && (
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={() => setShowReport(false)}>
             <div style={{background:'#1e293b',border:'1px solid #334155',borderRadius:16,padding:24,width:300}} onClick={e => e.stopPropagation()}>
@@ -838,7 +849,10 @@ function RoomChatDesktop() {
                   {isGif ? (
                     <img src={msg.content} alt="gif" style={{ maxWidth: 200, borderRadius: 12, display: 'block' }} />
                   ) : isImage ? (
-                    <img src={msg.content} alt="image" style={{ maxWidth: 220, borderRadius: 12, display: 'block' }} />
+                    <div style={{ position: 'relative' }}>
+                      <img src={msg.content} alt="image" style={{ maxWidth: 220, borderRadius: 12, display: 'block', cursor: ZOOM_CURSOR }} onClick={() => setEnlargedImage(msg.content)} />
+                      {!CAN_HOVER && <PhotoZoomButton size={28} inset={6} onClick={() => setEnlargedImage(msg.content)} />}
+                    </div>
                   ) : isAudio ? (
                     <audio controls src={msg.content} style={{ maxWidth: 220 }} />
                   ) : (

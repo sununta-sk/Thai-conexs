@@ -11,6 +11,9 @@ import { useOnline } from "../context/OnlineContext";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
 import { SmileyIcon, MicIcon, BackIcon, CrownIcon, LocationIcon, PaperPlaneIcon } from "./Icons";
+import PhotoEnlargeModal from "./PhotoEnlargeModal";
+import PhotoZoomButton from "./PhotoZoomButton";
+import { ZOOM_CURSOR } from "../lib/zoomCursor";
 
 // ── Audio (same pattern as RoomChat desktop) ──
 let _audioCtx = null;
@@ -168,6 +171,8 @@ export default function MobileRoomChat() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [emojiData, setEmojiData] = useState(null);
   const [showGif, setShowGif] = useState(false);
+  // Photo sent in the chat, opened full-size (null = closed).
+  const [enlargedImage, setEnlargedImage] = useState(null);
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
 
@@ -567,7 +572,10 @@ export default function MobileRoomChat() {
                   {isGif ? (
                     <img src={msg.content} alt="gif" style={{ maxWidth: 180, borderRadius: 12, display: "block" }} />
                   ) : isImage ? (
-                    <img src={msg.content} alt="img" style={{ maxWidth: 200, borderRadius: 12, display: "block" }} />
+                    <div style={{ position: "relative" }}>
+                      <img src={msg.content} alt="img" style={{ maxWidth: 200, borderRadius: 12, display: "block", cursor: ZOOM_CURSOR }} onClick={() => setEnlargedImage(msg.content)} />
+                      <PhotoZoomButton size={28} inset={6} onClick={() => setEnlargedImage(msg.content)} />
+                    </div>
                   ) : isAudio ? (
                     <audio controls src={msg.content} style={{ maxWidth: 200 }} />
                   ) : (
@@ -656,6 +664,12 @@ export default function MobileRoomChat() {
           <PaperPlaneIcon size={18} color="#fff" />
         </button>
       </div>
+
+      {/* ── Enlarged chat photo (portal, like the modals below) ── */}
+      {enlargedImage && createPortal(
+        <PhotoEnlargeModal photos={[enlargedImage]} isSubscriber={true} onClose={() => setEnlargedImage(null)} />,
+        document.body
+      )}
 
       {/* ── Report Modal ── */}
       {showReport && createPortal(

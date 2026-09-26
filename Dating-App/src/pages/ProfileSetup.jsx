@@ -6,7 +6,7 @@ import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
 import { useNavGuard } from '../context/NavGuardContext';
-import { GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon } from '../components/Icons';
+import { GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
 import { toLookingForList } from '../lib/profileFields';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -662,7 +662,7 @@ export default function ProfileSetup() {
         <table style={S.infoTable}>
           <tbody>
             {details.gender     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><GenderIcon gender={details.gender} size={13} />{tx.gender}</span></td><td style={S.infoVal}>{details.gender}</td></tr>}
-            {details.age        && <tr><td style={S.infoKey}>{tx.age}</td><td style={S.infoVal}>{details.age}</td></tr>}
+            {details.age        && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><AgeIcon size={13} />{tx.age}</span></td><td style={S.infoVal}>{details.age}</td></tr>}
             {details.height     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeightIcon size={13} />{tx.height}</span></td><td style={S.infoVal}>{details.height} cm</td></tr>}
             {details.weight     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><WeightIcon size={13} />{tx.weight}</span></td><td style={S.infoVal}>{details.weight} kg</td></tr>}
             {details.education  && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><EducationIcon size={13} />{tx.education}</span></td><td style={S.infoVal}>{details.education}</td></tr>}

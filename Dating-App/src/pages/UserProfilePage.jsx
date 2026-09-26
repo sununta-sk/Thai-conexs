@@ -14,6 +14,9 @@ import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
 import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, HeightIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
 import { toLookingForList, genderKind } from '../lib/profileFields';
+import { ProhibitIcon } from '../components/Icons';
+import PhotoZoomButton from '../components/PhotoZoomButton';
+import { ZOOM_CURSOR } from '../lib/zoomCursor';
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
@@ -92,7 +95,7 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
           // photo loads).
           src={photos[current]}
           alt={`photo-${current}`}
-          style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : 'zoom-in' }}
+          style={{ ...C.img, filter: isLocked ? 'blur(18px)' : 'none', transform: isLocked ? 'scale(1.1)' : 'scale(1)', cursor: isLocked ? 'default' : ZOOM_CURSOR }}
           onClick={() => { if (!isLocked) setEnlarged(true); }}
         />
 
@@ -111,6 +114,9 @@ function PhotoCarousel({ photos, isSubscriber, onUpgrade }) {
         )}
 
         {!isLocked && <div style={C.gradient} />}
+        {/* Touch screens have no hover cursor - this corner button is the
+            visible "tap to enlarge" cue (tapping the photo itself still works). */}
+        {!isLocked && <PhotoZoomButton size={36} inset={12} onClick={() => setEnlarged(true)} />}
 
         {isLocked && (
           <div style={C.lockOverlay}>
@@ -394,7 +400,7 @@ export default function UserProfilePage() {
         </div>
         <div style={S.actionRow2}>
           <button style={S.reportBtn} onClick={() => setReportOpen(true)}>⚠ Report</button>
-          <button style={S.blockBtn} onClick={handleBlock}>🚫 Block</button>
+          <button style={S.blockBtn} onClick={handleBlock}><ProhibitIcon size={15} />Block</button>
         </div>
 
         {isAdmin && !otherIsAdmin && (
@@ -511,7 +517,7 @@ const S = {
   passedBtn: { flex: 1, padding: '11px 0', background: '#475569', border: '1px solid #475569', borderRadius: 30, color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', letterSpacing: 0.3 },
   actionRow2: { display: 'flex', gap: 8, marginTop: 10 },
   reportBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
-  blockBtn: { flex: 1, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
+  blockBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 0', background: 'transparent', border: '1px solid #ef444466', borderRadius: 30, color: '#ef4444', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   officialMsgBtn: { display: 'block', width: '100%', marginTop: 10, padding: '10px 0', background: 'transparent', border: '1px solid #f59e0b66', borderRadius: 30, color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', letterSpacing: 0.3 },
   section: { marginTop: 20, paddingBottom: 16, borderBottom: '1px solid #334155' },
   sectionLabel: { fontSize: 11, fontWeight: 800, color: '#e91e63', textTransform: 'uppercase', letterSpacing: '1.2px', marginBottom: 10 },

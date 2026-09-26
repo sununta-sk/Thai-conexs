@@ -14,8 +14,10 @@
 //    from 'lucide-react' (same 24x24 / 2px stroke / round-cap style as the
 //    SVGs below).
 
+import { useId } from 'react';
 import { ChevronFirst, ChevronLast } from 'lucide-react';
 import { genderKind } from '../lib/profileFields';
+import { MAGNIFY_PLUS_PATH } from '../lib/zoomCursor';
 
 // Emoji-picker toggle (chat input bar).
 export function SmileyIcon({ size = 26, color = '#e91e63', ...rest }) {
@@ -141,6 +143,13 @@ export const EducationIcon = phosphor('M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-1
 // Looking For / interested in.
 export const HeartIcon = phosphor('M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40ZM128,214.8C109.74,204.16,32,155.69,32,102A46.06,46.06,0,0,1,78,56c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,155.61,146.24,204.15,128,214.8Z', 'HeartIcon');
 
+// Block user (was 🚫).
+export const ProhibitIcon = phosphor('M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.56,87.56,0,0,1-20.41,56.28L71.72,60.4A88,88,0,0,1,216,128ZM40,128A87.56,87.56,0,0,1,60.41,71.72L184.28,195.6A88,88,0,0,1,40,128Z', 'ProhibitIcon');
+
+// Enlarge photo (tap-target on touch screens; see lib/zoomCursor.js for the
+// matching mouse cursor).
+export const MagnifyingGlassPlusIcon = phosphor(MAGNIFY_PLUS_PATH, 'MagnifyingGlassPlusIcon');
+
 // Height (was 📏). Supplied as a tall 427x800 Inkscape drawing, so the
 // viewBox is widened to a centred 800x800 square - it then lines up in the
 // same square slot as every other icon instead of rendering narrow.
@@ -163,4 +172,32 @@ export function GenderIcon({ gender, ...rest }) {
   if (kind === 'female') return <GenderFemaleIcon {...rest} />;
   if (kind === 'transgender') return <GenderTransIcon {...rest} />;
   return null;
+}
+
+// Age (was 🎂). SK couldn't find a stock icon for this, so it's drawn here
+// to match his reference (an info card with text lines, a person in front
+// of its lower-right corner) in the same line weight as the Phosphor
+// "regular" icons above: 256 grid, 16-unit round strokes. The mask cuts a
+// gap in the card where the person overlaps it, like the reference.
+export function AgeIcon({ size = 16, color = 'currentColor', style, ...rest }) {
+  const maskId = `age-icon-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="none" stroke={color} strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, ...style }} {...rest}>
+      <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+        <rect x="0" y="0" width="256" height="256" fill="#fff" stroke="none" />
+        <circle cx="192" cy="122" r="20" fill="#000" stroke="#000" strokeWidth="32" />
+        <path d="M148,204a44,44,0,0,1,88,0Z" fill="#000" stroke="#000" strokeWidth="32" />
+      </mask>
+      <g mask={`url(#${maskId})`}>
+        <rect x="16" y="50" width="184" height="120" rx="4" />
+        <g strokeWidth="12">
+          <line x1="46" y1="84" x2="166" y2="84" />
+          <line x1="46" y1="112" x2="150" y2="112" />
+          <line x1="46" y1="140" x2="128" y2="140" />
+        </g>
+      </g>
+      <circle cx="192" cy="122" r="20" />
+      <path d="M148,204a44,44,0,0,1,88,0Z" />
+    </svg>
+  );
 }
