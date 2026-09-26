@@ -10,6 +10,7 @@ import MobileDiscoverFilters from '../components/MobileDiscoverFilters';
 import { TOP_H as MOBILE_NAV_TOP_H, BOTTOM_H as MOBILE_NAV_BOTTOM_H } from '../components/MobileNavbar';
 import { useTranslation } from '../hooks/useTranslation';
 import officialLogo from '../lib/LotusConnexs-full.jpeg';
+import ThumbImg from '../components/ThumbImg';
 
 function getChatId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
@@ -830,7 +831,7 @@ export default function Discover() {
               <div key={profile.id} style={S.card}>
                 <div className={isVipProfile(profile) ? 'tcn-vip-frame' : undefined} style={isVipProfile(profile) ? S.vipFrame : S.vipFrameOff}>
                   <div style={S.photoWrap} onClick={() => handleCardClick(profile.id)}>
-                    <img src={photoUrl} alt={profile.username} style={S.photo} loading="lazy" />
+                    <ThumbImg src={photoUrl} width={400} height={500} resize="cover" quality={75} alt={profile.username} style={S.photo} loading="lazy" />
                     {profile.is_verified && <div style={verifiedBadgeStyle}>V</div>}
                     {isVipProfile(profile) && <div style={vipBadgeStyle}>VIP</div>}
                     {profile.is_founder_member && <div style={founderBadgeStyle}>🌟</div>}
