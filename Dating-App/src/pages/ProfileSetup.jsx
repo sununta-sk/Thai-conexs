@@ -6,8 +6,8 @@ import { PROVINCES, getCitiesByProvince } from '../data/thaiLocations';
 import PhotoCropper from '../components/PhotoCropper';
 import { useIsDesktop } from '../hooks/useIsMobile';
 import { useNavGuard } from '../context/NavGuardContext';
-import { XIcon, CopyIcon, CheckIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
-import { toLookingForList, formatHeight, cmToFeetInches } from '../lib/profileFields';
+import { XIcon, CopyIcon, CheckIcon, CropIcon, GiftIcon, ImageIcon, CameraPhIcon, HeightIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, LocationIcon, AgeIcon } from '../components/Icons';
+import { toLookingForList, formatHeight, cmToFeetInches, feetInchesToCm } from '../lib/profileFields';
 import { LifestyleLabel, LifestyleHeading, SparkleIcon, TargetIcon, MoonIcon, BeerSteinIcon, CigaretteIcon, PersonRunIcon, BrainIcon } from '../components/LifestyleIcons';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
@@ -34,7 +34,7 @@ const T = {
     verifyBtn:'🤖 ยืนยันด้วย AI', verifyingBtn:'🔍 AI กำลังตรวจสอบ...',
     uploadForVerify:'อัปโหลดรูปเพื่อยืนยัน', retakeBtn:'เลือกรูปใหม่',
     aboutYou:'เกี่ยวกับคุณ', username:'ชื่อผู้ใช้', bio:'แนะนำตัว',
-    bodyEdu:'รูปร่างและการศึกษา', age:'อายุ', height:'ส่วนสูง (ซม.)', weight:'น้ำหนัก (กก.)',
+    bodyEdu:'รูปร่างและการศึกษา', age:'อายุ', height:'ส่วนสูง (ซม.)', heightTitle:'ส่วนสูง', heightHint:'กรอกช่องไหนก็ได้ อีกช่องจะคำนวณให้อัตโนมัติ', weight:'น้ำหนัก (กก.)',
     education:'การศึกษา', preferences:'ความต้องการ', gender:'เพศ', lookingFor:'มองหา',
     referralLabel:'กรอกรหัสเพื่อนเพื่อรับโบนัส €30',
     saveBtn:'บันทึกข้อมูลโปรไฟล์', logoutBtn:'ออกจากระบบ',
@@ -54,7 +54,7 @@ const T = {
     verifyBtn:'🤖 Verify with AI', verifyingBtn:'🔍 AI is checking...',
     uploadForVerify:'Upload a photo to verify', retakeBtn:'Choose a different photo',
     aboutYou:'About You', username:'Username', bio:'Bio',
-    bodyEdu:'Body & Education', age:'Age', height:'Height (cm)', weight:'Weight (kg)',
+    bodyEdu:'Body & Education', age:'Age', height:'Height (cm)', heightTitle:'Height', heightHint:'Fill in either box - the other converts automatically', weight:'Weight (kg)',
     education:'Education', preferences:'Preferences', gender:'Gender', lookingFor:'Looking For',
     referralLabel:"Enter a friend's code to get €30 bonus",
     saveBtn:'Save Profile', logoutBtn:'Logout',
@@ -124,6 +124,10 @@ export default function ProfileSetup() {
   const [mainPhoto, setMainPhoto] = useState('');
   const [uploading, setUploading] = useState(false);
   const [details, setDetails]     = useState({ age:'', height:'', weight:'', education:'', gender:'', lookingFor:'' });
+  // Height is stored in cm (details.height). The ft box is a second way to
+  // enter it: while it's being typed in, its raw text lives here; otherwise
+  // (null) it just shows the cm value converted. Either box alone is enough.
+  const [heightFtDraft, setHeightFtDraft] = useState(null);
   const [lifestyle, setLifestyle] = useState({
     hobbies: [],
     sleepSchedule: '',
@@ -666,7 +670,7 @@ export default function ProfileSetup() {
           <tbody>
             {details.gender     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><GenderIcon gender={details.gender} size={13} />{tx.gender}</span></td><td style={S.infoVal}>{details.gender}</td></tr>}
             {details.age        && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><AgeIcon size={13} />{tx.age}</span></td><td style={S.infoVal}>{details.age}</td></tr>}
-            {details.height     && <tr><td style={S.infoKey}>{tx.height}</td><td style={S.infoVal}>{formatHeight(details.height)}</td></tr>}
+            {details.height     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeightIcon size={13} />{tx.heightTitle}</span></td><td style={S.infoVal}>{formatHeight(details.height)}</td></tr>}
             {details.weight     && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><WeightIcon size={13} />{tx.weight}</span></td><td style={S.infoVal}>{details.weight} kg</td></tr>}
             {details.education  && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><EducationIcon size={13} />{tx.education}</span></td><td style={S.infoVal}>{details.education}</td></tr>}
             {toLookingForList(details.lookingFor).length > 0 && <tr><td style={S.infoKey}><span style={S.infoKeyInner}><HeartIcon size={13} />{tx.lookingFor}</span></td><td style={S.infoVal}>{toLookingForList(details.lookingFor).join(', ')}</td></tr>}
@@ -832,26 +836,26 @@ export default function ProfileSetup() {
           <div key={i} style={{ aspectRatio: '4/5', borderRadius: '12px', overflow: 'hidden', position: 'relative', border: p.url === mainPhoto ? '3px solid #e91e63' : '1px solid #334155' }}>
             <img src={p.url} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setMainPhoto(p.url)} />
             <button onClick={() => handleDeletePhoto(i)} style={S.delBtn} aria-label="Delete photo"><XIcon size={13} /></button>
-            <button onClick={() => handleRecrop(i)} style={S.recropBtn} title="Re-crop">✂</button>
+            <button onClick={() => handleRecrop(i)} style={S.recropBtn} title="Re-crop" aria-label="Re-crop photo"><CropIcon size={14} /></button>
             {p.url === mainPhoto && <div style={S.mainBadge}>Main</div>}
           </div>
         ))}
         {photos.length < 10 && (
           <label style={S.uploadBox}>
             <input type="file" hidden onChange={handleFileSelect} accept="image/*" />
-            {uploading ? '...' : '+'}
+            {uploading ? '...' : <ImageIcon size={30} color="#64748b" />}
           </label>
         )}
         {photos.length === 0 && (
           <div style={{ ...S.uploadBox, cursor: 'default', flexDirection: 'column', gap: 6, padding: 10, textAlign: 'center' }}>
-            <div style={{ fontSize: 20 }}>📸</div>
+            <CameraPhIcon size={22} color="#e91e63" />
             <div style={{ fontSize: 10, color: '#e91e63', fontWeight: 700, lineHeight: 1.4 }}>Upload photos to message people</div>
-            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}>🎁 4+ photos = prize draw entry!</div>
+            <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}><GiftIcon size={11} style={{ verticalAlign: '-0.15em', marginRight: 3 }} />4+ photos = prize draw entry!</div>
           </div>
         )}
         {photos.length > 0 && photos.length < 4 && (
           <div style={{ ...S.uploadBox, cursor: 'default', flexDirection: 'column', gap: 6, padding: 10, textAlign: 'center' }}>
-            <div style={{ fontSize: 18 }}>🎁</div>
+            <GiftIcon size={20} color="#fbbf24" />
             <div style={{ fontSize: 9, color: '#fbbf24', fontWeight: 600, lineHeight: 1.4 }}>Upload {4 - photos.length} more photo{4 - photos.length > 1 ? 's' : ''} to enter prize draw!</div>
           </div>
         )}
@@ -909,20 +913,43 @@ export default function ProfileSetup() {
 
       {/* Body & Education */}
       <SectionTitle>{tx.bodyEdu}</SectionTitle>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
         <Field label={tx.age}>
           <input type="number" min="18" max="99" placeholder="25"
             value={details.age} onChange={e => setDetails({...details, age: e.target.value})} style={S.input} />
-        </Field>
-        <Field label={tx.height}>
-          <input value={details.height} onChange={e => setDetails({...details, height: e.target.value})} style={S.input} />
-          {/* Live feet/inches for members who don't think in cm. */}
-          {cmToFeetInches(details.height) && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>≈ {cmToFeetInches(details.height)}</div>}
         </Field>
         <Field label={tx.weight}>
           <input value={details.weight} onChange={e => setDetails({...details, weight: e.target.value})} style={S.input} />
         </Field>
       </div>
+      {/* Height: cm and ft side by side. Typing in either fills the other in
+          instantly; only cm is saved. Clearing either box clears the height. */}
+      <Field label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><HeightIcon size={14} />{tx.heightTitle}</span>}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={S.unitWrap}>
+            <input inputMode="decimal" placeholder="170" aria-label={tx.height}
+              value={details.height}
+              onChange={e => { const v = e.target.value; setHeightFtDraft(null); setDetails(d => ({ ...d, height: v })); }}
+              style={{ ...S.input, paddingRight: 44 }} />
+            <span style={S.unitSuffix}>cm</span>
+          </div>
+          <div style={S.unitWrap}>
+            <input placeholder={`5'7"`} aria-label="Height (ft)"
+              value={heightFtDraft ?? cmToFeetInches(details.height)}
+              onChange={e => {
+                const v = e.target.value;
+                setHeightFtDraft(v);
+                const cm = feetInchesToCm(v);
+                if (!v.trim()) setDetails(d => ({ ...d, height: '' }));
+                else if (cm) setDetails(d => ({ ...d, height: String(cm) }));
+              }}
+              onBlur={() => setHeightFtDraft(null)}
+              style={{ ...S.input, paddingRight: 36 }} />
+            <span style={S.unitSuffix}>ft</span>
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: '#64748b', marginTop: 5 }}>{tx.heightHint}</div>
+      </Field>
       <Field label={tx.education}>
         <select value={details.education} onChange={e => setDetails({...details, education: e.target.value})} style={S.input}>
           <option value="">—</option>
@@ -1293,6 +1320,8 @@ const S = {
 
   // Form elements
   label:     { display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px', color: '#94a3b8' },
+  unitWrap:   { position: 'relative' },
+  unitSuffix: { position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 13, fontWeight: 700, color: '#64748b', pointerEvents: 'none' },
   input:     { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #334155', background: '#0f172a', color: '#f1f5f9', fontSize: '15px', outline: 'none', boxSizing: 'border-box' },
   delBtn:    { position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.75)', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 },
   recropBtn: { position: 'absolute', top: 5, left: 5, background: 'rgba(233, 30, 99, 0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.4)' },

@@ -10,7 +10,7 @@ import { optimizeImage } from "../lib/imageUtils";
 import { useAuditLogger } from "../hooks/useAuditLogger";
 import PhotoEnlargeModal from "../components/PhotoEnlargeModal";
 import { Megaphone, EllipsisVertical, TriangleAlert, Ticket } from "lucide-react";
-import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon, ShieldStarIcon, LockOpenIcon } from "../components/Icons";
+import { SmileyIcon, CameraIcon, MicIcon, PersonIcon, BackIcon, CaretLineLeftIcon, CaretLineRightIcon, LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon, PaperPlaneIcon, ProhibitIcon, AgeIcon, ShieldStarIcon, LockOpenIcon, HeightIcon } from "../components/Icons";
 import PhotoZoomButton from "../components/PhotoZoomButton";
 import { ZOOM_CURSOR, CAN_HOVER } from "../lib/zoomCursor";
 import { toLookingForList, formatHeight } from "../lib/profileFields";
@@ -312,7 +312,7 @@ function DesktopSidebar({ profile, allPhotos, isOnline, isRecentlyActive, online
         <div style={DS.chipRow}>
           {gender && <span style={DS.chip}><GenderIcon gender={gender} size={14} />{gender}</span>}
           {age && <span style={DS.chip}><AgeIcon size={14} />{age}</span>}
-          {height && <span style={DS.chip}>{formatHeight(height)}</span>}
+          {height && <span style={DS.chip}><HeightIcon size={14} />{formatHeight(height)}</span>}
           {weight && <span style={DS.chip}><WeightIcon size={14} />{weight} kg</span>}
           {education && <span style={DS.chip}><EducationIcon size={14} />{education}</span>}
           {lookingFor && <span style={DS.chip}><HeartIcon size={14} />{lookingFor}</span>}

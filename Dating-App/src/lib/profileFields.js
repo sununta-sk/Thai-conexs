@@ -45,3 +45,19 @@ export function formatHeight(value) {
   if (!imperial) return value ? String(value) : '';
   return `${Math.round(parseFloat(value))} cm (${imperial})`;
 }
+
+// Parses what people type for height in feet/inches and returns whole cm,
+// or null if it isn't a height. Accepts 5'4" / 5'4 / 5’4” / 5 4 / 5-4 /
+// 5ft 4in / 5 (= 5'0"). A dot is read the way people write heights
+// casually: 5.4 = 5'4", 5.10 = 5'10" (not decimal feet).
+export function feetInchesToCm(text) {
+  const s = String(text ?? '').trim().toLowerCase()
+    .replace(/[’′]/g, "'").replace(/[”″]/g, '"').replace(/''/g, '"');
+  if (!s) return null;
+  const m = s.match(/^(\d{1,2})\s*(?:'|ft|feet|foot|\.|-|\s)?\s*(\d{1,2}(?:\.\d+)?)?\s*(?:"|in|inch|inches)?$/);
+  if (!m) return null;
+  const ft = Number(m[1]);
+  const inch = m[2] ? Number(m[2]) : 0;
+  if (ft < 3 || ft > 8 || inch >= 12) return null;
+  return Math.round((ft * 12 + inch) * 2.54);
+}

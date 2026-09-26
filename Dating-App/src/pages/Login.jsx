@@ -13,7 +13,7 @@ import logoFull from '../lib/LotusConnexs-full.jpeg';
 import imgConversation from '../lib/conversation.jpeg';
 import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
-import { GenderIcon } from '../components/Icons';
+import { GenderIcon, GiftIcon } from '../components/Icons';
 import { genderKind } from '../lib/profileFields';
 
 const CONTENT = {
@@ -348,7 +348,7 @@ export default function Login() {
           <div style={M.joinWrap}>
             <Link to="/register" style={M.joinBtn}>
               <span style={M.joinBtnMain}>{c.cta}</span>
-              <span style={M.joinBtnPrize}>🎁 {c.ctaPrize}</span>
+              <span style={M.joinBtnPrize}><GiftIcon size="1.1em" style={{ verticalAlign: '-0.15em', marginRight: 5 }} />{c.ctaPrize}</span>
             </Link>
             <p style={M.joinSubtext}>{tx.noCredit || 'No credit card required • Free to join'}</p>
           </div>
@@ -449,7 +449,7 @@ export default function Login() {
           <div style={S.joinWrap}>
             <Link to="/register" style={S.joinBtn}>
               <span style={S.joinBtnMain}>{c.cta}</span>
-              <span style={S.joinBtnPrize}>🎁 {c.ctaPrize}</span>
+              <span style={S.joinBtnPrize}><GiftIcon size="1.1em" style={{ verticalAlign: '-0.15em', marginRight: 5 }} />{c.ctaPrize}</span>
             </Link>
             <p style={S.joinSubtext}>{tx.noCredit || 'No credit card required • Free to join'}</p>
           </div>

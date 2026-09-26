@@ -14,7 +14,7 @@ import { useOnline } from '../context/OnlineContext';
 import { getViewportTier } from '../hooks/useIsMobile';
 import { LockIcon, DiamondIcon, VerifiedIcon, CrownIcon, LocationIcon, GenderIcon, WeightIcon, EducationIcon, HeartIcon } from '../components/Icons';
 import { toLookingForList, genderKind, formatHeight } from '../lib/profileFields';
-import { ProhibitIcon, XIcon, LockOpenIcon, ShieldStarIcon } from '../components/Icons';
+import { ProhibitIcon, XIcon, LockOpenIcon, ShieldStarIcon, HeightIcon } from '../components/Icons';
 import { LifestyleLabel, SparkleIcon } from '../components/LifestyleIcons';
 import PhotoZoomButton from '../components/PhotoZoomButton';
 import { ZOOM_CURSOR } from '../lib/zoomCursor';
@@ -436,7 +436,7 @@ export default function UserProfilePage() {
             <div style={S.sectionLabel}>General Info</div>
             <div style={S.chipRow}>
               {gender     && <Chip icon={genderKind(gender) !== 'other' && <GenderIcon gender={gender} size={16} />} label={gender} />}
-              {height     && <Chip label={formatHeight(height)} />}
+              {height     && <Chip icon={<HeightIcon size={16} />} label={formatHeight(height)} />}
               {weight     && <Chip icon={<WeightIcon size={16} />}    label={`${weight} kg`} />}
               {education  && <Chip icon={<EducationIcon size={16} />} label={education} />}
               {lookingFor && <Chip icon={<HeartIcon size={16} />}     label={lookingFor} />}
