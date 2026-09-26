@@ -234,7 +234,7 @@ const S = {
   roleBadge:     { display: 'inline-block', padding: '3px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 },
   signOutBtn:    { marginTop: 10, width: '100%', background: 'none', border: '1px solid #1e293b', borderRadius: 8, padding: '6px 0', color: '#475569', fontSize: 12, cursor: 'pointer', fontWeight: 600 },
   main:          { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  header:        { height: 'calc(56px + env(safe-area-inset-top))', flexShrink: 0, background: '#0a0f1e', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', padding: '0 24px', paddingTop: 'env(safe-area-inset-top)', boxSizing: 'border-box' },
+  header:        { height: 'calc(56px + env(safe-area-inset-top))', flexShrink: 0, background: '#0a0f1e', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', paddingTop: 'env(safe-area-inset-top)', boxSizing: 'border-box' },
   content:       { flex: 1, overflowY: 'auto', background: '#0f172a' },
   loadingScreen: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', fontFamily: "'Segoe UI', sans-serif" },
   spinner:       { width: 36, height: 36, border: '3px solid #1e293b', borderTop: '3px solid #e91e63', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
