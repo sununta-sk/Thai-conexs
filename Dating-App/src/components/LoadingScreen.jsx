@@ -1,11 +1,9 @@
-// Dedicated 220x220 (2x for the 110px display size below), pre-cropped to
-// match the same square region the full 1942x809 banner's objectFit:cover
-// was already center-cropping down to at runtime - this was the single
-// largest asset on the app's guaranteed-first-paint path (rendered before
-// the auth session check even resolves, on every visit): 331.7KB for a
-// 110px circle. This version is 26.6KB (92% smaller) at the same visual
-// result. See performance audit (Task A) for the full measurement.
-import logoImg from '../lib/LotusConnexs-loading.jpeg';
+// Transparent Lotus ConneXs logo (black outline removed) inside a soft oval
+// of pink glitter, 480x240 = 2x for the 240x120 display size below. This is
+// on the app's guaranteed-first-paint path (rendered before the auth session
+// check resolves, on every visit), so it's kept small: 38KB WebP. The old
+// 110px round tile (LotusConnexs-loading.jpeg, 26.6KB) is no longer used.
+import logoImg from '../lib/LotusConnexs-loading-sparkle.webp';
 
 export default function LoadingScreen({ message = 'Loading...' }) {
   return (
@@ -18,7 +16,7 @@ export default function LoadingScreen({ message = 'Loading...' }) {
         }
       `}</style>
       <div style={S.logoWrap}>
-        <img src={logoImg} alt="Lotus ConeXs" style={S.logo} />
+        <img src={logoImg} alt="Lotus ConneXs" style={S.logo} />
       </div>
       <div style={S.text}>{message}</div>
     </div>
@@ -39,7 +37,7 @@ const S = {
   },
   logoWrap: {
     position: 'relative',
-    width: 120,
+    width: 240,
     height: 120,
     display: 'flex',
     alignItems: 'center',
@@ -47,12 +45,10 @@ const S = {
     animation: 'pulse 1.8s ease-in-out infinite',
   },
   logo: {
-    width: 110,
-    height: 110,
-    borderRadius: '50%',
-    objectFit: 'cover',
-    filter: 'drop-shadow(0 0 24px rgba(233, 30, 99, 0.6))',
-    mixBlendMode: 'screen',
+    width: 240,
+    height: 120,
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 0 18px rgba(233, 30, 99, 0.45))',
     opacity: 0.95,
   },
   text: {

@@ -7,7 +7,8 @@ import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
 import { useNavGuard } from '../context/NavGuardContext';
-import logoImg from '../lib/LotusConnexs.jpeg';
+// Same transparent logo as the desktop navbar, shown 32px tall here.
+import logoImg from '../lib/LotusConnexs-nav.webp';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
 import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
@@ -228,9 +229,8 @@ export default function MobileNavbar() {
           src={logoImg} alt="Lotus ConneXs"
           onClick={() => goTo('/discover')}
           style={{
-            width: 32, height: 32, borderRadius: '50%',
-            objectFit: 'cover', cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
+            height: 32, width: 'auto', flexShrink: 0, cursor: 'pointer',
+            filter: 'drop-shadow(0 1px 4px rgba(233,30,99,0.35))',
           }}
         />
         <div style={{

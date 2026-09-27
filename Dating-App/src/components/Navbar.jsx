@@ -5,7 +5,8 @@ import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import { useOnline } from '../context/OnlineContext';
 import { useNavGuard } from '../context/NavGuardContext';
-import logoImg from '../lib/LotusConnexs.jpeg';
+// Transparent logo (no black outline, no tagline) - 239x168 = 3x of 56px tall.
+import logoImg from '../lib/LotusConnexs-nav.webp';
 import { useIsMobile } from '../hooks/useIsMobile';
 import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
@@ -147,7 +148,7 @@ function NavbarDesktop() {
         <img
           src={logoImg}
           alt="Lotus ConneXs"
-          style={{ height: 56, width: 56, borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', boxShadow: '0 2px 6px rgba(233,30,99,0.3)' }}
+          style={{ height: 56, width: 'auto', flexShrink: 0, cursor: 'pointer', filter: 'drop-shadow(0 2px 6px rgba(233,30,99,0.35))' }}
           onClick={() => goTo('/discover')}
         />
         <div style={{
