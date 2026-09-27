@@ -51,8 +51,9 @@ function ThaiFlag() {
 
 const SIZES = {
   md: { w: 72, h: 32, knob: 24, font: 12.5 },
-  sm: { w: 60, h: 28, knob: 21, font: 11 },
+  sm: { w: 60, h: 28, knob: 20, font: 11 },
 };
+const BORDER = 1;
 
 /**
  * @param {'en'|'th'|string} lang  current language (anything but 'th' shows the English side)
@@ -66,8 +67,10 @@ const SIZES = {
 export default function LanguageSwitch({ lang, onChange, size = 'md', hint = true, hintAlign = 'center', deferHint = false, theme = 'dark' }) {
   const isThai = lang === 'th';
   const d = SIZES[size] || SIZES.md;
-  const pad = Math.round((d.h - d.knob) / 2);
-  const travel = d.w - d.knob - pad * 2 - 2; // 2 = the track's 1px borders
+  // The knob is positioned inside the track's border, so measure the gap
+  // from the inner box - otherwise it sits 1px low and 1px short.
+  const pad = (d.h - BORDER * 2 - d.knob) / 2;
+  const travel = d.w - BORDER * 2 - d.knob - pad * 2;
 
   const [hintSeen, setHintSeen] = useState(() => readFlag(HINT_SEEN_KEY));
   const [vipHintSeen, setVipHintSeen] = useState(() => readFlag(VIP_HINT_SEEN_KEY));
@@ -155,9 +158,9 @@ export default function LanguageSwitch({ lang, onChange, size = 'md', hint = tru
 const S = {
   wrap: { position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0 },
   track: {
-    position: 'relative', flexShrink: 0, padding: 0, cursor: 'pointer', borderRadius: 999,
+    position: 'relative', flexShrink: 0, padding: 0, cursor: 'pointer', borderRadius: 999, boxSizing: 'border-box',
     background: 'linear-gradient(180deg, #0b1222 0%, #131d33 100%)',
-    border: '1px solid #334155',
+    border: `${BORDER}px solid #334155`,
     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,255,255,0.05)',
     transition: 'border-color 0.2s',
   },
