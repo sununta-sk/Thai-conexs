@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
-// Transparent logo on a band of pink glitter (made from the Lotus ConneXs
-// banner art): 7.5:1, shown 64px tall like the old square tile.
+// Transparent logo on a short band of pink glitter (made from the Lotus
+// ConneXs banner art), about as wide as the "Welcome to ..." heading.
 import logoSparkle from '../lib/LotusConnexs-welcome-sparkle.webp';
 import { VerifiedIcon, TranslateIcon, LightningIcon, XIcon } from './Icons';
 
@@ -197,14 +197,17 @@ const S = {
     textAlign: 'center',
     marginBottom: 24,
   },
-  // Same 64px height as before; the glitter band spans the card and is
-  // trimmed at the sides on narrow screens (the logo stays centred).
+  // 90px tall but occupying the same 78px the old 64px tile + 14px gap did:
+  // it borrows 14px of the header's top padding and keeps a 2px gap, so the
+  // heading and everything below stay exactly where they were. Width matches
+  // the heading; the glitter fades out before its ends.
   logo: {
     display: 'block',
-    width: '100%',
-    height: 64,
+    width: 284,
+    maxWidth: '100%',
+    height: 90,
     objectFit: 'cover',
-    marginBottom: 14,
+    margin: '-14px auto 2px',
   },
   welcome: {
     fontSize: 22,
