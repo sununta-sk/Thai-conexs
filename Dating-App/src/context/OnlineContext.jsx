@@ -17,6 +17,7 @@ const HEARTBEAT_INTERVAL_MS = 90 * 1000;
 
 const OnlineContext = createContext({
   onlineUsers: new Set(),
+  presentUsers: new Set(),
   recentlyActiveUsers: new Set(),
   onlineCount: 0,
   botIds: new Set(),
@@ -157,6 +158,10 @@ export function OnlineProvider({ children }) {
   return (
     <OnlineContext.Provider value={{
       onlineUsers,
+      // Real users with a live presence connection right now (no bots, no
+      // last_seen_at window) - the only people who can actually answer a
+      // chess challenge within its 90s.
+      presentUsers: realOnlineUsers,
       recentlyActiveUsers,
       onlineCount: onlineUsers.size,
       botIds,

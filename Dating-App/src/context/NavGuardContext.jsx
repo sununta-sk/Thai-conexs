@@ -59,10 +59,12 @@ export function NavGuardProvider({ children }) {
   // guard's own return value), rather than ProfileSetup recomputing "why"
   // later from its live state when the popup renders — avoids the popup
   // silently reclassifying itself if state changes while it's open.
-  const requestNavigate = useCallback((path) => {
+  // `options` is passed straight through to navigate() (e.g. the chess
+  // invite toast's { state: { openChess: true } }).
+  const requestNavigate = useCallback((path, options) => {
     const reason = guardRef.current?.();
-    if (!reason) navigate(path);
-    else setPending({ path, reason });
+    if (!reason) navigate(path, options);
+    else setPending({ path, options, reason });
   }, [navigate]);
 
   // Called after the user resolves the block (uploads a photo and/or
@@ -74,7 +76,7 @@ export function NavGuardProvider({ children }) {
   // double-invokes updater functions in dev specifically to catch
   // side effects like a navigate() call hidden inside one.
   const resolvePending = useCallback(() => {
-    if (pending) navigate(pending.path);
+    if (pending) navigate(pending.path, pending.options);
     setPending(null);
   }, [pending, navigate]);
 

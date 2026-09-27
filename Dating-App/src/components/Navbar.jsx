@@ -13,7 +13,7 @@ import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
 import InvisibleModeToggle from './InvisibleModeToggle';
 import LanguageSwitch from './LanguageSwitch';
-import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
+import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut, ChessKnight } from 'lucide-react';
 import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, LotusIcon, BellRingingIcon } from './Icons';
 
 function NavbarDesktop() {
@@ -161,8 +161,11 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Center: Discover | Messages | Admin | Avatar dropdown */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 80, justifySelf: 'center' }}>
+      {/* Center: Discover | Messages | Chess | Admin | Avatar dropdown.
+          Gap stays 80px from ~1360px up and tightens below that (to 28px
+          at laptop widths), so the extra Chess item doesn't squeeze the
+          logo/online pill on narrower screens. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(28px, calc((100vw - 1040px) / 4), 80px)', justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <Search size={24} style={navIconStyle} />
           <span style={{ fontSize: '11px' }}>{tx.discoverNav || 'Discover'}</span>
@@ -188,6 +191,10 @@ function NavbarDesktop() {
             )}
           </span>
           <span style={{ fontSize: '11px' }}>{tx.messagesNav || 'Messages'}</span>
+        </button>
+        <button onClick={() => goTo('/chess')} style={navBtnStyle(location.pathname === '/chess' || location.pathname.startsWith('/chess/'))}>
+          <ChessKnight size={24} style={navIconStyle} />
+          <span style={{ fontSize: '11px' }}>{tx.chessNav || 'Chess'}</span>
         </button>
         {isAdmin && (
           <button

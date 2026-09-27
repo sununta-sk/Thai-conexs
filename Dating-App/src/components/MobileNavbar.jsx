@@ -12,7 +12,7 @@ import logoImg from '../lib/LotusConnexs-nav.webp';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
 import LanguageSwitch from './LanguageSwitch';
-import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
+import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, LogOut, ChessKnight } from 'lucide-react';
 import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, BellRingingIcon } from './Icons';
 
 // Exported so other mobile-only fixed-position UI (e.g. Discover's mobile ad
@@ -335,6 +335,10 @@ export default function MobileNavbar() {
             )}
           </div>
           <span>{tx.messagesNav || 'Messages'}</span>
+        </button>
+        <button onClick={() => goTo('/chess')} style={navBtn(isActive('/chess'))}>
+          <ChessKnight size={22} style={navIconStyle} />
+          <span>{tx.chessNav || 'Chess'}</span>
         </button>
         {isAdmin && (
           <button
