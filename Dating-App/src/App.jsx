@@ -18,6 +18,7 @@ import ResetPassword  from './pages/ResetPassword';
 import RulesPage from './pages/RulesPage';
 import LoadingScreen from './components/LoadingScreen';
 import GlobalToast from './components/GlobalToast';
+import ChessChallengePopup from './components/ChessChallengePopup';
 import Navbar       from './components/Navbar';
 import MobilePreviewFrame from './components/MobilePreviewFrame';
 
@@ -36,6 +37,8 @@ const RoomChat           = lazy(() => import('./pages/RoomChat'));
 const PaymentPage        = lazy(() => import('./pages/PaymentPage'));
 const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
 const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
+const ChessLobby         = lazy(() => import('./pages/ChessLobby'));
+const ChessMatch         = lazy(() => import('./pages/ChessMatch'));
 
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
 const UserProfilePage = lazy(() => import('./pages/UserProfilePage'));
@@ -298,6 +301,8 @@ function AppContent() {
             <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="/notifications"     element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+            <Route path="/chess"             element={<ProtectedRoute><ChessLobby /></ProtectedRoute>} />
+            <Route path="/chess/:gameId"     element={<ProtectedRoute><ChessMatch /></ProtectedRoute>} />
 
             <Route path="/admin-secret-portal" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/dashboard"     element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -334,6 +339,7 @@ function AppContent() {
       </div>
       <WelcomeModal />
       <GlobalToast />
+      {session && <ChessChallengePopup />}
       {!hideNavbar && <Navbar />}
     </div>
   );

@@ -192,6 +192,9 @@ export default function GlobalToast() {
             const g = payload.new;
             console.log('[Toast] chess_games event:', payload.eventType, g);
             if (!g) return;
+            // /chess lobby games have no chat to open - their challenges
+            // are shown by ChessChallengePopup instead.
+            if (g.mode === 'lobby') return;
             if (g.white_id !== userIdRef.current && g.black_id !== userIdRef.current) return;
             const isInvite = payload.eventType === 'INSERT' && g.status === 'active';
             const isDecline = payload.eventType === 'UPDATE' && g.status === 'declined';

@@ -251,6 +251,10 @@ export default function MobileNavbar() {
           </div>
           <span>{tx.messagesNav || 'Messages'}</span>
         </button>
+        <button onClick={() => goTo('/chess')} style={navBtn(isActive('/chess'))}>
+          <span style={{ fontSize: 22 }}>♟️</span>
+          <span>{tx.chessNav || 'Chess'}</span>
+        </button>
         {isAdmin && (
           <button
             onClick={() => adminActive ? navigate('/discover') : goTo('/admin-secret-portal')}

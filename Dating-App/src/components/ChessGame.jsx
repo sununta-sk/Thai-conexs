@@ -5,10 +5,19 @@
 // re-validation). The make_chess_move RPC only enforces who's allowed to
 // write — one of the two seated players, on their own turn — matching this
 // project's "state-changing writes go through an RPC" convention.
+//
+// Two modes:
+// - chat (chatId prop): the original in-chat panel, keyed on the chat's
+//   chat_id — unchanged.
+// - lobby (gameId prop, /chess/:gameId page): one specific chess_games row
+//   between any two users, including its 'pending' challenge stage (see
+//   2026-09-27-chess-lobby-matchmaking.sql). No 4s auto-close here; the
+//   finished screen offers Rematch / Back to lobby instead.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { supabase } from "../lib/supabaseClient";
 import { useTranslation } from "../hooks/useTranslation";
+import { lobbyErrorText } from "../lib/chessLobby";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -80,10 +89,24 @@ function getGameOverText(tx, status, isWinner, opponentName) {
   if (status === "resigned") return { title: isWinner ? tx.winTitleResigned(name) : tx.loseTitleResigned(name), subtitle: isWinner ? tx.winSubtitle : tx.loseSubtitle };
   if (status === "stalemate") return { title: tx.winTitleStalemate, subtitle: tx.drawSubtitle };
   if (status === "draw") return { title: tx.winTitleDraw, subtitle: tx.drawSubtitle };
+  if (status === "abandoned") return { title: isWinner ? tx.winTitleAbandoned(name) : tx.loseTitleAbandoned(name), subtitle: isWinner ? tx.winSubtitle : tx.loseSubtitle };
   return { title: "", subtitle: "" };
 }
 
-export default function ChessGame({ chatId, session, otherUserId, otherUsername, onClose }) {
+// Lobby challenges expire after 90s server-side (chess_challenge /
+// chess_respond_challenge); a lobby player may claim the win once it has
+// been the opponent's turn for 5 minutes (chess_claim_abandoned).
+const CHALLENGE_TTL_MS = 90 * 1000;
+const ABANDON_MS = 5 * 60 * 1000;
+const IDLE_HINT_MS = 60 * 1000;
+
+const fmtClock = (ms) => {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+};
+
+export default function ChessGame({ chatId, gameId, session, otherUserId, otherUsername, otherAvatarUrl, onClose, onRematch }) {
+  const isLobby = !!gameId;
   const { tx } = useTranslation(["chess"]);
   const myId = session?.user?.id;
   const [game, setGame] = useState(null); // chess_games row, or undefined once we've checked and found none
@@ -93,6 +116,11 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   const [error, setError] = useState("");
   const [showRules, setShowRules] = useState(false);
   const busyRef = useRef(false);
+  // Lobby mode only ↓
+  const [now, setNow] = useState(() => Date.now());
+  const [pendingSeen, setPendingSeen] = useState(null); // { id, at } — when this client first saw the row as 'pending'
+  const [claimOverride, setClaimOverride] = useState(null); // { updatedAt, deadline } from a too_early answer
+  const [opponentHere, setOpponentHere] = useState(null); // live presence on this game's page; null = not known yet
 
   // chess.js instance derived from the current game's fen — rebuilt whenever
   // the row's fen changes (either our own optimistic move or a realtime
@@ -231,6 +259,68 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     };
   }, [chatId]);
 
+  // Lobby mode: track ONE row by id. Same realtime + 5s poll + refocus
+  // safety net as the chat mode above, with the same "never step back to an
+  // older updated_at" guard (optimistic moves keep the old updated_at until
+  // the server's row arrives).
+  useEffect(() => {
+    if (!gameId) return;
+    let cancelled = false;
+    const adopt = (row) => {
+      if (cancelled || !row) return;
+      if (row.status === "pending") {
+        setPendingSeen((p) => (p && p.id === row.id ? p : { id: row.id, at: Date.now() }));
+      }
+      setGame((prev) => {
+        if (prev && prev.id === row.id && new Date(row.updated_at) <= new Date(prev.updated_at)) return prev;
+        return row;
+      });
+    };
+    const refetch = async () => {
+      const { data } = await supabase.from("chess_games").select("*").eq("id", gameId).maybeSingle();
+      if (cancelled) return;
+      adopt(data);
+      setLoading(false);
+    };
+    refetch();
+
+    const channel = supabase
+      .channel(`chess-game:${gameId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "chess_games", filter: `id=eq.${gameId}` },
+        (payload) => adopt(payload.new)
+      )
+      .subscribe();
+
+    const poll = setInterval(refetch, 5000);
+    const onVisible = () => { if (document.visibilityState === "visible") refetch(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refetch);
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refetch);
+    };
+  }, [gameId]);
+
+  // Lobby mode: who is actually on this game's page right now, so the
+  // waiting player can see "left the game page" instead of guessing.
+  useEffect(() => {
+    if (!gameId || !myId || !otherUserId) return;
+    const channel = supabase.channel(`chess-room:${gameId}`, { config: { presence: { key: myId } } });
+    channel
+      .on("presence", { event: "sync" }, () => {
+        setOpponentHere(Object.prototype.hasOwnProperty.call(channel.presenceState(), otherUserId));
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") await channel.track({ at: new Date().toISOString() });
+      });
+    return () => { supabase.removeChannel(channel); };
+  }, [gameId, myId, otherUserId]);
+
   const startGame = async () => {
     if (!myId || !otherUserId || busyRef.current) return;
     busyRef.current = true;
@@ -267,6 +357,39 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   const myColor = game && myId === game.white_id ? "w" : game && myId === game.black_id ? "b" : null;
   const isMyTurn = game?.status === "active" && myColor === game.turn;
 
+  // Lobby-mode derived timing. `now` only ticks while something on screen
+  // actually counts down (pending challenge, or waiting on the opponent).
+  const isPending = isLobby && game?.status === "pending";
+  const iAmChallenger = isPending && game.created_by === myId;
+  const pendingDeadline = isPending && pendingSeen?.id === game.id ? pendingSeen.at + CHALLENGE_TTL_MS : null;
+  const pendingLeftMs = pendingDeadline ? pendingDeadline - now : CHALLENGE_TTL_MS;
+  const pendingExpired = isPending && pendingDeadline != null && pendingLeftMs <= 0;
+  const waitingOnOpponent = isLobby && game?.status === "active" && !isMyTurn && !!myColor;
+  const lastChangeAt = game?.updated_at ? new Date(game.updated_at).getTime() : 0;
+  const claimDeadline = claimOverride && claimOverride.updatedAt === game?.updated_at ? claimOverride.deadline : lastChangeAt + ABANDON_MS;
+  const opponentIdleMs = waitingOnOpponent ? now - lastChangeAt : 0;
+  const showIdleHint = waitingOnOpponent && (opponentIdleMs >= IDLE_HINT_MS || (claimOverride && claimOverride.updatedAt === game?.updated_at));
+  const canClaim = waitingOnOpponent && now >= claimDeadline;
+  const ticking = isPending || waitingOnOpponent;
+
+  useEffect(() => {
+    if (!ticking) return;
+    const tick = () => setNow(Date.now());
+    const first = setTimeout(tick, 0);
+    const timer = setInterval(tick, 1000);
+    return () => { clearTimeout(first); clearInterval(timer); };
+  }, [ticking]);
+
+  // The challenger's own client withdraws an unanswered challenge when its
+  // 90s runs out, so the other player's popup closes on the same UPDATE.
+  // (The server would also refuse a late accept on its own.)
+  useEffect(() => {
+    if (!pendingExpired || !iAmChallenger || !game?.id || !myId) return;
+    supabase.rpc("chess_cancel_challenge", { p_user_id: myId, p_game_id: game.id }).then(({ data }) => {
+      if (data?.success) setGame((prev) => (prev && prev.id === game.id ? { ...prev, status: "cancelled" } : prev));
+    });
+  }, [pendingExpired, iAmChallenger, game?.id, myId]);
+
   const legalTargets = useMemo(() => {
     if (!chess || !selected) return [];
     return chess.moves({ square: selected, verbose: true }).map((m) => m.to);
@@ -282,14 +405,14 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   // reset this timer before it could ever fire. isFinished is a hook (not
   // the later `finished` const below `if (!game) return`) so it can live
   // here, unconditionally, before those early returns.
-  const isFinished = !!game && game.status !== "active";
+  const isFinished = !!game && game.status !== "active" && game.status !== "pending";
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
-    if (!isFinished) return;
+    if (!isFinished || isLobby) return;
     const timer = setTimeout(() => onCloseRef.current(), 4000);
     return () => clearTimeout(timer);
-  }, [isFinished]);
+  }, [isFinished, isLobby]);
 
   const submitMove = async (from, to, promotion) => {
     if (!chess || !game || busyRef.current) return;
@@ -374,6 +497,51 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     }
   };
 
+  // ── Lobby-mode actions ──
+  const respondToChallenge = async (accept) => {
+    if (!game || !myId || busyRef.current) return;
+    busyRef.current = true;
+    setError("");
+    const { data, error: rpcError } = await supabase.rpc("chess_respond_challenge", { p_user_id: myId, p_game_id: game.id, p_accept: accept });
+    busyRef.current = false;
+    if (rpcError || data?.error) {
+      setError(lobbyErrorText(tx, data?.error, otherUsername));
+      const { data: fresh } = await supabase.from("chess_games").select("*").eq("id", game.id).maybeSingle();
+      if (fresh) setGame(fresh);
+      return;
+    }
+    if (!accept) { onClose(); return; }
+    setGame((prev) => prev && ({ ...prev, status: "active" }));
+  };
+
+  const cancelChallenge = async () => {
+    if (!game || !myId || busyRef.current) return;
+    busyRef.current = true;
+    const { data } = await supabase.rpc("chess_cancel_challenge", { p_user_id: myId, p_game_id: game.id });
+    busyRef.current = false;
+    if (data?.success) setGame((prev) => prev && ({ ...prev, status: "cancelled" }));
+    onClose();
+  };
+
+  const claimWin = async () => {
+    if (!game || !myId || busyRef.current) return;
+    busyRef.current = true;
+    setError("");
+    const { data, error: rpcError } = await supabase.rpc("chess_claim_abandoned", { p_user_id: myId, p_game_id: game.id });
+    busyRef.current = false;
+    if (data?.error === "too_early") {
+      setClaimOverride({ updatedAt: game.updated_at, deadline: Date.now() + (data.seconds_left || 0) * 1000 });
+      return;
+    }
+    if (rpcError || data?.error) {
+      setError(tx.couldntClaim);
+      const { data: fresh } = await supabase.from("chess_games").select("*").eq("id", game.id).maybeSingle();
+      if (fresh) setGame(fresh);
+      return;
+    }
+    setGame((prev) => prev && ({ ...prev, status: "abandoned", winner_id: myId }));
+  };
+
   // Fonts per the approved mockup — same <link> pattern RoomChat.jsx/
   // MobileRoomChat.jsx already use for Nunito.
   const fontLink = (
@@ -423,6 +591,71 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
     );
   }
 
+  if (!game && isLobby) {
+    return (
+      <div style={CS.panel}>
+        {fontLink}
+        <div style={CS.startWrap}>
+          <div style={CS.startIcon}>♟</div>
+          <h3 style={CS.declinedTitle}>{tx.gameNotFound}</h3>
+          <button style={CS.closeGameBtn} onClick={onClose}>{tx.lobbyBack}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // Lobby challenge, not answered yet.
+  if (isPending) {
+    const name = otherUsername || tx.opponent;
+    return (
+      <div style={CS.panel}>
+        {fontLink}
+        <button style={CS.closeBtn} onClick={onClose}>✕</button>
+        <div style={CS.startWrap}>
+          <div style={CS.pendingAvatarWrap}>
+            {otherAvatarUrl ? <img src={otherAvatarUrl} alt="" style={CS.pendingAvatarImg} /> : <span style={CS.startIconInline}>♟</span>}
+          </div>
+          <h3 style={CS.declinedTitle}>{iAmChallenger ? tx.challengeSentTitle : tx.incomingTitle(name)}</h3>
+          <p style={CS.startText}>
+            {pendingExpired ? tx.challengeCancelledBody : iAmChallenger ? tx.waitingAccept(name) : tx.incomingBody}
+          </p>
+          {error && <div style={CS.errorBanner}>{error}</div>}
+          {!pendingExpired && <div style={CS.pendingTimer}>{tx.expiresIn(Math.max(0, Math.ceil(pendingLeftMs / 1000)))}</div>}
+          {pendingExpired ? (
+            <button style={CS.closeGameBtn} onClick={onClose}>{tx.lobbyBack}</button>
+          ) : iAmChallenger ? (
+            <button style={CS.secondaryBtn} onClick={cancelChallenge}>{tx.cancelChallenge}</button>
+          ) : (
+            <div style={CS.pendingActions}>
+              <button style={CS.closeGameBtn} onClick={() => respondToChallenge(true)}>{tx.accept}</button>
+              <button style={CS.secondaryBtn} onClick={() => respondToChallenge(false)}>{tx.decline}</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Lobby challenge withdrawn or expired.
+  if (isLobby && game.status === "cancelled") {
+    const iSentIt = game.created_by === myId;
+    return (
+      <div style={CS.panel}>
+        {fontLink}
+        <button style={CS.closeBtn} onClick={onClose}>✕</button>
+        <div style={CS.startWrap}>
+          <div style={CS.startIcon}>♟</div>
+          <h3 style={CS.declinedTitle}>{tx.challengeClosedTitle}</h3>
+          <p style={CS.startText}>{iSentIt ? tx.challengeExpiredBody(otherUsername || tx.opponent) : tx.challengeCancelledBody}</p>
+          <div style={CS.pendingActions}>
+            {onRematch && <button style={CS.closeGameBtn} onClick={onRematch}>{iSentIt ? tx.challengeAgain : tx.challengeBack}</button>}
+            <button style={CS.secondaryBtn} onClick={onClose}>{tx.lobbyBack}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!game) {
     return (
       <div style={CS.panel}>
@@ -448,6 +681,9 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
   // (computed earlier, before the early returns) already covers this
   // status too, so the 4s auto-close still applies here unchanged.
   if (game.status === "declined") {
+    // Lobby: the person who declined can also land here (e.g. refreshed
+    // the page), so the copy depends on which side you were on.
+    const iDeclined = isLobby && game.created_by !== myId;
     return (
       <div style={CS.panel}>
         {fontLink}
@@ -456,10 +692,10 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
         <div style={CS.startWrap}>
           <div style={CS.startIcon}>♟</div>
           <h3 style={CS.declinedTitle}>{tx.declinedTitle}</h3>
-          <p style={CS.startText}>{tx.declinedBody(otherUsername || tx.opponent)}</p>
-          <button style={CS.closeGameBtn} onClick={onClose}>{tx.closeGame}</button>
+          <p style={CS.startText}>{iDeclined ? tx.youDeclinedBody(otherUsername || tx.opponent) : tx.declinedBody(otherUsername || tx.opponent)}</p>
+          <button style={CS.closeGameBtn} onClick={onClose}>{isLobby ? tx.lobbyBack : tx.closeGame}</button>
         </div>
-        <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>
+        {!isLobby && <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>}
         {rulesModal}
       </div>
     );
@@ -500,11 +736,22 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
       <div style={state === "winner" ? { ...CS.playerRow, ...CS.playerRowWinner } : CS.playerRow}>
         <div style={CS.playerIdentity}>
           <div style={avatarStyle}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+            {!isMe && otherAvatarUrl ? (
+              <img src={otherAvatarUrl} alt="" style={CS.avatarImg} />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+            )}
           </div>
           <div>
             <div style={CS.playerName}>{name}</div>
-            <div style={CS.playerColorLabel}>({colorName(color)})</div>
+            <div style={CS.playerColorLabel}>
+              ({colorName(color)})
+              {isLobby && !isMe && !finished && opponentHere != null && (
+                <span style={opponentHere ? CS.presenceHere : CS.presenceAway}>
+                  {" · "}{opponentHere ? tx.opponentHere : tx.opponentAway}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         {state === "winner" ? (
@@ -544,6 +791,16 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
             {isMyTurn ? tx.yourMove : tx.waitingFor(otherUsername || tx.opponent)}
             {inCheck && tx.check}
           </div>
+          {showIdleHint && (
+            canClaim ? (
+              <div style={CS.idleBox}>
+                <span>{tx.idleReady(otherUsername || tx.opponent)}</span>
+                <button style={CS.claimBtn} onClick={claimWin}>{tx.claimWin}</button>
+              </div>
+            ) : (
+              <div style={CS.idleHint}>{tx.idleHint(otherUsername || tx.opponent, fmtClock(claimDeadline - now))}</div>
+            )
+          )}
           {rulesButtonVisible}
         </div>
       )}
@@ -559,8 +816,8 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
         }}
         data-testid="chess-board"
       >
-        {RANKS.map((rank) =>
-          FILES.map((file) => {
+        {(myColor === "b" ? [...RANKS].reverse() : RANKS).map((rank) =>
+          (myColor === "b" ? [...FILES].reverse() : FILES).map((file) => {
             const square = `${file}${rank}`;
             const piece = chess?.get(square);
             const isDark = (FILES.indexOf(file) + RANKS.indexOf(rank)) % 2 === 1;
@@ -593,13 +850,18 @@ export default function ChessGame({ chatId, session, otherUserId, otherUsername,
       {renderPlayerRow(tx.you, myColor, true)}
 
       <div style={CS.controlsRow}>
-        {finished ? (
+        {finished && isLobby ? (
+          <>
+            {onRematch && <button style={CS.closeGameBtn} onClick={onRematch}>{tx.rematch}</button>}
+            <button style={CS.secondaryBtn} onClick={onClose}>{tx.lobbyBack}</button>
+          </>
+        ) : finished ? (
           <button style={CS.closeGameBtn} onClick={onClose}>{tx.closeGame}</button>
         ) : (
           <button style={CS.resignBtn} onClick={resign}>{tx.resign}</button>
         )}
       </div>
-      {finished && <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>}
+      {finished && !isLobby && <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>}
 
       {pendingPromotion && (
         <div style={CS.promoOverlay} onClick={() => setPendingPromotion(null)}>
@@ -701,7 +963,10 @@ const CS = {
   // min(520px, 100%) caps the board at the mockup's reference size as a
   // MAXIMUM, not a fixed value — it shrinks with the panel below that.
   // aspect-ratio keeps it square without a hardcoded height.
-  board: { position: "relative", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", width: "min(520px, 100%)", aspectRatio: "1", margin: "0 auto", borderRadius: 10, border: "1px solid #2c2547", boxShadow: "0 20px 50px -12px rgba(0,0,0,.6)", overflow: "hidden", transition: "opacity .2s, filter .2s" },
+  // Explicit equal rows too: with only columns defined, rows sized to
+  // their content, so ranks holding pieces came out taller than empty ones.
+  // Black sees the board from its own side (ranks/files reversed at render).
+  board: { position: "relative", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gridTemplateRows: "repeat(8, 1fr)", width: "min(520px, 100%)", aspectRatio: "1", margin: "0 auto", borderRadius: 10, border: "1px solid #2c2547", boxShadow: "0 20px 50px -12px rgba(0,0,0,.6)", overflow: "hidden", transition: "opacity .2s, filter .2s" },
   // Not your turn: subtle dim, pieces stay legible. Finished: fully inert
   // (grayscale(1)), takes precedence over the not-your-turn dim. Also
   // slightly smaller (440 vs the live board's 520 cap) - part of the
@@ -720,6 +985,20 @@ const CS = {
   // Full-width per spec, replaces the old auto-width version now that this
   // is the finished-game state's primary action.
   closeGameBtn: { width: "100%", padding: "13px", borderRadius: 10, fontFamily: "'Sora', sans-serif", fontSize: 14, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #ec4899, #a855f7)", color: "#fff", cursor: "pointer" },
+
+  // ── Lobby-mode additions ──
+  avatarImg: { width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" },
+  presenceHere: { color: "#4ade80" },
+  presenceAway: { color: "#f9a8d4" },
+  idleHint: { fontFamily: "'Work Sans', sans-serif", fontSize: 12, color: "#9c93b5", textAlign: "center", maxWidth: 420 },
+  idleBox: { display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "center", padding: "8px 12px", borderRadius: 10, background: "#2c1832", border: "1px solid #ec489955", fontFamily: "'Work Sans', sans-serif", fontSize: 12.5, color: "#f9a8d4" },
+  claimBtn: { padding: "7px 14px", borderRadius: 999, border: "none", background: "linear-gradient(135deg, #ec4899, #a855f7)", color: "#fff", fontFamily: "'Sora', sans-serif", fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  secondaryBtn: { width: "100%", padding: "12px", borderRadius: 10, fontFamily: "'Sora', sans-serif", fontSize: 13.5, fontWeight: 700, border: "1px solid #2c2547", background: "#1c1734", color: "#c7bfe0", cursor: "pointer" },
+  pendingActions: { display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 320, margin: "0 auto" },
+  pendingAvatarWrap: { width: 72, height: 72, borderRadius: "50%", margin: "0 auto 14px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(140deg, #5b3a8f, #25203f)", border: "2px solid #ec4899", boxShadow: "0 0 24px #ec489955", overflow: "hidden" },
+  pendingAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
+  startIconInline: { fontSize: 34, color: "#f0abfc" },
+  pendingTimer: { display: "inline-block", marginBottom: 16, padding: "5px 12px", borderRadius: 999, background: "#1c1734", border: "1px solid #2c2547", fontFamily: "'Sora', sans-serif", fontSize: 12, fontWeight: 600, color: "#f0abfc", fontVariantNumeric: "tabular-nums" },
 
   promoOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" },
   promoBox: { background: "#1c1734", border: "1px solid #2c2547", borderRadius: 16, padding: 20 },
