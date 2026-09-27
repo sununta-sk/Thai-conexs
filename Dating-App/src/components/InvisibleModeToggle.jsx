@@ -19,7 +19,21 @@ import { XIcon } from './Icons';
 
 const HINT_SEEN_KEY = 'invisibleModeHintSeen';
 
-export default function InvisibleModeToggle({ userId, isInvisible, onChange }) {
+// Pill switch in the style SK picked (2026-09-27): a white pill knob with a
+// small inset dot slides left (Off, teal track, "Off" on the right) or right
+// (On, coral track, "On" on the left). md for the desktop navbar, sm for the
+// mobile top bar - the same two sizes as LanguageSwitch beside it.
+const SIZES = {
+  md: { w: 76, h: 32, knob: 34, dot: 10, font: 12.5 },
+  sm: { w: 64, h: 28, knob: 26, dot: 8, font: 11 },
+};
+const BORDER = 1;
+const PAD = 3;
+
+export default function InvisibleModeToggle({ userId, isInvisible, onChange, size = 'md' }) {
+  const d = SIZES[size] || SIZES.md;
+  const knobH = d.h - BORDER * 2 - PAD * 2;
+  const travel = d.w - BORDER * 2 - PAD * 2 - d.knob;
   const { tx } = useTranslation(['invisibleMode']);
   const [saving, setSaving] = useState(false);
   const [showHint, setShowHint] = useState(() => {
@@ -52,20 +66,31 @@ export default function InvisibleModeToggle({ userId, isInvisible, onChange }) {
 
   return (
     <div style={S.wrap}>
+      <style>{`
+        .tcn-vip-switch:focus { outline: none; }
+        .tcn-vip-switch:focus-visible { outline: 2px solid #f472b6; outline-offset: 2px; }
+      `}</style>
       <button
         type="button"
+        role="switch"
+        aria-checked={isInvisible}
+        className="tcn-vip-switch"
         onClick={handleToggle}
         disabled={saving}
         title={tx.tooltip || 'Hide your VIP badge from other users'}
         aria-label={tx.toggleLabel || 'Hide VIP badge'}
-        style={{ ...S.track, background: isInvisible ? '#e91e63' : '#0f172a', opacity: saving ? 0.6 : 1 }}
+        style={{ ...S.track, ...(isInvisible ? S.trackOn : S.trackOff), width: d.w, height: d.h, opacity: saving ? 0.6 : 1 }}
       >
-        <div style={{ ...S.knob, transform: isInvisible ? 'translateX(16px)' : 'translateX(2px)' }} />
+        <span style={{ ...S.label, ...S.labelOn, fontSize: d.font, left: PAD + 8, opacity: isInvisible ? 1 : 0 }}>{tx.onLabel || 'On'}</span>
+        <span style={{ ...S.label, ...S.labelOff, fontSize: d.font, right: PAD + 7, opacity: isInvisible ? 0 : 1 }}>{tx.offLabel || 'Off'}</span>
+        <span style={{ ...S.knob, width: d.knob, height: knobH, top: PAD, left: PAD, transform: `translateX(${isInvisible ? travel : 0}px)` }}>
+          <span style={{ ...S.knobDot, width: d.dot, height: d.dot }} />
+        </span>
       </button>
 
       {showHint && (
         <div style={S.hint} onClick={(e) => e.stopPropagation()}>
-          <div style={S.hintArrow} />
+          <div style={{ ...S.hintArrow, right: d.w / 2 - 6 }} />
           <button style={S.hintClose} onClick={dismissHint} aria-label="Close"><XIcon size={13} /></button>
           <div style={S.hintTitle}>{tx.hintTitle || 'Hide your VIP badge'}</div>
           <div style={S.hintBody}>
@@ -81,13 +106,34 @@ export default function InvisibleModeToggle({ userId, isInvisible, onChange }) {
 const S = {
   wrap: { position: 'relative', display: 'flex', alignItems: 'center' },
   track: {
-    width: 36, height: 20, borderRadius: 999, border: '1px solid #334155',
-    position: 'relative', cursor: 'pointer', padding: 0, transition: 'background 0.2s',
-    flexShrink: 0,
+    position: 'relative', flexShrink: 0, padding: 0, cursor: 'pointer', borderRadius: 999,
+    boxSizing: 'border-box', border: `${BORDER}px solid rgba(0,0,0,0.35)`,
+    transition: 'background 0.25s, box-shadow 0.25s',
   },
+  trackOff: {
+    background: 'linear-gradient(180deg, #3ccfc0 0%, #25a99b 100%)',
+    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.25)',
+  },
+  trackOn: {
+    background: 'linear-gradient(180deg, #f2677a 0%, #d63650 100%)',
+    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.2)',
+  },
+  label: {
+    position: 'absolute', top: '50%', transform: 'translateY(-50%)', lineHeight: 1,
+    fontWeight: 800, letterSpacing: 0.3, transition: 'opacity 0.2s',
+    pointerEvents: 'none', userSelect: 'none',
+  },
+  labelOff: { color: '#0b4f48', textShadow: '0 1px 0 rgba(255,255,255,0.3)' },
+  labelOn: { color: '#6b1020', textShadow: '0 1px 0 rgba(255,255,255,0.25)' },
   knob: {
-    position: 'absolute', top: 1, width: 16, height: 16, borderRadius: '50%',
-    background: '#fff', transition: 'transform 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+    position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    borderRadius: 999, background: 'linear-gradient(180deg, #ffffff 0%, #e5e9f0 100%)',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.4), inset 0 -2px 0 rgba(0,0,0,0.08), inset 0 1px 0 #fff',
+    transition: 'transform 0.25s cubic-bezier(.4,.1,.2,1)',
+  },
+  knobDot: {
+    display: 'block', borderRadius: '50%', background: '#a9dcd5',
+    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35), 0 1px 0 #fff',
   },
   hint: {
     position: 'absolute', top: 'calc(100% + 10px)', right: 0,

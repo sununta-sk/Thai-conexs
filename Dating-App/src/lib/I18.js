@@ -82,6 +82,8 @@ const T = {
   invisibleMode: {
     en: {
       toggleLabel: 'Hide VIP Badge',
+      onLabel: 'On',
+      offLabel: 'Off',
       tooltip: 'Hide your VIP badge and frame from other users',
       hintTitle: 'Hide your VIP badge',
       hintBody: 'Turn this on to hide the VIP badge and shimmer frame on your profile, Discover card, and chat — your profile stays fully visible to everyone, only the badge is hidden.',
@@ -89,6 +91,8 @@ const T = {
     },
     th: {
       toggleLabel: 'ซ่อนตรา VIP',
+      onLabel: 'เปิด',
+      offLabel: 'ปิด',
       tooltip: 'ซ่อนตรา VIP และกรอบมันวาวจากผู้ใช้อื่น',
       hintTitle: 'ซ่อนตรา VIP ของคุณ',
       hintBody: 'เปิดใช้งานเพื่อซ่อนตรา VIP และกรอบมันวาวบนโปรไฟล์ การ์ด Discover และหน้าแชทของคุณ — โปรไฟล์ของคุณยังคงมองเห็นได้ตามปกติ มีเพียงตราเท่านั้นที่ถูกซ่อน',

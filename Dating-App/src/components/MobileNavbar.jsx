@@ -249,7 +249,7 @@ export default function MobileNavbar() {
           <LanguageSwitch lang={lang} onChange={setLang} size="sm" deferHint={isPremium} />
         </div>
         {isPremium && (
-          <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
+          <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} size="sm" />
         )}
         {/* No Boost for VIPs - VIP is already boosted (SK, 2026-09-27). */}
         {!isPremium && (
@@ -285,7 +285,9 @@ export default function MobileNavbar() {
             color: '#a78bfa', fontSize: 10, fontWeight: 800, whiteSpace: 'nowrap',
             display: 'inline-flex', alignItems: 'center', gap: 4,
           }}>
-            <CrownIcon size={12} />{tx.vipMember || 'VIP'}
+            {/* Just "VIP" up here (not "VIP Member") - the top bar is tight on
+                phones now that the hide-VIP switch is a labelled pill. */}
+            <CrownIcon size={12} />VIP
           </span>
         )}
         {isActive('/discover') && (
