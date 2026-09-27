@@ -13,7 +13,7 @@ import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
 import InvisibleModeToggle from './InvisibleModeToggle';
 import LanguageSwitch from './LanguageSwitch';
-import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut, ChessKnight } from 'lucide-react';
+import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut, Gamepad2 } from 'lucide-react';
 import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, LotusIcon, BellRingingIcon } from './Icons';
 
 function NavbarDesktop() {
@@ -161,7 +161,7 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Center: Discover | Messages | Chess | Admin | Avatar dropdown.
+      {/* Center: Discover | Messages | Games | Admin | Avatar dropdown.
           Gap is 80px from ~1410px up and tightens below that (measured:
           the widest gap that still keeps the "N Online" pill on one line
           is ~48px at 1280 and ~76px at 1366; the formula leaves ~17px
@@ -193,9 +193,9 @@ function NavbarDesktop() {
           </span>
           <span style={{ fontSize: '11px' }}>{tx.messagesNav || 'Messages'}</span>
         </button>
-        <button onClick={() => goTo('/chess')} style={navBtnStyle(location.pathname === '/chess' || location.pathname.startsWith('/chess/'))}>
-          <ChessKnight size={24} style={navIconStyle} />
-          <span style={{ fontSize: '11px' }}>{tx.chessNav || 'Chess'}</span>
+        <button onClick={() => goTo('/games')} style={navBtnStyle(location.pathname === '/games' || location.pathname.startsWith('/chess'))}>
+          <Gamepad2 size={24} style={navIconStyle} />
+          <span style={{ fontSize: '11px' }}>{tx.gamesNav || 'Games'}</span>
         </button>
         {isAdmin && (
           <button

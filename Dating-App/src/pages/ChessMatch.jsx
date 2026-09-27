@@ -65,7 +65,7 @@ export default function ChessMatch() {
     <div style={{ ...S.page, paddingTop: isMobile ? 12 : 100 }}>
       <div style={S.wrap}>
         <div style={S.topBar}>
-          <button style={S.backBtn} onClick={() => navigate("/chess")}>
+          <button style={S.backBtn} onClick={() => navigate("/games")}>
             <ArrowLeftIcon size={15} /> {tx.lobbyBack}
           </button>
           {opponent?.id && (
@@ -92,7 +92,7 @@ export default function ChessMatch() {
               otherUserId={opponent?.id || null}
               otherUsername={opponent?.username || null}
               otherAvatarUrl={avatar}
-              onClose={() => navigate("/chess")}
+              onClose={() => navigate("/games")}
               onRematch={opponent?.id ? rematch : undefined}
             />
           </Suspense>

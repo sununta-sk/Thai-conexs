@@ -40,7 +40,7 @@ const RoomChat           = lazy(() => import('./pages/RoomChat'));
 const PaymentPage        = lazy(() => import('./pages/PaymentPage'));
 const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
 const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
-const ChessLobby         = lazy(() => import('./pages/ChessLobby'));
+const GamesLobby         = lazy(() => import('./pages/GamesLobby'));
 const ChessMatch         = lazy(() => import('./pages/ChessMatch'));
 
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
@@ -366,7 +366,8 @@ function AppContent() {
             <Route path="/subscription"      element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="/notifications"     element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/chess"             element={<ProtectedRoute><ChessLobby /></ProtectedRoute>} />
+            <Route path="/games"             element={<ProtectedRoute><GamesLobby /></ProtectedRoute>} />
+            <Route path="/chess"             element={<Navigate to="/games" replace />} />
             <Route path="/chess/:gameId"     element={<ProtectedRoute><ChessMatch /></ProtectedRoute>} />
 
             <Route path="/admin-secret-portal" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
