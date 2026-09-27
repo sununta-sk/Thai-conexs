@@ -107,8 +107,14 @@ function NavbarDesktop() {
       top: 0,
       width: '100%',
       background: '#1e293b',
-      display: 'grid',
-      gridTemplateColumns: '1fr auto 1fr',
+      // Flex row: [logo + online] [tabs, spread evenly over the free space]
+      // [language / VIP / boost / upgrade / avatar] [lotus + bell]. Was a
+      // 1fr-auto-1fr grid with the tabs AND the controls in the middle
+      // column, which squeezed the left column (Online pill wrapping,
+      // Discover jammed against it) whenever the middle got wide - e.g. an
+      // admin with the extra Admin tab.
+      display: 'flex',
+      gap: 16,
       alignItems: 'center',
       paddingTop: 'calc(env(safe-area-inset-top) + 10px)',
       paddingBottom: '10px',
@@ -142,10 +148,15 @@ function NavbarDesktop() {
           position: relative;
           z-index: 1;
         }
+        /* Below ~1260px the Boost / Upgrade / VIP buttons go icon-only
+           (their names stay as tooltips) so the tabs keep their room. */
+        @media (max-width: 1259px) {
+          .tcn-nav-cta-label { display: none; }
+        }
       `}</style>
 
       {/* Left: Logo + Online pill */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifySelf: 'start' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <img
           src={logoImg}
           alt="Lotus ConneXs"
@@ -153,7 +164,7 @@ function NavbarDesktop() {
           onClick={() => goTo('/discover')}
         />
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 6,
+          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, whiteSpace: 'nowrap',
           background: 'rgba(76, 175, 80, 0.15)', border: '1px solid rgba(76, 175, 80, 0.3)', borderRadius: 14, padding: '6px 12px',
         }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4caf50' }} />
@@ -161,12 +172,10 @@ function NavbarDesktop() {
         </div>
       </div>
 
-      {/* Center: Discover | Messages | Games | Admin | Avatar dropdown.
-          Gap is 80px from ~1410px up and tightens below that (measured:
-          the widest gap that still keeps the "N Online" pill on one line
-          is ~48px at 1280 and ~76px at 1366; the formula leaves ~17px
-          spare for a desktop scrollbar, since 100vw includes it). */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, calc((100vw - 1170px) / 3), 80px)', justifySelf: 'center' }}>
+      {/* Tabs: Discover | Messages | Games | Admin - spaced evenly across
+          whatever room is left, so the gap before Discover matches the
+          gaps between the tabs themselves. */}
+      <div style={{ flex: 1, minWidth: 0, margin: '0 -16px', display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <Search size={24} style={navIconStyle} />
           <span style={{ fontSize: '11px' }}>{tx.discoverNav || 'Discover'}</span>
@@ -205,8 +214,10 @@ function NavbarDesktop() {
             <span style={{ fontSize: '11px' }}>{tx.admin || 'Admin'}</span>
           </button>
         )}
+      </div>
+
         {/* Avatar dropdown */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }} ref={menuRef}>
           <LanguageSwitch lang={lang} onChange={setLang} deferHint={isPremium} />
           {isPremium && (
             <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
@@ -215,6 +226,7 @@ function NavbarDesktop() {
               button (SK, 2026-09-27). */}
           {!isPremium && (
             <button
+              title={tx.boostProfile || 'Boost Profile'}
               onClick={() => goTo('/profile')}
               style={{
                 padding: '8px 14px',
@@ -229,11 +241,12 @@ function NavbarDesktop() {
                 whiteSpace: 'nowrap',
                 display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              <RocketIcon size={15} />{tx.boostProfile || 'Boost Profile'}
+              <RocketIcon size={15} /><span className="tcn-nav-cta-label">{tx.boostProfile || 'Boost Profile'}</span>
             </button>
           )}
           {!isPremium ? (
             <button
+              title={tx.upgradeAccount || 'Upgrade Account'}
               onClick={() => goTo('/subscription')}
               style={{
                 padding: '8px 14px',
@@ -248,7 +261,7 @@ function NavbarDesktop() {
                 whiteSpace: 'nowrap',
                 display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              <DiamondIcon size={15} />{tx.upgradeAccount || 'Upgrade Account'}
+              <DiamondIcon size={15} /><span className="tcn-nav-cta-label">{tx.upgradeAccount || 'Upgrade Account'}</span>
             </button>
           ) : (
             <span style={{
@@ -262,7 +275,7 @@ function NavbarDesktop() {
               whiteSpace: 'nowrap',
               display: 'inline-flex', alignItems: 'center', gap: 6,
             }}>
-              <CrownIcon size={15} />{tx.vipMember || 'VIP Member'}
+              <CrownIcon size={15} /><span className="tcn-nav-cta-label">{tx.vipMember || 'VIP Member'}</span>
             </span>
           )}
           <button
@@ -333,10 +346,9 @@ function NavbarDesktop() {
             </div>
           )}
         </div>
-      </div>
 
       {/* Right: Lotus balance badge + Notification bell */}
-      <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 5,
           background: 'rgba(233,30,99,0.15)', border: '1px solid rgba(233,30,99,0.3)', borderRadius: 14, padding: '6px 12px',
@@ -418,6 +430,7 @@ const navBtnStyle = (active) => ({
   transition: '0.2s',
   padding: '4px 14px',
   fontWeight: 600,
+  whiteSpace: 'nowrap',
 });
 
 // --- Mobile responsive wrapper (added by mobile_responsive_v4.py) ---
