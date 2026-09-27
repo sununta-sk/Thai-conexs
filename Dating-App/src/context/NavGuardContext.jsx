@@ -59,8 +59,8 @@ export function NavGuardProvider({ children }) {
   // guard's own return value), rather than ProfileSetup recomputing "why"
   // later from its live state when the popup renders — avoids the popup
   // silently reclassifying itself if state changes while it's open.
-  // `options` is passed straight through to navigate() (e.g. the chess
-  // invite toast's { state: { openChess: true } }).
+  // `options` is passed straight through to navigate() (e.g. { replace:
+  // true } or router state).
   const requestNavigate = useCallback((path, options) => {
     const reason = guardRef.current?.();
     if (!reason) navigate(path, options);

@@ -1,32 +1,27 @@
 // src/components/ChessGame.jsx
-// Chess-in-chat, desktop MVP. Move legality/check/checkmate/stalemate/draw
-// detection is entirely client-side via chess.js (the trust-model tradeoff
-// confirmed with SK: casual non-monetary game, not worth server-side
-// re-validation). The make_chess_move RPC only enforces who's allowed to
-// write — one of the two seated players, on their own turn — matching this
-// project's "state-changing writes go through an RPC" convention.
+// One live game between two users on /chess/:gameId (ChessMatch.jsx),
+// including its 'pending' challenge stage (see
+// 2026-09-27-chess-lobby-matchmaking.sql). Move legality/check/checkmate/
+// stalemate/draw detection is entirely client-side via chess.js (the
+// trust-model tradeoff confirmed with SK: casual non-monetary game, not
+// worth server-side re-validation). The make_chess_move RPC only enforces
+// who's allowed to write — one of the two seated players, on their own
+// turn — matching this project's "state-changing writes go through an RPC"
+// convention.
 //
-// Two modes:
-// - chat (chatId prop): the original in-chat panel, keyed on the chat's
-//   chat_id — unchanged.
-// - lobby (gameId prop, /chess/:gameId page): one specific chess_games row
-//   between any two users, including its 'pending' challenge stage (see
-//   2026-09-27-chess-lobby-matchmaking.sql). No 4s auto-close here; the
-//   finished screen offers Rematch / Back to lobby instead.
+// Chess used to live inside the chat as well (chat_id games); SK removed
+// it from the chat on 2026-09-27, so only this /chess/:gameId mode is left.
+// Playing against the computer is ChessBot.jsx (/games/bot), which shares
+// the board (ChessBoard.jsx) and the rules card (ChessRules.jsx).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { supabase } from "../lib/supabaseClient";
 import { useTranslation } from "../hooks/useTranslation";
 import { lobbyErrorText } from "../lib/chessLobby";
 import { XIcon } from "./Icons";
-
-const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
-
-const PIECE_GLYPH = {
-  w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
-  b: { p: "♟", n: "♞", b: "♝", r: "♜", q: "♛", k: "♚" },
-};
+import ChessBoard from "./ChessBoard";
+import { RulesCard } from "./ChessRules";
+import { PIECE_GLYPH, kingSquare } from "../lib/chessPieces";
 
 // Standard outline trophy — no existing icon in this codebase to reuse
 // (checked), so this is a plain, generic trophy silhouette rather than a
@@ -40,42 +35,6 @@ function TrophyIcon({ stroke, size = 30 }) {
       <path d="M7 5H4a2 2 0 0 0 0 4h1.5" />
       <path d="M17 5h3a2 2 0 0 1 0 4h-1.5" />
     </svg>
-  );
-}
-
-const RULE_KEYS = ["Pawn", "Knight", "Bishop", "Rook", "Queen", "King"];
-
-// Goal line + rule rows + tip box, with no card/overlay chrome of its own
-// - shared between the modal (RulesCard, live/game-over/declined states)
-// and the always-visible inline version (pre-start state, see item 3b).
-function RulesContent({ tx }) {
-  return (
-    <>
-      <div style={CS.rulesGoalLine}>{tx.rulesGoal}</div>
-      <div style={CS.rulesList}>
-        {RULE_KEYS.map((k) => (
-          <div key={k} style={CS.rulesRow}>
-            <div style={CS.rulesRowName}>{tx[`ruleName${k}`]}</div>
-            <div style={CS.rulesRowDesc}>{tx[`ruleDesc${k}`]}</div>
-          </div>
-        ))}
-      </div>
-      <div style={CS.rulesTipBox}>{tx.rulesTip}</div>
-    </>
-  );
-}
-
-function RulesCard({ tx, onClose }) {
-  return (
-    <div style={CS.rulesOverlay} onClick={onClose}>
-      <div style={CS.rulesCardBox} onClick={(e) => e.stopPropagation()}>
-        <div style={CS.rulesHeaderRow}>
-          <span style={CS.rulesHeaderTitle}>{tx.rulesTitle}</span>
-          <button style={CS.rulesCloseBtn} onClick={onClose} aria-label="Close"><XIcon size={13} /></button>
-        </div>
-        <RulesContent tx={tx} />
-      </div>
-    </div>
   );
 }
 
@@ -106,8 +65,7 @@ const fmtClock = (ms) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 };
 
-export default function ChessGame({ chatId, gameId, session, otherUserId, otherUsername, otherAvatarUrl, onClose, onRematch }) {
-  const isLobby = !!gameId;
+export default function ChessGame({ gameId, session, otherUserId, otherUsername, otherAvatarUrl, onClose, onRematch }) {
   const { tx } = useTranslation(["chess"]);
   const myId = session?.user?.id;
   const [game, setGame] = useState(null); // chess_games row, or undefined once we've checked and found none
@@ -117,7 +75,6 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
   const [error, setError] = useState("");
   const [showRules, setShowRules] = useState(false);
   const busyRef = useRef(false);
-  // Lobby mode only ↓
   const [now, setNow] = useState(() => Date.now());
   const [pendingSeen, setPendingSeen] = useState(null); // { id, at } — when this client first saw the row as 'pending'
   const [claimOverride, setClaimOverride] = useState(null); // { updatedAt, deadline } from a too_early answer
@@ -132,138 +89,10 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     try { return new Chess(fen); } catch { return null; }
   }, [fen]);
 
-  useEffect(() => {
-    if (!chatId) return;
-    let cancelled = false;
-    // Boundary for the poll's from-null discovery decision below: a game
-    // created at/after this moment is one this component started watching
-    // for, whatever its status is by the time the poll actually runs; a
-    // game created before it is history from a prior session and must
-    // never be resurrected regardless of status.
-    const mountedAt = new Date();
-    supabase
-      .from("chess_games")
-      .select("*")
-      .eq("chat_id", chatId)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setGame(data || null);
-        setLoading(false);
-      });
-
-    const channel = supabase
-      .channel(`chess:${chatId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chess_games", filter: `chat_id=eq.${chatId}` },
-        (payload) => {
-          if (payload.eventType === "DELETE") { setGame(null); return; }
-          setGame((prev) => {
-            // Ignore a stale event for a game we've already moved past
-            // (e.g. arriving after a newer game already started).
-            // TODO(known MVP gap, accepted by SK): this only guards against a
-            // stale event for a DIFFERENT (older) game id — it does nothing
-            // for two out-of-order events on the SAME game id, so a
-            // reordered websocket delivery could briefly apply an older move
-            // after a newer one. Low-probability (Realtime delivers one
-            // ordered stream per subscription) and low-impact (make_chess_move
-            // still validates server-side, so this can only cause a
-            // transient display glitch, never a bad write) — if picked up
-            // later, fix by comparing `payload.new.updated_at` against
-            // `prev.updated_at` and dropping the event if it's not newer.
-            if (prev && prev.id !== payload.new.id && prev.status === "active") return prev;
-            return payload.new;
-          });
-        }
-      )
-      .subscribe();
-
-    // Fallback for a dropped/stale realtime socket — the same class of bug
-    // already found and fixed for RoomChat.jsx's chess-invite channel
-    // (confirmed root cause of the 2026-09-18 regression report): an idle
-    // tab or laptop sleep can silently kill the websocket with no visible
-    // indicator, which would otherwise mean an opponent's move never
-    // arrives here and the board looks permanently stuck on the wrong
-    // player's turn. Re-fetches the authoritative row on an interval, and
-    // immediately when the tab regains visibility/focus - the moment a
-    // stale socket is actually likely to exist - merging it in only if
-    // it's actually newer than what's already shown (same reordering
-    // guard as the realtime handler above, keyed on updated_at instead of
-    // game id since this is refreshing the SAME game, not switching games).
-    const pollForUpdate = async () => {
-      if (cancelled) return;
-      // No status filter, deliberately: this has to catch the CURRENTLY
-      // shown game transitioning to a non-active status (resigned,
-      // checkmate, stalemate, draw) too, not just find an active game to
-      // discover. "Most recent row for this chat" is always the right one
-      // to track - only one active game can exist per chat at a time (DB-
-      // enforced), and a new one can only start after this component has
-      // already shown the previous one as finished, so this can never pick
-      // up a stale older game out from under the merge check below. (A
-      // status filter here was carried over from RoomChat.jsx's
-      // checkForActiveGame, whose job actually IS "is there a new active
-      // game" - the wrong filter for this component's different job.)
-      const { data } = await supabase
-        .from("chess_games")
-        .select("*")
-        .eq("chat_id", chatId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!data || cancelled) return;
-      setGame((prev) => {
-        // prev===null needs to distinguish two different cases (confirmed
-        // live, 2026-09-24):
-        // 1. An OLD, ALREADY-FINISHED game sitting in this chat's history
-        //    ("ITEM 1" regression) - must NOT be adopted here, or a stale
-        //    game-over screen leaks in and auto-closes 4s later. Discovery
-        //    of a *finished* game is the initial fetch's job alone (it
-        //    filters status='active').
-        // 2. A genuinely NEW active game whose realtime INSERT event this
-        //    client missed (e.g. a subscribe-race right as chess was
-        //    opened, or a dropped socket) - found live: opponent starts
-        //    and resigns a game from a separate client while this one sits
-        //    on the "Start Game" screen with `prev` still null; without
-        //    this poll adopting it, the screen never updates and the 4s
-        //    auto-close timer never starts, since `isFinished` depends on
-        //    `game` ever being set at all. This is exactly the safety-net
-        //    role the poll is supposed to play for a missed realtime
-        //    event, same as RoomChat.jsx's own chess-invite poll.
-        // Checking data.status==='active' here does NOT reliably tell
-        // these apart (confirmed live: a fast start-then-resign can
-        // already be non-active by the time the poll runs, wrongly
-        // rejecting a legitimate case 2) - what actually distinguishes
-        // them is whether the game was created before or after this
-        // component started watching (mountedAt, captured above).
-        if (!prev) return new Date(data.created_at) >= mountedAt ? data : prev;
-        if (prev.id !== data.id) return data;
-        if (new Date(data.updated_at) <= new Date(prev.updated_at)) return prev;
-        return data;
-      });
-    };
-    pollForUpdate();
-    const poll = setInterval(pollForUpdate, 5000);
-    const onVisible = () => { if (document.visibilityState === 'visible') pollForUpdate(); };
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', pollForUpdate);
-
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-      clearInterval(poll);
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', pollForUpdate);
-    };
-  }, [chatId]);
-
-  // Lobby mode: track ONE row by id. Same realtime + 5s poll + refocus
-  // safety net as the chat mode above, with the same "never step back to an
-  // older updated_at" guard (optimistic moves keep the old updated_at until
-  // the server's row arrives).
+  // Track ONE row by id: realtime + a 5s poll + a refetch on refocus (an
+  // idle tab or laptop sleep can silently kill the websocket), never
+  // stepping back to an older updated_at (optimistic moves keep the old
+  // updated_at until the server's row arrives).
   useEffect(() => {
     if (!gameId) return;
     let cancelled = false;
@@ -307,7 +136,7 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     };
   }, [gameId]);
 
-  // Lobby mode: who is actually on this game's page right now, so the
+  // Who is actually on this game's page right now, so the
   // waiting player can see "left the game page" instead of guessing.
   useEffect(() => {
     if (!gameId || !myId || !otherUserId) return;
@@ -322,50 +151,17 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     return () => { supabase.removeChannel(channel); };
   }, [gameId, myId, otherUserId]);
 
-  const startGame = async () => {
-    if (!myId || !otherUserId || busyRef.current) return;
-    busyRef.current = true;
-    setError("");
-    const { data, error: rpcError } = await supabase.rpc("start_chess_game", {
-      p_user_id: myId,
-      p_chat_id: chatId,
-      p_opponent_id: otherUserId,
-    });
-    busyRef.current = false;
-    if (rpcError) { setError(tx.couldntStart); return; }
-    if (data?.error === "game_already_active") {
-      // Someone (possibly the opponent) started one a moment ago — just
-      // re-fetch instead of erroring, the realtime subscription above will
-      // also pick it up shortly.
-      const { data: existing } = await supabase.from("chess_games").select("*").eq("id", data.game_id).maybeSingle();
-      if (existing) setGame(existing);
-      return;
-    }
-    if (data?.error) { setError(data.error); return; }
-    setGame({
-      id: data.game_id,
-      chat_id: chatId,
-      white_id: data.white_id,
-      black_id: data.black_id,
-      fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-      pgn: "",
-      turn: "w",
-      status: "active",
-      winner_id: null,
-    });
-  };
-
   const myColor = game && myId === game.white_id ? "w" : game && myId === game.black_id ? "b" : null;
   const isMyTurn = game?.status === "active" && myColor === game.turn;
 
-  // Lobby-mode derived timing. `now` only ticks while something on screen
+  // Derived timing. `now` only ticks while something on screen
   // actually counts down (pending challenge, or waiting on the opponent).
-  const isPending = isLobby && game?.status === "pending";
+  const isPending = game?.status === "pending";
   const iAmChallenger = isPending && game.created_by === myId;
   const pendingDeadline = isPending && pendingSeen?.id === game.id ? pendingSeen.at + CHALLENGE_TTL_MS : null;
   const pendingLeftMs = pendingDeadline ? pendingDeadline - now : CHALLENGE_TTL_MS;
   const pendingExpired = isPending && pendingDeadline != null && pendingLeftMs <= 0;
-  const waitingOnOpponent = isLobby && game?.status === "active" && !isMyTurn && !!myColor;
+  const waitingOnOpponent = game?.status === "active" && !isMyTurn && !!myColor;
   const lastChangeAt = game?.updated_at ? new Date(game.updated_at).getTime() : 0;
   const claimDeadline = claimOverride && claimOverride.updatedAt === game?.updated_at ? claimOverride.deadline : lastChangeAt + ABANDON_MS;
   const opponentIdleMs = waitingOnOpponent ? now - lastChangeAt : 0;
@@ -395,25 +191,6 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     if (!chess || !selected) return [];
     return chess.moves({ square: selected, verbose: true }).map((m) => m.to);
   }, [chess, selected]);
-
-  // Auto-close 4s after THIS client's own local state first reflects a
-  // terminal status — deliberately not synced to the other player or to
-  // when the game actually ended server-side: if this client only learns
-  // about it late (e.g. via the poll fallback), its own 4s starts from
-  // that later moment. onClose is read through a ref rather than being a
-  // dependency - it's a new closure every parent render (RoomChat.jsx's
-  // message poll re-renders every 1s), and depending on it directly would
-  // reset this timer before it could ever fire. isFinished is a hook (not
-  // the later `finished` const below `if (!game) return`) so it can live
-  // here, unconditionally, before those early returns.
-  const isFinished = !!game && game.status !== "active" && game.status !== "pending";
-  const onCloseRef = useRef(onClose);
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
-  useEffect(() => {
-    if (!isFinished || isLobby) return;
-    const timer = setTimeout(() => onCloseRef.current(), 4000);
-    return () => clearTimeout(timer);
-  }, [isFinished, isLobby]);
 
   const submitMove = async (from, to, promotion) => {
     if (!chess || !game || busyRef.current) return;
@@ -498,7 +275,7 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     }
   };
 
-  // ── Lobby-mode actions ──
+  // ── Challenge / abandon actions ──
   const respondToChallenge = async (accept) => {
     if (!game || !myId || busyRef.current) return;
     busyRef.current = true;
@@ -560,10 +337,6 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     `}</style>
   );
   // Different rules-disclosure treatment per state (item 3, 2026-09-25):
-  // - Pre-start: no button at all - the actual rules render inline,
-  //   permanently, below the Start Game button (see the !game branch
-  //   below). Someone deciding whether to start benefits from seeing them
-  //   immediately, zero interaction required.
   // - Live game: an always-visible "How to Play →" text link - the small
   //   hover-only "?" meant many players never discovered it. A reminder
   //   for anyone who already saw the pre-start rules and forgot.
@@ -592,7 +365,7 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     );
   }
 
-  if (!game && isLobby) {
+  if (!game) {
     return (
       <div style={CS.panel}>
         {fontLink}
@@ -638,7 +411,7 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
   }
 
   // Lobby challenge withdrawn or expired.
-  if (isLobby && game.status === "cancelled") {
+  if (game.status === "cancelled") {
     const iSentIt = game.created_by === myId;
     return (
       <div style={CS.panel}>
@@ -657,34 +430,13 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
     );
   }
 
-  if (!game) {
-    return (
-      <div style={CS.panel}>
-        {fontLink}
-        <button style={CS.closeBtn} onClick={onClose} aria-label="Close"><XIcon size={16} /></button>
-        <div style={CS.startWrap}>
-          <div style={CS.startIcon}>♟</div>
-          <p style={CS.startText}>{tx.challengePrompt(otherUsername || tx.opponent)}</p>
-          {error && <div style={CS.errorBanner}>{error}</div>}
-          <button style={CS.startBtn} onClick={startGame}>{tx.startGame}</button>
-        </div>
-        <div style={CS.rulesInlineWrap}>
-          <div style={CS.rulesInlineTitle}>{tx.rulesTitle}</div>
-          <RulesContent tx={tx} />
-        </div>
-      </div>
-    );
-  }
-
-  // Declined invite: deliberately NOT the trophy/board game-over treatment
-  // below — nobody won or lost a game that was never played, and showing
-  // a full starting-position board for it would be misleading. isFinished
-  // (computed earlier, before the early returns) already covers this
-  // status too, so the 4s auto-close still applies here unchanged.
+  // Declined challenge: deliberately NOT the trophy/board game-over
+  // treatment below — nobody won or lost a game that was never played, and
+  // showing a full starting-position board for it would be misleading.
   if (game.status === "declined") {
-    // Lobby: the person who declined can also land here (e.g. refreshed
-    // the page), so the copy depends on which side you were on.
-    const iDeclined = isLobby && game.created_by !== myId;
+    // The person who declined can also land here (e.g. refreshed the
+    // page), so the copy depends on which side you were on.
+    const iDeclined = game.created_by !== myId;
     return (
       <div style={CS.panel}>
         {fontLink}
@@ -694,9 +446,8 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
           <div style={CS.startIcon}>♟</div>
           <h3 style={CS.declinedTitle}>{tx.declinedTitle}</h3>
           <p style={CS.startText}>{iDeclined ? tx.youDeclinedBody(otherUsername || tx.opponent) : tx.declinedBody(otherUsername || tx.opponent)}</p>
-          <button style={CS.closeGameBtn} onClick={onClose}>{isLobby ? tx.lobbyBack : tx.closeGame}</button>
+          <button style={CS.closeGameBtn} onClick={onClose}>{tx.lobbyBack}</button>
         </div>
-        {!isLobby && <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>}
         {rulesModal}
       </div>
     );
@@ -747,7 +498,7 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
             <div style={CS.playerName}>{name}</div>
             <div style={CS.playerColorLabel}>
               ({colorName(color)})
-              {isLobby && !isMe && !finished && opponentHere != null && (
+              {!isMe && !finished && opponentHere != null && (
                 <span style={opponentHere ? CS.presenceHere : CS.presenceAway}>
                   {" · "}{opponentHere ? tx.opponentHere : tx.opponentAway}
                 </span>
@@ -810,59 +561,29 @@ export default function ChessGame({ chatId, gameId, session, otherUserId, otherU
 
       {renderPlayerRow(otherUsername || tx.opponent, otherColor, false)}
 
-      <div
-        style={{
-          ...CS.board,
-          ...(finished ? CS.boardFinished : !isMyTurn ? CS.boardDim : null),
-        }}
-        data-testid="chess-board"
-      >
-        {(myColor === "b" ? [...RANKS].reverse() : RANKS).map((rank) =>
-          (myColor === "b" ? [...FILES].reverse() : FILES).map((file) => {
-            const square = `${file}${rank}`;
-            const piece = chess?.get(square);
-            const isDark = (FILES.indexOf(file) + RANKS.indexOf(rank)) % 2 === 1;
-            const isSelected = selected === square;
-            const isTarget = legalTargets.includes(square);
-            return (
-              <div
-                key={square}
-                data-square={square}
-                onClick={() => handleSquareClick(square)}
-                style={{
-                  ...CS.square,
-                  background: isDark ? "#191428" : "#2b2547",
-                  cursor: isMyTurn && !finished ? "pointer" : "default",
-                }}
-              >
-                {isSelected && <div style={CS.selectedOverlay} />}
-                {piece && (
-                  <span style={{ ...CS.piece, fontSize: piece.type === "p" ? 32 : 38, color: piece.color === "w" ? "#f0abfc" : "#e9def2" }}>
-                    {PIECE_GLYPH[piece.color][piece.type]}
-                  </span>
-                )}
-                {isTarget && <div style={CS.targetDot} />}
-              </div>
-            );
-          })
-        )}
-      </div>
+      <ChessBoard
+        chess={chess}
+        orientation={myColor === "b" ? "b" : "w"}
+        selected={selected}
+        targets={legalTargets}
+        checkSquare={inCheck ? kingSquare(chess, game.turn) : null}
+        interactive={isMyTurn && !finished}
+        look={finished ? "finished" : !isMyTurn ? "dim" : "live"}
+        onSquareClick={handleSquareClick}
+      />
 
       {renderPlayerRow(tx.you, myColor, true)}
 
       <div style={CS.controlsRow}>
-        {finished && isLobby ? (
+        {finished ? (
           <>
             {onRematch && <button style={CS.closeGameBtn} onClick={onRematch}>{tx.rematch}</button>}
             <button style={CS.secondaryBtn} onClick={onClose}>{tx.lobbyBack}</button>
           </>
-        ) : finished ? (
-          <button style={CS.closeGameBtn} onClick={onClose}>{tx.closeGame}</button>
         ) : (
           <button style={CS.resignBtn} onClick={resign}>{tx.resign}</button>
         )}
       </div>
-      {finished && !isLobby && <div style={CS.autoCloseNote}>{tx.autoCloseNote}</div>}
 
       {pendingPromotion && (
         <div style={CS.promoOverlay} onClick={() => setPendingPromotion(null)}>
@@ -909,7 +630,6 @@ const CS = {
   startIcon: { fontSize: 40, marginBottom: 8, color: "#f0abfc" },
   startText: { color: "#c7bfe0", fontSize: 14, marginBottom: 16, fontFamily: "'Work Sans', sans-serif" },
   declinedTitle: { fontFamily: "'Sora', sans-serif", fontSize: 18, fontWeight: 800, color: "#f1f5f9", margin: "0 0 8px" },
-  startBtn: { padding: "12px 28px", background: "linear-gradient(135deg, #ec4899, #a855f7)", border: "none", borderRadius: 24, color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "'Sora', sans-serif", cursor: "pointer" },
 
   liveBadgeWrap: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginBottom: 16 },
   liveBadge: { display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, background: "#1c1734", border: "1px solid #ec489955" },
@@ -925,21 +645,16 @@ const CS = {
   // small live-badge pill entirely once finished (see getGameOverText).
   // Sizing/margins trimmed from the mockup's original values (icon 64,
   // title 24px, header margin 16) - the full game-over stack (this header
-  // + both player rows + board + button + auto-close note) was taller
-  // than a normal viewport, cropping the trophy at the top since it sits
-  // inside a justify-content:center column (RoomChat.jsx's chessColumn) -
-  // overflow on a centered flex column pushes the START of the content
-  // off-screen, not the end, so it read as "missing" rather than
-  // "scrollable." Trimmed here plus boardFinished's own size below
-  // (confirmed live, 2026-09-24) rather than touching anything shared
-  // with the live/pre-start states, which already fit fine.
+  // + both player rows + board + buttons) was taller than a normal
+  // viewport. Trimmed here plus the finished board's own size (ChessBoard
+  // look="finished") rather than touching the live state, which already
+  // fits fine.
   gameOverHeader: { textAlign: "center", marginBottom: 10 },
   gameOverIconWrap: { width: 48, height: 48, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" },
   gameOverIconWin: { background: "#3a2f0f", border: "2px solid #fbbf24", boxShadow: "0 0 26px #fbbf2455" },
   gameOverIconLose: { background: "#1c1734", border: "2px solid #2c2547" },
   gameOverTitle: { fontFamily: "'Sora', sans-serif", fontSize: 20, fontWeight: 800, margin: "0 0 4px" },
   gameOverSubtitle: { fontFamily: "'Work Sans', sans-serif", fontSize: 14, color: "#9c93b5", margin: 0 },
-  autoCloseNote: { textAlign: "center", fontFamily: "'Work Sans', sans-serif", fontSize: 11, color: "#655a82", marginTop: 10 },
 
   errorBanner: { margin: "0 0 12px", padding: "6px 10px", background: "#2c1832", border: "1px solid #ec489955", borderRadius: 8, color: "#f9a8d4", fontSize: 12, fontWeight: 600, textAlign: "center" },
 
@@ -960,26 +675,6 @@ const CS = {
   timerPillMe: { fontFamily: "'Sora', sans-serif", fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#fff", background: "linear-gradient(135deg, #ec4899, #a855f7)", padding: "6px 16px", borderRadius: 10 },
   winTag: { fontFamily: "'Sora', sans-serif", fontSize: 11, fontWeight: 700, color: "#fbbf24" },
   loseTag: { fontFamily: "'Sora', sans-serif", fontSize: 11, fontWeight: 700, color: "#655a82" },
-
-  // min(520px, 100%) caps the board at the mockup's reference size as a
-  // MAXIMUM, not a fixed value — it shrinks with the panel below that.
-  // aspect-ratio keeps it square without a hardcoded height.
-  // Explicit equal rows too: with only columns defined, rows sized to
-  // their content, so ranks holding pieces came out taller than empty ones.
-  // Black sees the board from its own side (ranks/files reversed at render).
-  board: { position: "relative", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gridTemplateRows: "repeat(8, 1fr)", width: "min(520px, 100%)", aspectRatio: "1", margin: "0 auto", borderRadius: 10, border: "1px solid #2c2547", boxShadow: "0 20px 50px -12px rgba(0,0,0,.6)", overflow: "hidden", transition: "opacity .2s, filter .2s" },
-  // Not your turn: subtle dim, pieces stay legible. Finished: fully inert
-  // (grayscale(1)), takes precedence over the not-your-turn dim. Also
-  // slightly smaller (440 vs the live board's 520 cap) - part of the
-  // game-over-overflow trim above; the board is already de-emphasized
-  // here, so a smaller cap costs nothing visually while buying back ~80px
-  // of vertical room.
-  boardDim: { opacity: 0.55, filter: "grayscale(.3)" },
-  boardFinished: { opacity: 0.45, filter: "grayscale(1)", width: "min(440px, 100%)" },
-  square: { position: "relative", display: "flex", alignItems: "center", justifyContent: "center" },
-  selectedOverlay: { position: "absolute", inset: 6, borderRadius: 6, background: "#ec489933", border: "2px solid #ec4899" },
-  piece: { lineHeight: 1, userSelect: "none" },
-  targetDot: { position: "absolute", width: 14, height: 14, borderRadius: "50%", background: "rgba(236,72,153,0.55)" },
 
   controlsRow: { display: "flex", justifyContent: "center", gap: 12, marginTop: 20, width: "100%", maxWidth: 520, marginLeft: "auto", marginRight: "auto" },
   resignBtn: { padding: "10px 18px", borderRadius: 10, fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600, border: "1px solid #ec489955", background: "#3a1030", color: "#f9a8d4", cursor: "pointer" },
@@ -1018,29 +713,4 @@ const CS = {
   // positioned near the corner buttons like rulesBtn above (that corner
   // is cramped and this is text, not an icon).
   rulesLinkBtn: { display: "block", margin: "10px auto 0", background: "none", border: "none", color: "#f0abfc", fontFamily: "'Sora', sans-serif", fontWeight: 700, fontSize: 12.5, cursor: "pointer", padding: "4px 8px" },
-  // Pre-start inline rules (item 3b) - permanent, no card/overlay chrome,
-  // just a heading above the same RulesContent the modal uses.
-  rulesInlineWrap: { width: "100%", maxWidth: 480, margin: "8px auto 0", textAlign: "left" },
-  rulesInlineTitle: { fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 700, color: "#c7bfe0", textAlign: "center", marginBottom: 10 },
-
-  // Rules card overlay — scoped to the panel (inset:0 within panel's own
-  // position:relative), not a full-viewport fixed overlay like
-  // promoOverlay. Sized/styled to exactly match CS.panel's own box
-  // (negative-offset by panel's own padding so it reaches panel's true
-  // outer edge, same gradient/border/radius/padding) rather than floating
-  // a visually distinct smaller card on a dimmed backdrop inside it - that
-  // read as "a box floating inside another box" with a visible gap/seam
-  // around it (item 4, 2026-09-25). This way opening rules reads as the
-  // panel's own content switching, not a separate overlay on top of it.
-  rulesOverlay: { position: "absolute", top: -20, right: -24, bottom: -24, left: -24, zIndex: 60, display: "flex", flexDirection: "column", background: "radial-gradient(ellipse at top, #181230 0%, #0d0a18 65%)", border: "1px solid #2c2547", borderRadius: 20, boxSizing: "border-box", padding: "20px 24px 24px", overflowY: "auto" },
-  rulesCardBox: { width: "100%", maxWidth: 480, margin: "0 auto" },
-  rulesHeaderRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  rulesHeaderTitle: { fontFamily: "'Sora', sans-serif", fontSize: 17, fontWeight: 700, color: "#fff" },
-  rulesCloseBtn: { width: 26, height: 26, borderRadius: "50%", border: "1px solid #2c2547", background: "#1c1734", color: "#7d7196", fontSize: 13, cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center" },
-  rulesGoalLine: { fontFamily: "'Work Sans', sans-serif", fontSize: 13.5, color: "#c7bfe0", margin: "0 0 16px" },
-  rulesList: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 },
-  rulesRow: { background: "#1c1734", border: "1px solid #2c2547", borderRadius: 10, padding: "9px 12px" },
-  rulesRowName: { fontFamily: "'Sora', sans-serif", fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 2 },
-  rulesRowDesc: { fontFamily: "'Work Sans', sans-serif", fontSize: 12.5, color: "#9c93b5" },
-  rulesTipBox: { background: "#1c173466", border: "1px solid #2c254799", borderRadius: 10, padding: "10px 12px", fontFamily: "'Work Sans', sans-serif", fontSize: 12.5, color: "#9c93b5" },
 };

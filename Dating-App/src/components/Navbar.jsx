@@ -202,7 +202,7 @@ function NavbarDesktop() {
           </span>
           <span style={{ fontSize: '11px' }}>{tx.messagesNav || 'Messages'}</span>
         </button>
-        <button onClick={() => goTo('/games')} style={navBtnStyle(location.pathname === '/games' || location.pathname.startsWith('/chess'))}>
+        <button onClick={() => goTo('/games')} style={navBtnStyle(location.pathname === '/games' || location.pathname.startsWith('/games/') || location.pathname.startsWith('/chess'))}>
           <Gamepad2 size={24} style={navIconStyle} />
           <span style={{ fontSize: '11px' }}>{tx.gamesNav || 'Games'}</span>
         </button>

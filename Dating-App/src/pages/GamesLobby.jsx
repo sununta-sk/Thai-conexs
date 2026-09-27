@@ -5,7 +5,9 @@
 // 4-20 below). Right: cards for the people connected right now, each with
 // a Challenge button (chess_challenge → they get ChessChallengePopup
 // anywhere in the app). Quick Match (server-side queue, chess_quick_match)
-// sits in the header. Games are played on /chess/:gameId (ChessMatch.jsx).
+// sits in the header, with "Quick Match vs Bot" (/games/bot, ChessBot.jsx —
+// against the computer, on this device only) in front of it. Games are
+// played on /chess/:gameId (ChessMatch.jsx).
 // RPCs: supabase/manual-sql/2026-09-27-chess-lobby-matchmaking.sql and
 // 2026-09-27-chess-leaderboard.sql.
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,7 +17,7 @@ import { useTranslation } from "../hooks/useTranslation";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { useOnline } from "../context/OnlineContext";
 import { avatarOf, lobbyErrorText } from "../lib/chessLobby";
-import { ChessKnight, Gamepad2, Swords, Users, Trophy } from "lucide-react";
+import { Bot, ChessKnight, Gamepad2, Swords, Users, Trophy } from "lucide-react";
 import ChessLeaderboard from "../components/ChessLeaderboard";
 
 const QUICK_MATCH_POLL_MS = 3000;
@@ -294,7 +296,12 @@ export default function GamesLobby() {
               <p style={S.subtitle}>{tx.gamesSubtitle}</p>
             </div>
           </div>
-          <div style={isMobile ? S.quickWrapMobile : S.quickWrap}>{quickMatch}</div>
+          <div style={isMobile ? S.quickWrapMobile : S.quickWrap}>
+            <button style={isMobile ? { ...S.botBtn, ...S.btnMobile } : S.botBtn} onClick={() => navigate("/games/bot")} title={tx.botQuickMatchDesc}>
+              <Bot size={18} strokeWidth={2.3} /> {tx.botQuickMatch}
+            </button>
+            <div style={isMobile ? S.btnMobile : null}>{quickMatch}</div>
+          </div>
         </header>
 
         <div style={S.gameChips}>
@@ -355,8 +362,10 @@ const S = {
   headerIcon: { width: 52, height: 52, flexShrink: 0, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #ec4899, #a855f7)", boxShadow: "0 8px 24px #ec489944" },
   title: { margin: 0, fontFamily: "'Sora', sans-serif", fontSize: 26, fontWeight: 800, color: "#fff" },
   subtitle: { margin: "2px 0 0", fontSize: 14, color: "#9aa6cf" },
-  quickWrap: { flexShrink: 0 },
-  quickWrapMobile: { display: "flex" },
+  quickWrap: { flexShrink: 0, display: "flex", alignItems: "center", gap: 10 },
+  quickWrapMobile: { display: "flex", flexDirection: "column", gap: 8 },
+  btnMobile: { width: "100%" },
+  botBtn: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px 20px", borderRadius: 14, border: "1px solid #a855f7aa", background: "#1c1734", color: "#f0abfc", fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 6px 18px #a855f733", whiteSpace: "nowrap", boxSizing: "border-box" },
   quickBtn: { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "13px 22px", borderRadius: 14, border: "none", background: "linear-gradient(135deg, #ec4899, #a855f7)", color: "#fff", fontFamily: "'Sora', sans-serif", fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 8px 22px #ec489955", whiteSpace: "nowrap" },
   searchPill: { display: "flex", alignItems: "center", gap: 10, width: "100%", boxSizing: "border-box", padding: "9px 10px 9px 14px", borderRadius: 14, background: "#1c1734", border: "1px solid #ec489977" },
   pulseWrap: { position: "relative", width: 12, height: 12, flexShrink: 0 },

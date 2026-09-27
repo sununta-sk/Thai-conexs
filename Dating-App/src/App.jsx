@@ -42,6 +42,7 @@ const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
 const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
 const GamesLobby         = lazy(() => import('./pages/GamesLobby'));
 const ChessMatch         = lazy(() => import('./pages/ChessMatch'));
+const ChessBot           = lazy(() => import('./pages/ChessBot'));
 
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
 const LotusPage       = lazy(() => import('./pages/LotusPage'));
@@ -367,6 +368,7 @@ function AppContent() {
             <Route path="/payment"           element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
             <Route path="/notifications"     element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="/games"             element={<ProtectedRoute><GamesLobby /></ProtectedRoute>} />
+            <Route path="/games/bot"         element={<ProtectedRoute><ChessBot /></ProtectedRoute>} />
             <Route path="/chess"             element={<Navigate to="/games" replace />} />
             <Route path="/chess/:gameId"     element={<ProtectedRoute><ChessMatch /></ProtectedRoute>} />
 
