@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
-import logoFull from '../lib/LotusConnexs-full.jpeg';
+// Transparent logo on a band of pink glitter (made from the Lotus ConneXs
+// banner art): 7.5:1, shown 64px tall like the old square tile.
+import logoSparkle from '../lib/LotusConnexs-welcome-sparkle.webp';
 import { VerifiedIcon, TranslateIcon, LightningIcon, XIcon } from './Icons';
 
 // Feature-row icons, in the same order as COPY[lang].features (were ✓ ✨ ⚡).
@@ -93,7 +95,7 @@ export default function WelcomeModal() {
 
         <div style={S.scroll}>
           <div style={S.header}>
-            <img src={logoFull} alt="Lotus ConneXs" style={S.logo} />
+            <img src={logoSparkle} alt="Lotus ConneXs" style={S.logo} />
             <h2 style={S.welcome}>{t.welcome}</h2>
             <p style={S.tagline}>{t.tagline}</p>
           </div>
@@ -195,12 +197,14 @@ const S = {
     textAlign: 'center',
     marginBottom: 24,
   },
+  // Same 64px height as before; the glitter band spans the card and is
+  // trimmed at the sides on narrow screens (the logo stays centred).
   logo: {
-    width: 64,
+    display: 'block',
+    width: '100%',
     height: 64,
-    borderRadius: 14,
+    objectFit: 'cover',
     marginBottom: 14,
-    boxShadow: `0 8px 24px ${PINK_GLOW}`,
   },
   welcome: {
     fontSize: 22,
