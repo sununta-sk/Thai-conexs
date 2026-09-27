@@ -251,18 +251,21 @@ export default function MobileNavbar() {
         {isPremium && (
           <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
         )}
-        <button
-          onClick={() => goTo('/profile')}
-          aria-label={tx.boostProfile || 'Boost Profile'}
-          title={tx.boostProfile || 'Boost Profile'}
-          style={{
-            width: 30, height: 30, flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 8,
-            cursor: 'pointer', padding: 0,
-          }}>
-          <RocketIcon size={17} color="#fff" />
-        </button>
+        {/* No Boost for VIPs - VIP is already boosted (SK, 2026-09-27). */}
+        {!isPremium && (
+          <button
+            onClick={() => goTo('/profile')}
+            aria-label={tx.boostProfile || 'Boost Profile'}
+            title={tx.boostProfile || 'Boost Profile'}
+            style={{
+              width: 30, height: 30, flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg, #e91e63, #c2185b)', border: 'none', borderRadius: 8,
+              cursor: 'pointer', padding: 0,
+            }}>
+            <RocketIcon size={17} color="#fff" />
+          </button>
+        )}
         {!isPremium ? (
           <button
             onClick={() => goTo('/subscription')}

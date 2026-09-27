@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { useTranslation } from '../hooks/useTranslation'
-import { LotusIcon, IconText, ArrowLeftIcon } from '../components/Icons'
+import { LotusIcon, IconText, ArrowLeftIcon, CrownIcon } from '../components/Icons'
 
 export default function LotusPage() {
   const navigate = useNavigate()
@@ -27,6 +27,9 @@ export default function LotusPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [balance, setBalance] = useState(0)
+  // VIPs are already boosted, so the lotus boost tiers are hidden for them
+  // (SK, 2026-09-27) - a short note shows in their place.
+  const [isVip, setIsVip] = useState(false)
   const [packs, setPacks] = useState([])
   const [boostTiers, setBoostTiers] = useState([])
 
@@ -52,7 +55,7 @@ export default function LotusPage() {
       setUser(u)
 
       const [{ data: profile, error: profileErr }, { data: packsData, error: packsErr }, { data: tiersData, error: tiersErr }] = await Promise.all([
-        supabase.from('profiles').select('lotus_balance').eq('id', u.id).single(),
+        supabase.from('profiles').select('lotus_balance, subscription_plan').eq('id', u.id).single(),
         supabase.from('lotus_purchase_packs').select('base_lotus, total_lotus, price_thb, stripe_price_id').order('base_lotus', { ascending: true }),
         supabase.from('lotus_boost_prices').select('duration_days, lotus_cost').order('duration_days', { ascending: true }),
       ])
@@ -63,6 +66,7 @@ export default function LotusPage() {
       if (tiersErr) console.error('[LotusPage] load boost prices failed:', tiersErr.message)
 
       setBalance(profile?.lotus_balance ?? 0)
+      setIsVip(profile?.subscription_plan === 'gold' || profile?.subscription_plan === 'platinum')
       setPacks(packsData || [])
       setBoostTiers(tiersData || [])
       setLoading(false)
@@ -217,6 +221,12 @@ export default function LotusPage() {
 
         {/* ── Boost with lotus ── */}
         <h2 style={S.sectionTitle}>{tx.boostWithLotus || 'Boost with lotus'}</h2>
+        {isVip ? (
+          <div style={S.vipNote}>
+            <CrownIcon size={18} />
+            <span>{tx.vipAlreadyBoosted || 'You are a VIP member — your profile is already boosted, so there is no extra boost to buy.'}</span>
+          </div>
+        ) : (
         <div style={S.tierGrid}>
           {boostTiers.map(tier => {
             const affordable = balance >= tier.lotus_cost
@@ -239,6 +249,7 @@ export default function LotusPage() {
             )
           })}
         </div>
+        )}
 
       </div>
 
@@ -324,6 +335,12 @@ const S = {
   balanceLabel: { margin: '0 0 4px', fontSize: 13, color: '#94a3b8' },
   balanceValue: { margin: 0, fontSize: 30, fontWeight: 800, color: '#f1f5f9' },
 
+  vipNote: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '14px 16px', borderRadius: 14,
+    background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.4)',
+    color: '#c4b5fd', fontSize: 14, fontWeight: 600, lineHeight: 1.5,
+  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: 700,

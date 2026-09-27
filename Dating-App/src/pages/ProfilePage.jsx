@@ -120,9 +120,12 @@ export default function ProfilePage() {
           <p style={S.location}><LocationIcon size={14} />{profile.location}</p>
         )}
 
-        <div style={S.boostWrap}>
-          <BoostButton userId={profile.id} size="lg" />
-        </div>
+        {/* No Boost for VIPs - VIP is already boosted (SK, 2026-09-27). */}
+        {profile.subscription_plan !== 'gold' && profile.subscription_plan !== 'platinum' && (
+          <div style={S.boostWrap}>
+            <BoostButton userId={profile.id} size="lg" />
+          </div>
+        )}
       </div>
 
       {/* ── Bio ── */}

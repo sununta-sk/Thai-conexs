@@ -211,23 +211,27 @@ function NavbarDesktop() {
           {isPremium && (
             <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
           )}
-          <button
-            onClick={() => goTo('/profile')}
-            style={{
-              padding: '8px 14px',
-              borderRadius: 6,
-              background: 'linear-gradient(135deg, #e91e63, #c2185b)',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#fff',
-              fontSize: 12,
-              fontWeight: 800,
-              boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
-              whiteSpace: 'nowrap',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-            }}>
-            <RocketIcon size={15} />{tx.boostProfile || 'Boost Profile'}
-          </button>
+          {/* VIP already ranks as boosted on Discover, so VIPs get no Boost
+              button (SK, 2026-09-27). */}
+          {!isPremium && (
+            <button
+              onClick={() => goTo('/profile')}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 6,
+                background: 'linear-gradient(135deg, #e91e63, #c2185b)',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 800,
+                boxShadow: '0 2px 6px rgba(233,30,99,0.3)',
+                whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+              }}>
+              <RocketIcon size={15} />{tx.boostProfile || 'Boost Profile'}
+            </button>
+          )}
           {!isPremium ? (
             <button
               onClick={() => goTo('/subscription')}
