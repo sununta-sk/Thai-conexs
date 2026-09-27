@@ -162,10 +162,11 @@ function NavbarDesktop() {
       </div>
 
       {/* Center: Discover | Messages | Chess | Admin | Avatar dropdown.
-          Gap stays 80px from ~1360px up and tightens below that (to 28px
-          at laptop widths), so the extra Chess item doesn't squeeze the
-          logo/online pill on narrower screens. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(28px, calc((100vw - 1040px) / 4), 80px)', justifySelf: 'center' }}>
+          Gap is 80px from ~1410px up and tightens below that (measured:
+          the widest gap that still keeps the "N Online" pill on one line
+          is ~48px at 1280 and ~76px at 1366; the formula leaves ~17px
+          spare for a desktop scrollbar, since 100vw includes it). */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, calc((100vw - 1170px) / 3), 80px)', justifySelf: 'center' }}>
         <button onClick={() => goTo('/discover')} style={navBtnStyle(isActive('/discover'))}>
           <Search size={24} style={navIconStyle} />
           <span style={{ fontSize: '11px' }}>{tx.discoverNav || 'Discover'}</span>
