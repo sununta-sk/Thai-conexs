@@ -12,6 +12,7 @@ import MobileNavbar from './MobileNavbar';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
 import InvisibleModeToggle from './InvisibleModeToggle';
+import LanguageSwitch from './LanguageSwitch';
 import { Search, MessageCircle, Zap, ChevronDown, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
 import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, LotusIcon, BellRingingIcon } from './Icons';
 
@@ -198,10 +199,7 @@ function NavbarDesktop() {
         )}
         {/* Avatar dropdown */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }} ref={menuRef}>
-          <div style={{ display: 'flex', gap: 0, background: '#0f172a', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
-            <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
-            <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
-          </div>
+          <LanguageSwitch lang={lang} onChange={setLang} deferHint={isPremium} />
           {isPremium && (
             <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />
           )}

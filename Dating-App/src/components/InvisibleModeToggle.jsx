@@ -31,6 +31,9 @@ export default function InvisibleModeToggle({ userId, isInvisible, onChange }) {
     try { localStorage.setItem(HINT_SEEN_KEY, '1'); } catch {
       // localStorage might fail in private mode - just don't persist the dismissal
     }
+    // LanguageSwitch holds its own first-time hint back until this one is
+    // gone, so the two popovers never overlap.
+    window.dispatchEvent(new Event('tcn-invisible-hint-dismissed'));
   };
 
   const handleToggle = async () => {

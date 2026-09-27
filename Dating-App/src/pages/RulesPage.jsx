@@ -2,6 +2,7 @@
 import { useTranslation } from '../hooks/useTranslation';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '../components/Icons';
+import LanguageSwitch from '../components/LanguageSwitch';
 
 const CONTENT = {
   en: {
@@ -207,22 +208,7 @@ export default function RulesPage() {
         <button style={S.backBtn} onClick={() => navigate(-1)}>
           <ArrowLeftIcon size={16} />{c.back}
         </button>
-        <div style={S.langToggle}>
-          <button
-            type="button"
-            style={{ ...S.langBtn, ...(lang === 'en' ? S.langBtnActive : {}) }}
-            onClick={() => setLang('en')}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            style={{ ...S.langBtn, ...(lang === 'th' ? S.langBtnActive : {}) }}
-            onClick={() => setLang('th')}
-          >
-            TH
-          </button>
-        </div>
+        <LanguageSwitch lang={lang} onChange={setLang} theme="light" hintAlign="right" />
       </div>
 
       <div style={S.container}>
@@ -296,28 +282,6 @@ const S = {
     display: 'flex',
     alignItems: 'center',
     gap: 6,
-  },
-  langToggle: {
-    display: 'flex',
-    gap: 4,
-    background: '#fff',
-    borderRadius: 20,
-    padding: 3,
-    border: '1px solid #f5d0e0',
-  },
-  langBtn: {
-    background: 'none',
-    border: 'none',
-    padding: '6px 14px',
-    fontSize: 13,
-    fontWeight: 700,
-    color: '#999',
-    cursor: 'pointer',
-    borderRadius: 16,
-  },
-  langBtnActive: {
-    background: '#e91e63',
-    color: '#fff',
   },
   container: {
     maxWidth: 720,

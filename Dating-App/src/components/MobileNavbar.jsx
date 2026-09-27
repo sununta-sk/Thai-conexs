@@ -11,6 +11,7 @@ import { useNavGuard } from '../context/NavGuardContext';
 import logoImg from '../lib/LotusConnexs-nav.webp';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import InvisibleModeToggle from './InvisibleModeToggle';
+import LanguageSwitch from './LanguageSwitch';
 import { Search, MessageCircle, Zap, Pencil, Settings, CircleHelp, LogOut } from 'lucide-react';
 import { PersonIcon, RocketIcon, DiamondIcon, CrownIcon, BellRingingIcon } from './Icons';
 
@@ -244,9 +245,8 @@ export default function MobileNavbar() {
             {onlineCount} {tx.online || 'online'}
           </span>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden' }}>
-          <button onClick={() => setLang('en')} style={{ padding: '4px 7px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>EN</button>
-          <button onClick={() => setLang('th')} style={{ padding: '4px 7px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700 }}>TH</button>
+        <div style={{ marginLeft: 'auto', display: 'flex' }}>
+          <LanguageSwitch lang={lang} onChange={setLang} size="sm" deferHint={isPremium} />
         </div>
         {isPremium && (
           <InvisibleModeToggle userId={userId} isInvisible={isInvisible} onChange={setIsInvisible} />

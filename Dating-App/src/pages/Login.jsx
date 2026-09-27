@@ -15,6 +15,7 @@ import imgSongkran from '../lib/songkran.jpeg';
 import imgThaifood from '../lib/thaifood.jpeg';
 import { GenderIcon, GiftIcon } from '../components/Icons';
 import { genderKind } from '../lib/profileFields';
+import LanguageSwitch from '../components/LanguageSwitch';
 
 const CONTENT = {
   en: {
@@ -206,9 +207,8 @@ function useIsMobile() {
 // ── Main Login Component ─────────────────────────────────────
 function LanguageToggle({ lang, setLang }) {
   return (
-    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 0, background: '#1e293b', border: '1px solid #334155', borderRadius: 8, overflow: 'hidden', zIndex: 20 }}>
-      <button type="button" onClick={() => setLang('en')} style={{ padding: '6px 10px', background: lang === 'en' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'en' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>EN</button>
-      <button type="button" onClick={() => setLang('th')} style={{ padding: '6px 10px', background: lang === 'th' ? '#e91e63' : 'transparent', border: 'none', cursor: 'pointer', color: lang === 'th' ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 700 }}>TH</button>
+    <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+      <LanguageSwitch lang={lang} onChange={setLang} hintAlign="right" />
     </div>
   );
 }
